@@ -1,0 +1,857 @@
+<?php
+/**
+ * @file DashboardController.php
+ * @description Controlador para gestionar el panel de administración (Admin) y el panel de proveedor (PT).
+ *              Incluye: métricas, reservas, gestión de tours/proveedores/usuarios y disponibilidad.
+ * @date 2026-06-10
+ * @author Antigravity
+ */
+
+namespace App\Http\Controllers;
+
+use App\Models\Proveedor;
+use App\Models\Reserva;
+use App\Models\ReservaTour;
+use App\Models\Tour;
+use App\Models\TourFecha;
+use App\Models\User;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Str;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+use Illuminate\View\View;
+
+class DashboardController extends Controller
+{
+    /**
+     * Muestra el panel correspondiente al rol del usuario.
+     *
+     * @return View|RedirectResponse
+     */
+    public function index()
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        // Los clientes tienen su propio dashboard en /mi-cuenta
+        if ($user->isCliente()) {
+            return redirect()->route('cliente.dashboard');
+        }
+
+        if (!$user->isAdmin() && !$user->isProveedor()) {
+            return redirect()->route('home')->with('error', __('Acceso no autorizado.'));
+        }
+
+        if ($user->isAdmin()) {
+            return $this->adminDashboard();
+        } else {
+            return $this->proveedorDashboard($user->proveedor_id);
+        }
+    }
+
+    /**
+     * Procesa y muestra los datos del Dashboard del Administrador.
+     *
+     * @return View
+     */
+    private function adminDashboard(): View
+    {
+        // Métricas globales
+        $totalSales = Reserva::where('estado', 'Pagada')->sum('precio_total_usd');
+        $totalBookings = Reserva::where('estado', 'Pagada')->count();
+        $totalCommissions = Reserva::where('estado', 'Pagada')->sum('comision_total_usd');
+        $netEarnings = $totalSales - $totalCommissions; // Lo que les corresponde a los proveedores
+
+        // Historial completo de reservas
+        $reservas = Reserva::with(['detalles.tour.proveedor'])
+            ->orderBy('fecha_reserva', 'desc')
+            ->get();
+
+        // Datos administrativos adicionales
+        $proveedores = Proveedor::withCount('tours')->get();
+        $tours = Tour::with(['proveedor', 'fechas'])->get();
+        $usuarios = User::with(['proveedor'])->get();
+
+        return view('dashboard.index', compact(
+            'totalSales',
+            'totalBookings',
+            'totalCommissions',
+            'netEarnings',
+            'reservas',
+            'proveedores',
+            'tours',
+            'usuarios'
+        ));
+    }
+
+    /**
+     * Procesa y muestra los datos del Dashboard del Proveedor.
+     *
+     * @param int $proveedorId
+     * @return View
+     */
+    private function proveedorDashboard(int $proveedorId): View
+    {
+        // Obtener tours del proveedor
+        $tourIds = Tour::where('proveedor_id', $proveedorId)->pluck('id');
+
+        // Buscar detalles de reservas asociadas a estos tours
+        $reservaDetalles = ReservaTour::with(['reserva', 'tour'])
+            ->whereIn('tour_id', $tourIds)
+            ->whereHas('reserva', function ($q) {
+                $q->where('estado', 'Pagada');
+            })
+            ->get();
+
+        // Calcular métricas
+        $totalSales = 0;
+        $totalCommissions = 0;
+        $reservaIdsUnicas = [];
+
+        foreach ($reservaDetalles as $detalle) {
+            $subtotal = $detalle->cantidad_personas * $detalle->precio_unitario_usd;
+            $totalSales += $subtotal;
+            $totalCommissions += $detalle->comision_usd;
+            $reservaIdsUnicas[$detalle->reserva_id] = true;
+        }
+
+        $totalBookings = count($reservaIdsUnicas);
+        $netEarnings = $totalSales - $totalCommissions; // La ganancia para el proveedor
+
+        // Cargar las fechas programadas de sus tours
+        $fechasDisponibles = TourFecha::with(['tour'])
+            ->whereIn('tour_id', $tourIds)
+            ->orderBy('fecha', 'asc')
+            ->get();
+
+        // Tours de este proveedor para el formulario de agregar fecha
+        $tours = Tour::where('proveedor_id', $proveedorId)->get();
+
+        return view('dashboard.index', compact(
+            'totalSales',
+            'totalBookings',
+            'totalCommissions',
+            'netEarnings',
+            'reservaDetalles',
+            'fechasDisponibles',
+            'tours'
+        ));
+    }
+
+    /**
+     * Guarda un nuevo proveedor (Acción de Administrador).
+     * @param Request $request
+     * @return RedirectResponse
+     */
+    public function storeProveedor(Request $request): RedirectResponse
+    {
+        $user = Auth::user();
+        if (!$user || !$user->isAdmin()) {
+            return redirect()->route('home')->with('error', __('Acceso no autorizado.'));
+        }
+
+        $validated = $request->validate([
+            'nombre_empresa'          => 'required|string|max:150',
+            'descripcion'             => 'required|string',
+            'rfc'                     => 'nullable|string|max:20',
+            'correo'                  => 'required|email|max:100|unique:users,email|unique:proveedores,correo',
+            'representante_nombre'    => 'required|string|max:100',
+            'representante_telefono'  => 'required|string|max:30',
+            'comision_porcentaje'     => 'required|integer|min:0|max:100',
+            'password'                => 'required|string|min:6',
+            'foto_url'                => 'nullable|url',
+        ]);
+
+        try {
+            \Illuminate\Support\Facades\DB::transaction(function () use ($validated) {
+                $proveedor = Proveedor::create([
+                    'nombre_empresa'          => $validated['nombre_empresa'],
+                    'descripcion'             => $validated['descripcion'],
+                    'rfc'                     => $validated['rfc'] ?? null,
+                    'correo'                  => $validated['correo'],
+                    'representante_nombre'    => $validated['representante_nombre'],
+                    'representante_telefono'  => $validated['representante_telefono'],
+                    'comision_porcentaje'     => $validated['comision_porcentaje'],
+                    'foto_url'                => $validated['foto_url'] ?? null,
+                ]);
+
+                User::create([
+                    'name'         => $validated['representante_nombre'],
+                    'email'        => $validated['correo'],
+                    'password'     => Hash::make($validated['password']),
+                    'tipo'         => 'PT',
+                    'telefono'     => $validated['representante_telefono'],
+                    'proveedor_id' => $proveedor->id,
+                ]);
+            });
+        } catch (\Throwable $e) {
+            return redirect()->route('dashboard')->with('error', 'Error al crear el proveedor: ' . $e->getMessage())->withInput();
+        }
+
+        return redirect()->route('dashboard')->with('success', __('Proveedor y usuario de acceso creados exitosamente.'))->with('active_tab', 'proveedores');
+    }
+
+    /**
+     * Actualiza la información de un proveedor existente (Acción de Administrador).
+     *
+     * @param Request $request
+     * @param int $id
+     * @return RedirectResponse
+     */
+    public function updateProveedor(Request $request, int $id): RedirectResponse
+    {
+        $user = Auth::user();
+        if (!$user || !$user->isAdmin()) {
+            return redirect()->route('home')->with('error', __('Acceso no autorizado.'));
+        }
+
+        $proveedor = Proveedor::findOrFail($id);
+
+        $validated = $request->validate([
+            'nombre_empresa'         => 'required|string|max:150',
+            'descripcion'            => 'required|string',
+            'rfc'                    => 'nullable|string|max:20',
+            'correo'                 => 'required|email|max:100|unique:proveedores,correo,' . $id,
+            'representante_nombre'   => 'required|string|max:100',
+            'representante_telefono' => 'required|string|max:30',
+            'comision_porcentaje'    => 'required|integer|min:0|max:100',
+            'foto_url'               => 'nullable|url',
+        ]);
+
+        try {
+            $proveedor->update([
+                'nombre_empresa'         => $validated['nombre_empresa'],
+                'descripcion'            => $validated['descripcion'],
+                'rfc'                    => $validated['rfc'] ?? null,
+                'correo'                 => $validated['correo'],
+                'representante_nombre'   => $validated['representante_nombre'],
+                'representante_telefono' => $validated['representante_telefono'],
+                'comision_porcentaje'    => $validated['comision_porcentaje'],
+                'foto_url'               => $validated['foto_url'] ?? null,
+            ]);
+
+            // Sincronizar el correo en el usuario asociado (si existe)
+            $associatedUser = User::where('proveedor_id', $proveedor->id)->where('tipo', 'PT')->first();
+            if ($associatedUser) {
+                $updateData = [
+                    'name'     => $validated['representante_nombre'],
+                    'email'    => $validated['correo'],
+                    'telefono' => $validated['representante_telefono'],
+                ];
+                // Solo actualizar email en users si no está duplicado
+                $emailExists = User::where('email', $validated['correo'])->where('id', '!=', $associatedUser->id)->exists();
+                if (!$emailExists) {
+                    $associatedUser->update($updateData);
+                } else {
+                    $associatedUser->update(['name' => $validated['representante_nombre'], 'telefono' => $validated['representante_telefono']]);
+                }
+            }
+        } catch (\Throwable $e) {
+            return redirect()->route('dashboard')->with('error', 'Error al actualizar el proveedor: ' . $e->getMessage())->with('active_tab', 'proveedores');
+        }
+
+        return redirect()->route('dashboard')->with('success', __('Proveedor actualizado exitosamente.'))->with('active_tab', 'proveedores');
+    }
+
+    /**
+     * Guarda un nuevo tour (Acción de Administrador).
+     *
+     * @param Request $request
+     * @return RedirectResponse
+     */
+    public function storeTour(Request $request): RedirectResponse
+    {
+        $user = Auth::user();
+        if (!$user || !$user->isAdmin()) {
+            return redirect()->route('home')->with('error', __('Acceso no autorizado.'));
+        }
+
+        $request->validate([
+            'titulo' => 'required|string|max:150',
+            'descripcion_corta' => 'required|string',
+            'descripcion_larga' => 'required|string',
+            'precio_base_usd' => 'required|numeric|min:1',
+            'duracion' => 'required|string|max:50',
+            'ubicacion' => 'required|string|max:100',
+            'punto_encuentro' => 'nullable|string',
+            'pais' => 'required|string|max:100',
+            'cupo_maximo' => 'nullable|integer|min:1',
+            'proveedor_id' => 'required|exists:proveedores,id',
+            'tags' => 'nullable|string',
+            'horarios' => 'nullable|string',
+            'imagen_destacada' => 'nullable|string',
+            'imagen_destacada_file' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
+            'galeria' => 'nullable|string',
+            'galeria_files' => 'nullable|array',
+            'galeria_files.*' => 'image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
+            'itinerario_titulos' => 'nullable|array',
+            'itinerario_descripciones' => 'nullable|array',
+            'incluye' => 'nullable|string',
+            'no_incluye' => 'nullable|string'
+        ]);
+
+        // Generar ID único
+        $slug = \Illuminate\Support\Str::slug($request->input('titulo'), '_');
+        $id = 'tour_' . $slug;
+
+        if (Tour::where('id', $id)->exists()) {
+            $id .= '_' . rand(100, 999);
+        }
+
+        // Parsear tags y horarios
+        $tags = array_map('trim', explode(',', $request->input('tags', 'Aventura')));
+        $horarios = array_map('trim', explode(',', $request->input('horarios', '09:00')));
+
+        // Procesar Imagen de Portada (Destacada)
+        $imagenDefault = 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=800&q=80';
+        if ($request->hasFile('imagen_destacada_file')) {
+            $file = $request->file('imagen_destacada_file');
+            $path = $file->store('tours', 'public');
+            $imagenDefault = '/storage/' . $path;
+        } elseif ($request->filled('imagen_destacada')) {
+            $imagenDefault = $request->input('imagen_destacada');
+        }
+
+        // Inicializar Galería
+        $galeria = [$imagenDefault];
+
+        // Procesar archivos de galería subidos
+        if ($request->hasFile('galeria_files')) {
+            foreach ($request->file('galeria_files') as $file) {
+                $path = $file->store('tours/galeria', 'public');
+                $galeria[] = '/storage/' . $path;
+            }
+        }
+
+        // Procesar URLs adicionales de galería
+        if ($request->filled('galeria')) {
+            $galeriaUrls = array_map('trim', explode(',', $request->input('galeria')));
+            // Filtrar URLs vacías o inválidas
+            $galeriaUrls = array_filter($galeriaUrls, function($url) {
+                return filter_var($url, FILTER_VALIDATE_URL) || strpos($url, '/storage/') === 0;
+            });
+            if (!empty($galeriaUrls)) {
+                $galeria = array_merge($galeria, $galeriaUrls);
+            }
+        }
+        $galeria = array_values(array_unique($galeria));
+
+        // Procesar itinerario
+        $itinerario = [];
+        $itinerarioTitulos = $request->input('itinerario_titulos', []);
+        $itinerarioDesc = $request->input('itinerario_descripciones', []);
+        foreach ($itinerarioTitulos as $index => $tituloVal) {
+            if (!empty(trim($tituloVal))) {
+                $itinerario[] = [
+                    'dia' => $index + 1,
+                    'titulo' => trim($tituloVal),
+                    'descripcion' => trim($itinerarioDesc[$index] ?? '')
+                ];
+            }
+        }
+
+        // Procesar incluye y no_incluye
+        $incluye = $request->filled('incluye')
+            ? array_map('trim', explode(',', $request->input('incluye')))
+            : [];
+        $noIncluye = $request->filled('no_incluye')
+            ? array_map('trim', explode(',', $request->input('no_incluye')))
+            : [];
+
+        Tour::create([
+            'id' => $id,
+            'proveedor_id' => $request->input('proveedor_id'),
+            'titulo' => [
+                'es' => $request->input('titulo'),
+                'en' => $request->input('titulo'),
+                'zh' => $request->input('titulo'),
+            ],
+            'descripcion_corta' => [
+                'es' => $request->input('descripcion_corta'),
+                'en' => $request->input('descripcion_corta'),
+                'zh' => $request->input('descripcion_corta'),
+            ],
+            'descripcion_larga' => [
+                'es' => $request->input('descripcion_larga'),
+                'en' => $request->input('descripcion_larga'),
+                'zh' => $request->input('descripcion_larga'),
+            ],
+            'ubicacion' => $request->input('ubicacion'),
+            'punto_encuentro' => $request->input('punto_encuentro'),
+            'pais' => $request->input('pais'),
+            'precio_base_usd' => (float)$request->input('precio_base_usd'),
+            'duracion' => $request->input('duracion'),
+            'imagen_destacada' => $imagenDefault,
+            'galeria' => $galeria,
+            'cupo_maximo' => (int)$request->input('cupo_maximo', 20),
+            'tags' => $tags,
+            'horarios' => $horarios,
+            'itinerario' => $itinerario,
+            'incluye' => $incluye,
+            'no_incluye' => $noIncluye
+        ]);
+
+        return redirect()->route('dashboard')->with('success', __('Tour creado exitosamente.'))->with('active_tab', 'tours');
+    }
+
+    /**
+     * Habilita fechas para un tour (Acción de Administrador o Proveedor).
+     *
+     * @param Request $request
+     * @return RedirectResponse
+     */
+    public function storeTourFechas(Request $request): RedirectResponse
+    {
+        $user = Auth::user();
+        if (!$user || (!$user->isAdmin() && !$user->isProveedor())) {
+            return redirect()->route('home')->with('error', __('Acceso no autorizado.'));
+        }
+
+        $request->validate([
+            'tour_id' => 'required|exists:tours,id',
+            'fecha_inicio' => 'required|date|after_or_equal:today',
+            'fecha_fin' => 'required|date|after_or_equal:fecha_inicio',
+            'operacion' => 'required|in:habilitar,deshabilitar',
+            'horarios' => 'nullable|string',
+            'cupo_maximo' => 'required_if:operacion,habilitar|integer|min:1|max:100'
+        ]);
+
+        $tourId = $request->input('tour_id');
+        $tour = Tour::findOrFail($tourId);
+
+        // Si es Proveedor, validar pertenencia
+        if ($user->isProveedor() && $tour->proveedor_id !== $user->proveedor_id) {
+            return redirect()->back()->with('error', __('El tour seleccionado no le pertenece.'));
+        }
+
+        $fechaInicio = \Carbon\Carbon::parse($request->input('fecha_inicio'));
+        $fechaFin = \Carbon\Carbon::parse($request->input('fecha_fin'));
+        $operacion = $request->input('operacion');
+        $cupoMax = (int) $request->input('cupo_maximo', 20);
+
+        // Parsear horarios
+        if ($request->filled('horarios')) {
+            $horarios = array_map('trim', explode(',', $request->input('horarios')));
+        } else {
+            $horarios = $tour->horarios ?: ['09:00'];
+        }
+
+        $current = $fechaInicio->copy();
+        $count = 0;
+
+        while ($current->lte($fechaFin)) {
+            $fechaStr = $current->format('Y-m-d');
+            foreach ($horarios as $hora) {
+                if ($operacion === 'habilitar') {
+                    TourFecha::updateOrCreate(
+                        ['tour_id' => $tourId, 'fecha' => $fechaStr, 'horario' => $hora],
+                        ['cupo_maximo' => $cupoMax]
+                    );
+                    $count++;
+                } else {
+                    $deleted = TourFecha::where('tour_id', $tourId)
+                        ->where('fecha', $fechaStr)
+                        ->where('horario', $hora)
+                        ->where('cupo_reservado', 0)
+                        ->delete();
+                    if ($deleted > 0) {
+                        $count++;
+                    }
+                }
+            }
+            $current->addDay();
+        }
+
+        $msg = $operacion === 'habilitar' 
+            ? __('Se han habilitado :count salidas exitosamente.', ['count' => $count])
+            : __('Se han deshabilitado :count salidas (sin reservas activas).', ['count' => $count]);
+
+        return redirect()->back()->with('success', $msg);
+    }
+
+    /**
+     * Cambia el rol de un usuario y asocia sucursal/proveedor si aplica (Acción de Administrador).
+     *
+     * @param Request $request
+     * @param int $id
+     * @return RedirectResponse
+     */
+    public function updateUserRole(Request $request, int $id): RedirectResponse
+    {
+        $user = Auth::user();
+        if (!$user || !$user->isAdmin()) {
+            return redirect()->route('home')->with('error', __('Acceso no autorizado.'));
+        }
+
+        $request->validate([
+            'tipo' => 'required|in:Admin,PT,Cliente',
+            'proveedor_id' => 'nullable|required_if:tipo,PT|exists:proveedores,id'
+        ]);
+
+        $targetUser = User::findOrFail($id);
+
+        if ($targetUser->id === $user->id && $request->input('tipo') !== 'Admin') {
+            return redirect()->back()->with('error', __('No puedes quitarte el rol de Administrador a ti mismo.'));
+        }
+
+        $targetUser->update([
+            'tipo' => $request->input('tipo'),
+            'proveedor_id' => $request->input('tipo') === 'PT' ? $request->input('proveedor_id') : null
+        ]);
+
+        return redirect()->back()->with('success', __('Rol y permisos de usuario actualizados exitosamente.'));
+    }
+
+    /**
+     * Restablece la contraseña de un usuario directamente (Acción de Administrador).
+     *
+     * @param Request $request
+     * @param int $id
+     * @return RedirectResponse
+     */
+    public function resetUserPassword(Request $request, int $id): RedirectResponse
+    {
+        $user = Auth::user();
+        if (!$user || !$user->isAdmin()) {
+            return redirect()->route('home')->with('error', __('Acceso no autorizado.'));
+        }
+
+        $request->validate([
+            'new_password' => 'required|string|min:6'
+        ]);
+
+        $targetUser = User::findOrFail($id);
+        $targetUser->update([
+            'password' => Hash::make($request->input('new_password'))
+        ]);
+
+        return redirect()->back()->with('success', __('Contraseña restablecida exitosamente para :nombre.', ['nombre' => $targetUser->name]));
+    }
+
+
+
+    /**
+     * Permite a los proveedores añadir o modificar la disponibilidad de fechas para sus tours.
+     *
+     * @param Request $request
+     * @return RedirectResponse
+     */
+    public function updateDates(Request $request): RedirectResponse
+    {
+        return $this->storeTourFechas($request);
+    }
+
+    /**
+     * Obtiene la disponibilidad de un tour para un mes específico en formato JSON.
+     *
+     * @param int|string $id ID del tour
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getTourFechasJson($id, Request $request)
+    {
+        $user = Auth::user();
+        if (!$user || (!$user->isAdmin() && !$user->isProveedor())) {
+            return response()->json(['error' => __('No autorizado.')], 403);
+        }
+
+        $tour = Tour::findOrFail($id);
+
+        if ($user->isProveedor() && $tour->proveedor_id !== $user->proveedor_id) {
+            return response()->json(['error' => __('No autorizado para este tour.')], 403);
+        }
+
+        $year = $request->input('year', date('Y'));
+        $month = $request->input('month', date('m'));
+
+        $fechas = TourFecha::where('tour_id', $id)
+            ->whereYear('fecha', $year)
+            ->whereMonth('fecha', $month)
+            ->get();
+
+        // Agrupar por fecha
+        $resultado = [];
+        foreach ($fechas as $fecha) {
+            $fechaStr = $fecha->fecha->format('Y-m-d');
+            if (!isset($resultado[$fechaStr])) {
+                $resultado[$fechaStr] = [];
+            }
+            $resultado[$fechaStr][] = [
+                'id' => $fecha->id,
+                'horario' => $fecha->horario,
+                'cupo_maximo' => $fecha->cupo_maximo,
+                'cupo_reservado' => $fecha->cupo_reservado,
+                'cupo_disponible' => $fecha->cupo_disponible,
+            ];
+        }
+
+        return response()->json([
+            'success' => true,
+            'fechas' => $resultado
+        ]);
+    }
+
+    /**
+     * Actualiza de forma atómica la disponibilidad de un día específico para un tour.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function updateSingleDayAvailability(Request $request)
+    {
+        $user = Auth::user();
+        if (!$user || (!$user->isAdmin() && !$user->isProveedor())) {
+            return response()->json(['error' => __('No autorizado.')], 403);
+        }
+
+        $request->validate([
+            'tour_id' => 'required|exists:tours,id',
+            'fecha' => 'required|date',
+            'habilitado' => 'required|boolean',
+            'salidas' => 'nullable|array',
+            'salidas.*.horario' => 'required_if:habilitado,true|string|regex:/^\d{2}:\d{2}$/',
+            'salidas.*.cupo_maximo' => 'required_if:habilitado,true|integer|min:1'
+        ]);
+
+        $tourId = $request->input('tour_id');
+        $fecha = $request->input('fecha');
+        $habilitado = $request->input('habilitado');
+        $salidas = $request->input('salidas', []);
+
+        $tour = Tour::findOrFail($tourId);
+
+        if ($user->isProveedor() && $tour->proveedor_id !== $user->proveedor_id) {
+            return response()->json(['error' => __('No autorizado para este tour.')], 403);
+        }
+
+        $existentes = TourFecha::where('tour_id', $tourId)
+            ->where('fecha', $fecha)
+            ->get();
+
+        $advertencias = [];
+
+        if (!$habilitado) {
+            // Deshabilitar todo el día
+            // Verificar si hay reservas activas en algún horario de este día
+            $conReservas = $existentes->where('cupo_reservado', '>', 0);
+            if ($conReservas->isNotEmpty()) {
+                // Borrar solo las que no tienen reservas, conservar las que sí
+                $sinReservas = $existentes->where('cupo_reservado', 0);
+                foreach ($sinReservas as $fechaFecha) {
+                    $fechaFecha->delete();
+                }
+                
+                $horariosConservados = $conReservas->pluck('horario')->toArray();
+                return response()->json([
+                    'success' => true,
+                    'warning' => __('No se pudieron deshabilitar algunas salidas porque tienen reservas activas: :horarios', [
+                        'horarios' => implode(', ', $horariosConservados)
+                    ]),
+                    'fechas' => $this->getFechasDeDia($tourId, $fecha)
+                ]);
+            } else {
+                // Borrar todo
+                TourFecha::where('tour_id', $tourId)->where('fecha', $fecha)->delete();
+                return response()->json([
+                    'success' => true,
+                    'message' => __('Día deshabilitado por completo.'),
+                    'fechas' => []
+                ]);
+            }
+        }
+
+        // Si está habilitado
+        $horariosEnviados = collect($salidas)->pluck('horario')->toArray();
+
+        // 1. Eliminar horarios que ya no se enviaron, si no tienen reservas
+        foreach ($existentes as $existente) {
+            if (!in_array($existente->horario, $horariosEnviados)) {
+                if ($existente->cupo_reservado > 0) {
+                    $advertencias[] = __('El horario :horario no se pudo eliminar porque tiene reservas activas.', ['horario' => $existente->horario]);
+                } else {
+                    $existente->delete();
+                }
+            }
+        }
+
+        // 2. Crear o actualizar los horarios enviados
+        foreach ($salidas as $salida) {
+            $horario = $salida['horario'];
+            $cupoMaximo = (int) $salida['cupo_maximo'];
+
+            // Buscar si ya existe para ver si tiene reservas
+            $existente = $existentes->firstWhere('horario', $horario);
+            if ($existente && $existente->cupo_reservado > $cupoMaximo) {
+                // Si el nuevo cupo máximo es menor que los reservados, no permitir
+                $advertencias[] = __('No se puede bajar el cupo máximo de :horario a :cupo porque ya hay :reservas reservas.', [
+                    'horario' => $horario,
+                    'cupo' => $cupoMaximo,
+                    'reservas' => $existente->cupo_reservado
+                ]);
+                // Ajustar al mínimo posible (el cupo reservado actual) o mantener
+                $cupoMaximo = $existente->cupo_reservado;
+            }
+
+            TourFecha::updateOrCreate(
+                ['tour_id' => $tourId, 'fecha' => $fecha, 'horario' => $horario],
+                ['cupo_maximo' => $cupoMaximo]
+            );
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => __('Disponibilidad actualizada correctamente.'),
+            'warnings' => $advertencias,
+            'fechas' => $this->getFechasDeDia($tourId, $fecha)
+        ]);
+    }
+
+    /**
+     * Helper para obtener las fechas de un día específico.
+     */
+    private function getFechasDeDia($tourId, $fecha)
+    {
+        return TourFecha::where('tour_id', $tourId)
+            ->where('fecha', $fecha)
+            ->get()
+            ->map(function ($f) {
+                return [
+                    'id' => $f->id,
+                    'horario' => $f->horario,
+                    'cupo_maximo' => $f->cupo_maximo,
+                    'cupo_reservado' => $f->cupo_reservado,
+                    'cupo_disponible' => $f->cupo_disponible,
+                ];
+            });
+    }
+
+    public function updateTour(Request $request, string $id): RedirectResponse
+    {
+        $user = Auth::user();
+        if (!$user || !$user->isAdmin()) {
+            return redirect()->route('home')->with('error', __('Acceso no autorizado.'));
+        }
+
+        $tour = Tour::findOrFail($id);
+
+        $request->validate([
+            'titulo' => 'required|string|max:150',
+            'descripcion_corta' => 'required|string',
+            'descripcion_larga' => 'required|string',
+            'precio_base_usd' => 'required|numeric|min:1',
+            'duracion' => 'required|string|max:50',
+            'ubicacion' => 'required|string|max:100',
+            'punto_encuentro' => 'nullable|string',
+            'pais' => 'required|string|max:100',
+            'proveedor_id' => 'required|exists:proveedores,id',
+            'tags' => 'nullable|string',
+            'imagen_destacada' => 'nullable|string',
+            'imagen_destacada_file' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
+            'galeria' => 'nullable|string',
+            'galeria_files' => 'nullable|array',
+            'galeria_files.*' => 'image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
+            'itinerario_titulos' => 'nullable|array',
+            'itinerario_descripciones' => 'nullable|array',
+            'incluye' => 'nullable|string',
+            'no_incluye' => 'nullable|string'
+        ]);
+
+        // Parsear tags
+        $tags = array_map('trim', explode(',', $request->input('tags', 'Aventura')));
+
+        // Procesar Imagen de Portada (Destacada)
+        $imagenDefault = $tour->imagen_destacada ?: 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=800&q=80';
+        if ($request->hasFile('imagen_destacada_file')) {
+            $file = $request->file('imagen_destacada_file');
+            $path = $file->store('tours', 'public');
+            $imagenDefault = '/storage/' . $path;
+        } elseif ($request->filled('imagen_destacada')) {
+            $imagenDefault = $request->input('imagen_destacada');
+        }
+
+        // Inicializar Galería
+        $galeria = [$imagenDefault];
+
+        // Procesar archivos de galería subidos
+        if ($request->hasFile('galeria_files')) {
+            foreach ($request->file('galeria_files') as $file) {
+                $path = $file->store('tours/galeria', 'public');
+                $galeria[] = '/storage/' . $path;
+            }
+        }
+
+        // Procesar URLs de galería
+        if ($request->filled('galeria')) {
+            $galeriaUrls = array_map('trim', explode(',', $request->input('galeria')));
+            $galeriaUrls = array_filter($galeriaUrls, function($url) {
+                return filter_var($url, FILTER_VALIDATE_URL) || strpos($url, '/storage/') === 0;
+            });
+            if (!empty($galeriaUrls)) {
+                $galeria = array_merge($galeria, $galeriaUrls);
+            }
+        }
+        $galeria = array_values(array_unique($galeria));
+
+        // Procesar itinerario
+        $itinerario = [];
+        $itinerarioTitulos = $request->input('itinerario_titulos', []);
+        $itinerarioDesc = $request->input('itinerario_descripciones', []);
+        foreach ($itinerarioTitulos as $index => $tituloVal) {
+            if (!empty(trim($tituloVal))) {
+                $itinerario[] = [
+                    'dia' => $index + 1,
+                    'titulo' => trim($tituloVal),
+                    'descripcion' => trim($itinerarioDesc[$index] ?? '')
+                ];
+            }
+        }
+
+        // Procesar incluye y no_incluye
+        $incluye = $request->filled('incluye')
+            ? array_map('trim', explode(',', $request->input('incluye')))
+            : [];
+        $noIncluye = $request->filled('no_incluye')
+            ? array_map('trim', explode(',', $request->input('no_incluye')))
+            : [];
+
+        $tour->update([
+            'proveedor_id' => $request->input('proveedor_id'),
+            'titulo' => [
+                'es' => $request->input('titulo'),
+                'en' => $request->input('titulo'),
+                'zh' => $request->input('titulo'),
+            ],
+            'descripcion_corta' => [
+                'es' => $request->input('descripcion_corta'),
+                'en' => $request->input('descripcion_corta'),
+                'zh' => $request->input('descripcion_corta'),
+            ],
+            'descripcion_larga' => [
+                'es' => $request->input('descripcion_larga'),
+                'en' => $request->input('descripcion_larga'),
+                'zh' => $request->input('descripcion_larga'),
+            ],
+            'ubicacion' => $request->input('ubicacion'),
+            'punto_encuentro' => $request->input('punto_encuentro'),
+            'pais' => $request->input('pais'),
+            'precio_base_usd' => (float)$request->input('precio_base_usd'),
+            'duracion' => $request->input('duracion'),
+            'imagen_destacada' => $imagenDefault,
+            'galeria' => $galeria,
+            'tags' => $tags,
+            'itinerario' => $itinerario,
+            'incluye' => $incluye,
+            'no_incluye' => $noIncluye
+        ]);
+
+        return redirect()->route('dashboard')->with('success', __('Tour actualizado exitosamente.'))->with('active_tab', 'tours');
+    }
+}

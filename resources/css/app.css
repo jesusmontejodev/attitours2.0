@@ -1,9 +1,73 @@
 @import 'tailwindcss';
 
+/**
+ * @file app.css
+ * @description Hoja de estilos principal. Incorpora Tailwind CSS v4, configuraciones de fuentes Bunny y animaciones de interacción premium.
+ * @date 2026-06-08
+ * @author Antigravity
+ */
+
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+}
+
+/* Animaciones y Clases Especiales Premium */
+@layer utilities {
+    .animate-fade-in {
+        animation: fadeIn 0.4s ease-out forwards;
+    }
+    
+    .animate-float {
+        animation: float 4s ease-in-out infinite;
+    }
+    
+    .text-glow {
+        text-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+    }
+    
+    .bg-grid-pattern {
+        background-size: 30px 30px;
+        background-image: 
+            linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-8px);
+    }
+}
+
+/* Scrollbar moderno */
+::-webkit-scrollbar {
+    width: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #0f172a;
+}
+::-webkit-scrollbar-thumb {
+    background: #334155;
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #475569;
 }
