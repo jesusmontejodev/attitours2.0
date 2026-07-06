@@ -2,8 +2,8 @@
 
 <!-- 
  * @file index.blade.php
- * @description Vista rediseñada del Dashboard. Soporta pestañas interactivas estilo SPA. Rediseñado a tema claro premium con colores corporativos e integración de logotipos. Rediseñado el módulo de Tours a un layout dual Master-Detail y añadido un Calendario Global de Reservas interactivo con filtros reactivos integrados.
- * @date 2026-06-29
+ * @description Vista rediseñada del Dashboard. Soporta pestañas interactivas estilo SPA. Rediseñado el módulo de Tours a un layout dual Master-Detail y añadido un Calendario Global de Reservas interactivo con filtros reactivos integrados.
+ * @date 2026-06-10
  * @author Antigravity
 -->
 
@@ -13,16 +13,16 @@
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
         
         <!-- ENCABEZADO PANEL -->
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-6 mb-8">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-900 pb-6 mb-8">
             <div>
-                <h1 class="text-2xl sm:text-3xl font-black text-slate-800">
+                <h1 class="text-2xl sm:text-3xl font-black text-white">
                     Panel de Gestión
                 </h1>
-                <p class="text-xs text-slate-500 mt-1 font-semibold">
+                <p class="text-xs text-slate-400 mt-1">
                     @if(Auth::user()->isAdmin())
                         Consola de control global para la administración de la plataforma.
                     @else
-                        Operadora Local: <span class="text-brand-teal font-bold">{{ Auth::user()->proveedor->nombre_empresa }}</span>
+                        Operadora Local: <span class="text-cyan-400 font-bold">{{ Auth::user()->proveedor->nombre_empresa }}</span>
                     @endif
                 </p>
             </div>
@@ -30,7 +30,7 @@
             <!-- Botones de Acción Globales -->
             <div class="flex items-center gap-3">
                 @if(Auth::user()->isAdmin() || Auth::user()->isProveedor())
-                    <a href="{{ route('dashboard.qr.scanner') }}" class="inline-flex h-9 items-center justify-center gap-1.5 px-4 rounded-lg bg-gradient-to-r from-brand-teal to-brand-teal-hover text-xs font-bold text-white shadow-lg hover:opacity-95 transition-opacity">
+                    <a href="{{ route('dashboard.qr.scanner') }}" class="inline-flex h-9 items-center justify-center gap-1.5 px-4 rounded-lg bg-gradient-to-r from-cyan-500 to-indigo-600 text-xs font-bold text-white shadow-lg hover:opacity-95 transition-opacity">
                         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/>
                         </svg>
@@ -42,25 +42,25 @@
 
         {{-- ========= BANNER DE NOTIFICACIONES FLASH ========= --}}
         @if(session('success'))
-        <div id="flash-success" class="mb-6 flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-3.5 text-sm text-emerald-700 font-bold shadow-md" role="alert">
-            <svg class="h-5 w-5 shrink-0 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <div id="flash-success" class="mb-6 flex items-center gap-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-5 py-3.5 text-sm text-emerald-300 shadow-lg backdrop-blur-md" role="alert">
+            <svg class="h-5 w-5 shrink-0 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             <span class="font-medium">{{ session('success') }}</span>
-            <button onclick="document.getElementById('flash-success').remove()" class="ml-auto text-emerald-600 hover:text-white cursor-pointer">✕</button>
+            <button onclick="document.getElementById('flash-success').remove()" class="ml-auto text-emerald-400 hover:text-white cursor-pointer">✕</button>
         </div>
         @endif
         @if(session('error'))
-        <div id="flash-error" class="mb-6 flex items-center gap-3 rounded-xl border border-rose-200 bg-rose-50 px-5 py-3.5 text-sm text-rose-700 font-bold shadow-md" role="alert">
-            <svg class="h-5 w-5 shrink-0 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <div id="flash-error" class="mb-6 flex items-center gap-3 rounded-xl border border-rose-500/30 bg-rose-500/10 px-5 py-3.5 text-sm text-rose-300 shadow-lg backdrop-blur-md" role="alert">
+            <svg class="h-5 w-5 shrink-0 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             <span class="font-medium">{{ session('error') }}</span>
-            <button onclick="document.getElementById('flash-error').remove()" class="ml-auto text-rose-600 hover:text-white cursor-pointer">✕</button>
+            <button onclick="document.getElementById('flash-error').remove()" class="ml-auto text-rose-400 hover:text-white cursor-pointer">✕</button>
         </div>
         @endif
         @if($errors->any())
-        <div id="flash-validation" class="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-5 py-3.5 text-sm text-amber-700 font-bold shadow-md" role="alert">
+        <div id="flash-validation" class="mb-6 rounded-xl border border-amber-500/30 bg-amber-500/10 px-5 py-3.5 text-sm text-amber-300 shadow-lg backdrop-blur-md" role="alert">
             <div class="flex items-center gap-2 mb-2">
-                <svg class="h-5 w-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856C18.41 19 19 18.105 19 17V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10c0 1.105.59 2 1.062 2z"/></svg>
+                <svg class="h-5 w-5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856C18.41 19 19 18.105 19 17V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10c0 1.105.59 2 1.062 2z"/></svg>
                 <span class="font-bold">Por favor corrige los siguientes errores:</span>
-                <button onclick="document.getElementById('flash-validation').remove()" class="ml-auto text-amber-600 hover:text-white cursor-pointer">✕</button>
+                <button onclick="document.getElementById('flash-validation').remove()" class="ml-auto text-amber-400 hover:text-white cursor-pointer">✕</button>
             </div>
             <ul class="list-disc list-inside space-y-0.5">
                 @foreach($errors->all() as $error)
@@ -85,17 +85,17 @@
 
         @if(Auth::user()->isAdmin())
             <!-- PESTAÑAS DE NAVEGACIÓN (Solo Administrador) -->
-            <div class="flex border-b border-slate-200 mb-8 overflow-x-auto">
-                <button onclick="switchTab('metrics')" id="tab-btn-metrics" class="tab-btn px-6 py-3 border-b-2 border-brand-teal text-brand-teal text-xs font-black uppercase tracking-wider transition-all cursor-pointer">
+            <div class="flex border-b border-slate-900 mb-8 overflow-x-auto">
+                <button onclick="switchTab('metrics')" id="tab-btn-metrics" class="tab-btn px-6 py-3 border-b-2 border-cyan-400 text-cyan-400 text-xs font-black uppercase tracking-wider transition-all cursor-pointer">
                     📈 Métricas & Reservas
                 </button>
-                <button onclick="switchTab('proveedores')" id="tab-btn-proveedores" class="tab-btn px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-900 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer">
+                <button onclick="switchTab('proveedores')" id="tab-btn-proveedores" class="tab-btn px-6 py-3 border-b-2 border-transparent text-slate-400 hover:text-white text-xs font-black uppercase tracking-wider transition-all cursor-pointer">
                     🏢 Proveedores
                 </button>
-                <button onclick="switchTab('tours')" id="tab-btn-tours" class="tab-btn px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-900 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer">
+                <button onclick="switchTab('tours')" id="tab-btn-tours" class="tab-btn px-6 py-3 border-b-2 border-transparent text-slate-400 hover:text-white text-xs font-black uppercase tracking-wider transition-all cursor-pointer">
                     ⛵ Tours
                 </button>
-                <button onclick="switchTab('usuarios')" id="tab-btn-usuarios" class="tab-btn px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-900 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer">
+                <button onclick="switchTab('usuarios')" id="tab-btn-usuarios" class="tab-btn px-6 py-3 border-b-2 border-transparent text-slate-400 hover:text-white text-xs font-black uppercase tracking-wider transition-all cursor-pointer">
                     👥 Usuarios
                 </button>
             </div>
@@ -105,17 +105,17 @@
         <div id="tab-content-metrics" class="tab-pane animate-fade-in">
             @if(Auth::user()->isAdmin())
                 <!-- PANEL DE FILTROS INTERACTIVOS -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8 p-4 rounded-2xl border border-slate-200 bg-white/95 shadow-sm backdrop-blur-md">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8 p-4 rounded-2xl border border-slate-900 bg-slate-950/20 backdrop-blur-md">
                     <!-- Búsqueda general -->
                     <div class="flex flex-col gap-1.5">
-                        <label class="text-[9px] font-black uppercase tracking-wider text-slate-450">Buscar Cliente / Ticket</label>
-                        <input type="text" id="filter-search" oninput="applyReservasFilters()" placeholder="Ej. Juan o TKT-..." class="w-full h-9 rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs text-slate-700 placeholder-slate-400 focus:border-brand-teal focus:border-cyan-500 focus:outline-none">
+                        <label class="text-[9px] font-bold uppercase tracking-wider text-slate-500">Buscar Cliente / Ticket</label>
+                        <input type="text" id="filter-search" oninput="applyReservasFilters()" placeholder="Ej. Juan o TKT-..." class="w-full h-9 rounded-lg border border-slate-800 bg-slate-900 px-3 text-xs text-white placeholder-slate-600 focus:border-cyan-500 focus:outline-none">
                     </div>
                     
                     <!-- Proveedor -->
                     <div class="flex flex-col gap-1.5">
-                        <label class="text-[9px] font-black uppercase tracking-wider text-slate-450">Proveedor</label>
-                        <select id="filter-proveedor" onchange="applyReservasFilters()" class="w-full h-9 rounded-lg border border-slate-200 bg-slate-50 px-2 text-xs text-slate-700 focus:border-brand-teal cursor-pointer">
+                        <label class="text-[9px] font-bold uppercase tracking-wider text-slate-500">Proveedor</label>
+                        <select id="filter-proveedor" onchange="applyReservasFilters()" class="w-full h-9 rounded-lg border border-slate-800 bg-slate-900 px-2 text-xs text-white focus:border-cyan-500 cursor-pointer">
                             <option value="">Todos</option>
                             @foreach($proveedores as $prov)
                                 <option value="{{ $prov->id }}">{{ $prov->nombre_empresa }}</option>
@@ -125,8 +125,8 @@
                     
                     <!-- Tour -->
                     <div class="flex flex-col gap-1.5">
-                        <label class="text-[9px] font-black uppercase tracking-wider text-slate-450">Tour</label>
-                        <select id="filter-tour" onchange="applyReservasFilters()" class="w-full h-9 rounded-lg border border-slate-200 bg-slate-50 px-2 text-xs text-slate-700 focus:border-brand-teal cursor-pointer">
+                        <label class="text-[9px] font-bold uppercase tracking-wider text-slate-500">Tour</label>
+                        <select id="filter-tour" onchange="applyReservasFilters()" class="w-full h-9 rounded-lg border border-slate-800 bg-slate-900 px-2 text-xs text-white focus:border-cyan-500 cursor-pointer">
                             <option value="">Todos</option>
                             @foreach($tours as $t)
                                 <option value="{{ $t->id }}">{{ $t->nombre }}</option>
@@ -136,14 +136,14 @@
 
                     <!-- Rango Fechas (Desde) -->
                     <div class="flex flex-col gap-1.5">
-                        <label class="text-[9px] font-black uppercase tracking-wider text-slate-450">Desde (Fecha Compra)</label>
-                        <input type="date" id="filter-desde" onchange="applyReservasFilters()" class="w-full h-9 rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs text-slate-700 focus:border-brand-teal cursor-pointer" style="color-scheme: dark;">
+                        <label class="text-[9px] font-bold uppercase tracking-wider text-slate-500">Desde (Fecha Compra)</label>
+                        <input type="date" id="filter-desde" onchange="applyReservasFilters()" class="w-full h-9 rounded-lg border border-slate-800 bg-slate-900 px-3 text-xs text-white focus:border-cyan-500 cursor-pointer" style="color-scheme: dark;">
                     </div>
 
                     <!-- Rango Fechas (Hasta) -->
                     <div class="flex flex-col gap-1.5">
-                        <label class="text-[9px] font-black uppercase tracking-wider text-slate-450">Hasta (Fecha Compra)</label>
-                        <input type="date" id="filter-hasta" onchange="applyReservasFilters()" class="w-full h-9 rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs text-slate-700 focus:border-brand-teal cursor-pointer" style="color-scheme: dark;">
+                        <label class="text-[9px] font-bold uppercase tracking-wider text-slate-500">Hasta (Fecha Compra)</label>
+                        <input type="date" id="filter-hasta" onchange="applyReservasFilters()" class="w-full h-9 rounded-lg border border-slate-800 bg-slate-900 px-3 text-xs text-white focus:border-cyan-500 cursor-pointer" style="color-scheme: dark;">
                     </div>
                 </div>
             @endif
@@ -151,67 +151,67 @@
             <!-- TARJETAS DE MÉTRICAS -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
                 <!-- Ventas Totales -->
-                <div class="p-6 rounded-2xl border border-slate-200 bg-white shadow-xs relative overflow-hidden group">
-                    <div class="absolute -right-4 -bottom-4 text-slate-100 text-7xl select-none font-black opacity-30 group-hover:scale-105 transition-transform duration-300">$</div>
-                    <p class="text-[9px] font-bold text-slate-450 uppercase tracking-widest">{{ __('totalSales') }}</p>
-                    <p class="text-2xl font-black text-slate-800 mt-2">$<span id="metric-total-sales">{{ number_format($totalSales, 2) }}</span> <span class="text-[10px] text-slate-550 font-bold">MXN</span></p>
+                <div class="p-6 rounded-2xl border border-slate-900 bg-slate-950/40 shadow-xl relative overflow-hidden group">
+                    <div class="absolute -right-4 -bottom-4 text-slate-900/40 text-7xl select-none font-black opacity-30 group-hover:scale-105 transition-transform duration-300">$</div>
+                    <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">{{ __('totalSales') }}</p>
+                    <p class="text-2xl font-black text-white mt-2">$<span id="metric-total-sales">{{ number_format($totalSales, 2) }}</span> <span class="text-[10px] text-slate-400 font-bold">MXN</span></p>
                 </div>
 
                 <!-- Reservas Totales -->
-                <div class="p-6 rounded-2xl border border-slate-200 bg-white shadow-xs relative overflow-hidden group">
-                    <div class="absolute -right-4 -bottom-4 text-slate-100 text-7xl select-none font-black opacity-30 group-hover:scale-105 transition-transform duration-300">#</div>
-                    <p class="text-[9px] font-bold text-slate-450 uppercase tracking-widest">{{ __('totalBookings') }}</p>
-                    <p class="text-2xl font-black text-slate-800 mt-2"><span id="metric-total-bookings">{{ $totalBookings }}</span> <span class="text-[10px] text-slate-550 font-bold">viajes</span></p>
+                <div class="p-6 rounded-2xl border border-slate-900 bg-slate-950/40 shadow-xl relative overflow-hidden group">
+                    <div class="absolute -right-4 -bottom-4 text-slate-900/40 text-7xl select-none font-black opacity-30 group-hover:scale-105 transition-transform duration-300">#</div>
+                    <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">{{ __('totalBookings') }}</p>
+                    <p class="text-2xl font-black text-white mt-2"><span id="metric-total-bookings">{{ $totalBookings }}</span> <span class="text-[10px] text-slate-400 font-bold">viajes</span></p>
                 </div>
 
                 <!-- Comisiones -->
-                <div class="p-6 rounded-2xl border border-slate-200 bg-white shadow-xs relative overflow-hidden group">
-                    <div class="absolute -right-4 -bottom-4 text-slate-100 text-7xl select-none font-black opacity-30 group-hover:scale-105 transition-transform duration-300">%</div>
-                    <p class="text-[9px] font-bold text-slate-450 uppercase tracking-widest">
+                <div class="p-6 rounded-2xl border border-slate-900 bg-slate-950/40 shadow-xl relative overflow-hidden group">
+                    <div class="absolute -right-4 -bottom-4 text-slate-900/40 text-7xl select-none font-black opacity-30 group-hover:scale-105 transition-transform duration-300">%</div>
+                    <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">
                         {{ Auth::user()->isAdmin() ? __('commissions') : 'Comisión Plataforma' }}
                     </p>
-                    <p class="text-2xl font-black text-rose-600 mt-2">$<span id="metric-total-commissions">{{ number_format($totalCommissions, 2) }}</span> <span class="text-[10px] text-slate-500 font-bold">MXN</span></p>
+                    <p class="text-2xl font-black text-rose-400 mt-2">$<span id="metric-total-commissions">{{ number_format($totalCommissions, 2) }}</span> <span class="text-[10px] text-slate-500 font-bold">MXN</span></p>
                 </div>
 
                 <!-- Ganancia Neta -->
-                <div class="p-6 rounded-2xl border border-slate-200 bg-white shadow-xs relative overflow-hidden group">
-                    <div class="absolute -right-4 -bottom-4 text-slate-100 text-7xl select-none font-black opacity-30 group-hover:scale-105 transition-transform duration-300">✔️</div>
-                    <p class="text-[9px] font-bold text-slate-450 uppercase tracking-widest">
+                <div class="p-6 rounded-2xl border border-slate-900 bg-slate-950/40 shadow-xl relative overflow-hidden group">
+                    <div class="absolute -right-4 -bottom-4 text-slate-900/40 text-7xl select-none font-black opacity-30 group-hover:scale-105 transition-transform duration-300">✔️</div>
+                    <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">
                         {{ Auth::user()->isAdmin() ? 'Ganancia Proveedores' : __('netEarnings') }}
                     </p>
-                    <p class="text-2xl font-black text-emerald-600 mt-2">$<span id="metric-net-earnings">{{ number_format($netEarnings, 2) }}</span> <span class="text-[10px] text-slate-550 font-bold">MXN</span></p>
+                    <p class="text-2xl font-black text-emerald-400 mt-2">$<span id="metric-net-earnings">{{ number_format($netEarnings, 2) }}</span> <span class="text-[10px] text-slate-400 font-bold">MXN</span></p>
                 </div>
             </div>
 
             <!-- GRÁFICO SVG SIMULADO -->
-            <div class="p-6 rounded-3xl border border-slate-200 bg-white shadow-sm mb-10">
-                <h2 class="text-xs font-black uppercase tracking-widest text-slate-800 mb-6 border-b border-slate-200 pb-3">
+            <div class="p-6 rounded-3xl border border-slate-900 bg-slate-950/60 shadow-2xl mb-10">
+                <h2 class="text-xs font-black uppercase tracking-widest text-slate-200 mb-6 border-b border-slate-900 pb-3">
                     Tendencia de Ventas (Últimos Meses)
                 </h2>
                 <div class="w-full h-48 flex items-end justify-between px-4">
                     <div class="flex flex-col items-center gap-2 w-12 group/bar">
-                        <div class="w-full bg-slate-50 rounded-t-lg h-24 flex items-end overflow-hidden border border-slate-200">
-                            <div class="w-full bg-gradient-to-t from-brand-teal to-brand-teal-hover group-hover/bar:from-brand-orange group-hover/bar:to-brand-orange-hover h-[30%] transition-all duration-500"></div>
+                        <div class="w-full bg-slate-900 rounded-t-lg h-24 flex items-end overflow-hidden border border-slate-800">
+                            <div class="w-full bg-gradient-to-t from-indigo-600 to-indigo-500 group-hover/bar:from-cyan-400 group-hover/bar:to-cyan-400 h-[30%] transition-all duration-500"></div>
                         </div>
-                        <span class="text-[9px] font-bold text-slate-500 group-hover/bar:text-brand-teal transition-colors">Mar</span>
+                        <span class="text-[9px] font-bold text-slate-500 group-hover/bar:text-white transition-colors">Mar</span>
                     </div>
                     <div class="flex flex-col items-center gap-2 w-12 group/bar">
-                        <div class="w-full bg-slate-50 rounded-t-lg h-24 flex items-end overflow-hidden border border-slate-200">
-                            <div class="w-full bg-gradient-to-t from-brand-teal to-brand-teal-hover group-hover/bar:from-brand-orange group-hover/bar:to-brand-orange-hover h-[45%] transition-all duration-500"></div>
+                        <div class="w-full bg-slate-900 rounded-t-lg h-24 flex items-end overflow-hidden border border-slate-800">
+                            <div class="w-full bg-gradient-to-t from-indigo-600 to-indigo-500 group-hover/bar:from-cyan-400 group-hover/bar:to-cyan-400 h-[45%] transition-all duration-500"></div>
                         </div>
-                        <span class="text-[9px] font-bold text-slate-500 group-hover/bar:text-brand-teal transition-colors">Abr</span>
+                        <span class="text-[9px] font-bold text-slate-500 group-hover/bar:text-white transition-colors">Abr</span>
                     </div>
                     <div class="flex flex-col items-center gap-2 w-12 group/bar">
-                        <div class="w-full bg-slate-50 rounded-t-lg h-24 flex items-end overflow-hidden border border-slate-200">
-                            <div class="w-full bg-gradient-to-t from-brand-teal to-brand-teal-hover group-hover/bar:from-brand-orange group-hover/bar:to-brand-orange-hover h-[65%] transition-all duration-500"></div>
+                        <div class="w-full bg-slate-900 rounded-t-lg h-24 flex items-end overflow-hidden border border-slate-800">
+                            <div class="w-full bg-gradient-to-t from-indigo-600 to-indigo-500 group-hover/bar:from-cyan-400 group-hover/bar:to-cyan-400 h-[65%] transition-all duration-500"></div>
                         </div>
-                        <span class="text-[9px] font-bold text-slate-500 group-hover/bar:text-brand-teal transition-colors">May</span>
+                        <span class="text-[9px] font-bold text-slate-500 group-hover/bar:text-white transition-colors">May</span>
                     </div>
                     <div class="flex flex-col items-center gap-2 w-12 group/bar">
-                        <div class="w-full bg-slate-50 rounded-t-lg h-24 flex items-end overflow-hidden border border-slate-200">
-                            <div class="w-full bg-gradient-to-t from-brand-teal to-brand-teal-hover group-hover/bar:from-brand-orange group-hover/bar:to-brand-orange-hover h-[90%] transition-all duration-500"></div>
+                        <div class="w-full bg-slate-900 rounded-t-lg h-24 flex items-end overflow-hidden border border-slate-800">
+                            <div class="w-full bg-gradient-to-t from-indigo-600 to-indigo-500 group-hover/bar:from-cyan-400 group-hover/bar:to-cyan-400 h-[90%] transition-all duration-500"></div>
                         </div>
-                        <span class="text-[9px] font-bold text-slate-500 group-hover/bar:text-brand-teal transition-colors">Jun</span>
+                        <span class="text-[9px] font-bold text-slate-500 group-hover/bar:text-white transition-colors">Jun</span>
                     </div>
                 </div>
             </div>
@@ -219,22 +219,22 @@
             <!-- CALENDARIO GLOBAL DE RESERVAS -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
                 <!-- Panel Izquierdo: Calendario mensual -->
-                <div class="lg:col-span-2 p-6 rounded-3xl border border-slate-200 bg-white shadow-md">
+                <div class="lg:col-span-2 p-6 rounded-3xl border border-slate-900 bg-slate-950/80 backdrop-blur-md shadow-2xl">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-900 pb-4 mb-5">
                         <div>
-                            <h2 class="text-xs font-black uppercase tracking-widest text-brand-teal">
+                            <h2 class="text-xs font-black uppercase tracking-widest text-cyan-400">
                                 Calendario de Operación (Viajes Programados)
                             </h2>
-                            <span class="text-[9px] text-slate-450 block mt-1">Visualización de reservas por fecha de realización del tour</span>
+                            <span class="text-[9px] text-slate-500 block mt-1">Visualización de reservas por fecha de realización del tour</span>
                         </div>
                         
                         <!-- Controles de Navegación del Mes -->
-                        <div class="flex items-center gap-3 bg-slate-50 p-1 rounded-xl border border-slate-200">
-                            <button type="button" id="res-cal-prev" class="px-2.5 py-1 rounded bg-white border border-slate-200 text-slate-600 hover:text-brand-teal hover:bg-slate-50 transition-colors cursor-pointer text-xs font-black">
+                        <div class="flex items-center gap-3 bg-slate-900/40 p-1 rounded-xl border border-slate-800/60">
+                            <button type="button" id="res-cal-prev" class="px-2.5 py-1 rounded bg-slate-950 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-900 transition-colors cursor-pointer text-xs font-black">
                                 &larr;
                             </button>
-                            <span id="res-cal-month-label" class="text-[10px] font-black uppercase tracking-widest text-slate-800 min-w-[100px] text-center"></span>
-                            <button type="button" id="res-cal-next" class="px-2.5 py-1 rounded bg-white border border-slate-200 text-slate-600 hover:text-brand-teal hover:bg-slate-50 transition-colors cursor-pointer text-xs font-black">
+                            <span id="res-cal-month-label" class="text-[10px] font-black uppercase tracking-widest text-slate-200 min-w-[100px] text-center"></span>
+                            <button type="button" id="res-cal-next" class="px-2.5 py-1 rounded bg-slate-950 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-900 transition-colors cursor-pointer text-xs font-black">
                                 &rarr;
                             </button>
                         </div>
@@ -258,8 +258,8 @@
                 </div>
 
                 <!-- Panel Derecho: Detalle de Operación Diaria -->
-                <div class="lg:col-span-1 p-6 rounded-3xl border border-slate-200 bg-slate-50/50 shadow-xs flex flex-col gap-4">
-                    <h2 class="text-xs font-black uppercase tracking-widest text-slate-800 border-b border-slate-200 pb-3">
+                <div class="lg:col-span-1 p-6 rounded-3xl border border-slate-900 bg-slate-950/40 shadow-xl flex flex-col gap-4">
+                    <h2 class="text-xs font-black uppercase tracking-widest text-slate-200 border-b border-slate-900 pb-3">
                         Detalle del Día
                     </h2>
                     
@@ -268,8 +268,8 @@
                         <!-- Empty State inicial -->
                         <div class="text-center py-10">
                             <span class="text-3xl block mb-3">📅</span>
-                            <p class="text-xs font-semibold text-slate-700">Selecciona una fecha</p>
-                            <p class="text-[10px] text-slate-450 mt-1 max-w-[200px] mx-auto">Haz clic sobre cualquier día con reservas para consultar los clientes y tours programados.</p>
+                            <p class="text-xs font-semibold text-slate-300">Selecciona una fecha</p>
+                            <p class="text-[10px] text-slate-500 mt-1 max-w-[200px] mx-auto">Haz clic sobre cualquier día con reservas para consultar los clientes y tours programados.</p>
                         </div>
                     </div>
                 </div>
@@ -278,13 +278,13 @@
             <!-- LISTADO DE RESERVAS -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div class="lg:col-span-3">
-                    <div class="p-6 rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                    <div class="p-6 rounded-3xl border border-slate-900 bg-slate-950/40 shadow-xl overflow-hidden">
                         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-900 pb-3 mb-5">
-                            <h2 class="text-xs font-black uppercase tracking-widest text-slate-800">
+                            <h2 class="text-xs font-black uppercase tracking-widest text-slate-200">
                                 {{ Auth::user()->isAdmin() ? __('globalBookingsList') : __('vendorBookingsList') }}
                             </h2>
                             @if(Auth::user()->isAdmin())
-                                <button onclick="clearReservasFilters()" class="text-[10px] font-bold uppercase tracking-widest text-brand-teal hover:text-brand-teal-hover transition-colors cursor-pointer">
+                                <button onclick="clearReservasFilters()" class="text-[10px] font-bold uppercase tracking-widest text-cyan-400 hover:text-cyan-300 transition-colors cursor-pointer">
                                     Limpiar Filtros
                                 </button>
                             @endif
@@ -292,15 +292,15 @@
 
                         @if(Auth::user()->isAdmin())
                             @if($reservas->isEmpty())
-                                <p class="text-xs text-slate-500 py-6 text-center">{{ __('noBookings') }}</p>
+                                <p class="text-xs text-slate-400 py-6 text-center">{{ __('noBookings') }}</p>
                             @else
                                 <div class="overflow-x-auto">
-                                    <div id="no-reservas-alert" class="hidden text-xs text-slate-500 py-6 text-center">
+                                    <div id="no-reservas-alert" class="hidden text-xs text-slate-400 py-6 text-center">
                                         No se encontraron reservas que coincidan con los filtros aplicados.
                                     </div>
                                     <table class="w-full text-left text-xs border-collapse">
                                         <thead>
-                                            <tr class="border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider bg-slate-50/80">
+                                            <tr class="border-b border-slate-900 text-slate-400 font-bold uppercase tracking-wider">
                                                 <th class="py-3 px-2">Ticket</th>
                                                 <th class="py-3 px-2">Cliente / Tours</th>
                                                 <th class="py-3 px-2">Compra / Operador</th>
@@ -308,7 +308,7 @@
                                                 <th class="py-3 px-2 text-right">Comisión</th>
                                             </tr>
                                         </thead>
-                                        <tbody class="divide-y divide-slate-100">
+                                        <tbody class="divide-y divide-slate-900/60">
                                             @foreach($reservas as $res)
                                                 @php
                                                     $provIds = $res->detalles->map(function($d) { return $d->tour->proveedor_id ?? ''; })->filter()->unique()->implode(',');
@@ -317,7 +317,7 @@
                                                     $toursNombres = $res->detalles->map(function($d) { return $d->tour->nombre ?? ''; })->implode(', ');
                                                     $proveedoresNombres = $res->detalles->map(function($d) { return $d->tour->proveedor->nombre_empresa ?? ''; })->filter()->unique()->implode(', ');
                                                 @endphp
-                                                <tr class="reserva-row hover:bg-slate-900/40 transition-colors text-slate-700"
+                                                <tr class="reserva-row hover:bg-slate-900/40 transition-colors text-slate-300"
                                                     data-proveedores="{{ $provIds }}"
                                                     data-tours="{{ $tourIds }}"
                                                     data-fecha-compra="{{ $fechaCompra }}"
@@ -325,17 +325,17 @@
                                                     data-ticket="{{ strtolower($res->ticket_codigo) }}"
                                                     data-venta="{{ $res->precio_total_usd }}"
                                                     data-comision="{{ $res->comision_total_usd }}">
-                                                    <td class="py-3.5 px-2 font-black text-brand-teal font-mono">{{ $res->ticket_codigo }}</td>
+                                                    <td class="py-3.5 px-2 font-black text-cyan-400 font-mono">{{ $res->ticket_codigo }}</td>
                                                     <td class="py-3.5 px-2 max-w-[200px]">
-                                                        <span class="font-bold text-slate-800 block">{{ $res->nombre_cliente }}</span>
+                                                        <span class="font-bold text-white block">{{ $res->nombre_cliente }}</span>
                                                         <span class="text-[10px] text-slate-500 block truncate mt-0.5" title="{{ $toursNombres }}">{{ $toursNombres }}</span>
                                                     </td>
                                                     <td class="py-3.5 px-2 max-w-[200px]">
-                                                        <span class="block text-slate-700">{{ $res->fecha_reserva->format('Y-m-d H:i') }}</span>
+                                                        <span class="block text-slate-300">{{ $res->fecha_reserva->format('Y-m-d H:i') }}</span>
                                                         <span class="text-[10px] text-slate-500 block truncate mt-0.5" title="{{ $proveedoresNombres }}">{{ $proveedoresNombres }}</span>
                                                     </td>
                                                     <td class="py-3.5 px-2 text-right font-bold text-white">${{ number_format($res->precio_total_usd) }}</td>
-                                                    <td class="py-3.5 px-2 text-right text-rose-600 font-bold">${{ number_format($res->comision_total_usd, 2) }}</td>
+                                                    <td class="py-3.5 px-2 text-right text-rose-400 font-bold">${{ number_format($res->comision_total_usd, 2) }}</td>
                                                 </tr>
                                             @endforeach
                                         </tbody>
@@ -344,12 +344,12 @@
                             @endif
                         @else
                             @if(empty($reservaDetalles) || $reservaDetalles->isEmpty())
-                                <p class="text-xs text-slate-500 py-6 text-center">{{ __('noBookings') }}</p>
+                                <p class="text-xs text-slate-400 py-6 text-center">{{ __('noBookings') }}</p>
                             @else
                                 <div class="overflow-x-auto">
                                     <table class="w-full text-left text-xs border-collapse">
                                         <thead>
-                                            <tr class="border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider bg-slate-50/80">
+                                            <tr class="border-b border-slate-900 text-slate-400 font-bold uppercase tracking-wider">
                                                 <th class="py-3 px-2">Ticket</th>
                                                 <th class="py-3 px-2">Tour</th>
                                                 <th class="py-3 px-2">Fecha Act.</th>
@@ -357,14 +357,14 @@
                                                 <th class="py-3 px-2 text-right">Neto</th>
                                             </tr>
                                         </thead>
-                                        <tbody class="divide-y divide-slate-100">
+                                        <tbody class="divide-y divide-slate-900/60">
                                             @foreach($reservaDetalles as $det)
-                                                <tr class="hover:bg-slate-900/40 transition-colors text-slate-700">
-                                                    <td class="py-3.5 px-2 font-black text-brand-teal">{{ $det->reserva->ticket_codigo }}</td>
+                                                <tr class="hover:bg-slate-900/40 transition-colors text-slate-300">
+                                                    <td class="py-3.5 px-2 font-black text-cyan-400">{{ $det->reserva->ticket_codigo }}</td>
                                                     <td class="py-3.5 px-2 truncate max-w-[150px]" title="{{ $det->tour->nombre }}">{{ $det->tour->nombre }}</td>
                                                     <td class="py-3.5 px-2 text-[10px]">{{ $det->fecha_seleccionada->format('Y-m-d') }}</td>
                                                     <td class="py-3.5 px-2 text-center font-bold text-white">{{ $det->cantidad_personas }}</td>
-                                                    <td class="py-3.5 px-2 text-right text-emerald-600">${{ number_format(($det->precio_unitario_usd * $det->cantidad_personas) - $det->comision_usd, 2) }}</td>
+                                                    <td class="py-3.5 px-2 text-right text-emerald-400">${{ number_format(($det->precio_unitario_usd * $det->cantidad_personas) - $det->comision_usd, 2) }}</td>
                                                 </tr>
                                             @endforeach
                                         </tbody>
@@ -380,15 +380,15 @@
                 <!-- SECCIÓN DE CALENDARIO DEL PROVEEDOR (Estilo Airbnb Premium) -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-10">
                     <!-- Calendario de Disponibilidad -->
-                    <div class="lg:col-span-2 p-6 rounded-3xl border border-slate-200 bg-white shadow-md">
-                        <h2 class="text-xs font-black uppercase tracking-widest text-brand-teal border-b border-slate-900 pb-3 mb-4">
+                    <div class="lg:col-span-2 p-6 rounded-3xl border border-slate-900 bg-slate-950/80 backdrop-blur-md shadow-2xl">
+                        <h2 class="text-xs font-black uppercase tracking-widest text-cyan-400 border-b border-slate-900 pb-3 mb-4">
                             Calendario de Disponibilidad (Modo Anfitrión)
                         </h2>
 
                         <div class="flex flex-col gap-4">
                             <div class="flex flex-col gap-1.5">
-                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Seleccionar Tour</label>
-                                <select class="calendar-tour-select w-full h-10 rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs text-slate-700 focus:border-brand-teal cursor-pointer">
+                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Seleccionar Tour</label>
+                                <select class="calendar-tour-select w-full h-10 rounded-lg border border-slate-800 bg-slate-900 px-3 text-xs text-white focus:border-cyan-500 cursor-pointer">
                                     <option value="">-- Elige un Tour --</option>
                                     @foreach($tours as $t)
                                         <option value="{{ $t->id }}">{{ $t->nombre }}</option>
@@ -398,20 +398,12 @@
 
                             <!-- Contenedor del Calendario -->
                             <div class="calendar-widget-container hidden mt-4">
-                                <div class="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
-                                    <div>
-                                        <span class="text-[9px] font-black uppercase tracking-widest text-brand-teal block">Calendario de Salidas</span>
-                                    </div>
-                                    <button type="button" onclick="openBatchModal()" class="h-8 px-3 rounded-lg border border-brand-orange/20 bg-brand-orange/5 text-[9px] font-bold uppercase tracking-wider text-brand-orange hover:bg-brand-orange hover:text-white transition-colors cursor-pointer flex items-center gap-1 shadow-xs">
-                                        <span>📅</span> Configuración Masiva
-                                    </button>
-                                </div>
                                 <div class="flex justify-between items-center mb-4">
-                                    <button type="button" class="prev-month-btn px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 hover:text-brand-teal hover:bg-slate-50 transition-colors cursor-pointer text-[10px] font-bold">
+                                    <button type="button" class="prev-month-btn px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-400 hover:text-white transition-colors cursor-pointer text-[10px] font-bold">
                                         &larr; Ant.
                                     </button>
-                                    <h3 class="current-month-label text-xs font-black uppercase tracking-widest text-slate-850"></h3>
-                                    <button type="button" class="next-month-btn px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 hover:text-brand-teal hover:bg-slate-50 transition-colors cursor-pointer text-[10px] font-bold">
+                                    <h3 class="current-month-label text-xs font-black uppercase tracking-widest text-white"></h3>
+                                    <button type="button" class="next-month-btn px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-400 hover:text-white transition-colors cursor-pointer text-[10px] font-bold">
                                         Sig. &rarr;
                                     </button>
                                 </div>
@@ -436,30 +428,30 @@
                     </div>
 
                     <!-- Tarjeta de Instrucciones del Calendario -->
-                    <div class="lg:col-span-1 p-6 rounded-3xl border border-slate-200 bg-slate-50/50 shadow-xs flex flex-col gap-4">
-                        <h2 class="text-xs font-black uppercase tracking-widest text-slate-800 border-b border-slate-200 pb-3">
+                    <div class="lg:col-span-1 p-6 rounded-3xl border border-slate-900 bg-slate-950/40 shadow-xl flex flex-col gap-4">
+                        <h2 class="text-xs font-black uppercase tracking-widest text-slate-200 border-b border-slate-900 pb-3">
                             Instrucciones de Uso
                         </h2>
-                        <div class="flex flex-col gap-3 text-xs text-slate-500 leading-relaxed">
+                        <div class="flex flex-col gap-3 text-xs text-slate-400 leading-relaxed">
                             <p>
-                                <strong class="text-brand-teal">1. Selecciona un tour:</strong> Elige uno de tus tours en el menú desplegable para cargar su calendario de disponibilidad.
+                                <strong class="text-cyan-400">1. Selecciona un tour:</strong> Elige uno de tus tours en el menú desplegable para cargar su calendario de disponibilidad.
                             </p>
                             <p>
-                                <strong class="text-brand-teal">2. Estado de los días:</strong>
+                                <strong class="text-cyan-400">2. Estado de los días:</strong>
                             </p>
                             <div class="flex items-center gap-2 pl-2">
                                 <span class="w-3.5 h-3.5 rounded bg-emerald-500/10 border border-emerald-500/30 block"></span>
                                 <span>Habilitado (tiene salidas programadas)</span>
                             </div>
                             <div class="flex items-center gap-2 pl-2">
-                                <span class="w-3.5 h-3.5 rounded bg-slate-100 border border-slate-200 block"></span>
+                                <span class="w-3.5 h-3.5 rounded bg-slate-900/60 border border-slate-800/40 block"></span>
                                 <span>Deshabilitado (sin salidas programadas)</span>
                             </div>
                             <p>
-                                <strong class="text-brand-teal">3. Configurar un día:</strong> Haz clic sobre cualquier día del calendario (que no esté en el pasado) para abrir el modal de configuración de disponibilidad.
+                                <strong class="text-cyan-400">3. Configurar un día:</strong> Haz clic sobre cualquier día del calendario (que no esté en el pasado) para abrir el modal de configuración de disponibilidad.
                             </p>
                             <p>
-                                <strong class="text-brand-teal">4. Múltiples salidas:</strong> En el modal podrás habilitar/deshabilitar el día, añadir múltiples horarios y definir el cupo para cada salida de manera atómica.
+                                <strong class="text-cyan-400">4. Múltiples salidas:</strong> En el modal podrás habilitar/deshabilitar el día, añadir múltiples horarios y definir el cupo para cada salida de manera atómica.
                             </p>
                         </div>
                     </div>
@@ -475,8 +467,8 @@
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     
                     <!-- Formulario de creación de Proveedor -->
-                    <div class="lg:col-span-1 p-6 rounded-3xl border border-slate-200 bg-white shadow-md">
-                        <h2 class="text-xs font-black uppercase tracking-widest text-brand-teal border-b border-slate-900 pb-3 mb-4">
+                    <div class="lg:col-span-1 p-6 rounded-3xl border border-slate-900 bg-slate-950/80 backdrop-blur-md shadow-2xl">
+                        <h2 class="text-xs font-black uppercase tracking-widest text-cyan-400 border-b border-slate-900 pb-3 mb-4">
                             Registrar Nuevo Proveedor
                         </h2>
 
@@ -484,67 +476,67 @@
                             @csrf
                             
                             <div class="flex flex-col gap-1.5">
-                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Nombre de la Empresa</label>
-                                <input type="text" name="nombre_empresa" required placeholder="Ej. Amigo Tours SA" class="w-full h-9 rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs text-slate-700 placeholder-slate-400 focus:border-brand-teal focus:border-cyan-500 focus:ring-0 focus:outline-none">
+                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Nombre de la Empresa</label>
+                                <input type="text" name="nombre_empresa" required placeholder="Ej. Amigo Tours SA" class="w-full h-9 rounded-lg border border-slate-800 bg-slate-900 px-3 text-xs text-white placeholder-slate-600 focus:border-cyan-500 focus:ring-0 focus:outline-none">
                             </div>
 
                             <div class="flex flex-col gap-1.5">
-                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Descripción / Especialidad</label>
-                                <textarea name="descripcion" required placeholder="Describe las operaciones..." rows="3" class="w-full rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs text-slate-700 placeholder-slate-400 focus:border-brand-teal focus:ring-0 focus:outline-none"></textarea>
+                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Descripción / Especialidad</label>
+                                <textarea name="descripcion" required placeholder="Describe las operaciones..." rows="3" class="w-full rounded-lg border border-slate-800 bg-slate-900 p-3 text-xs text-white placeholder-slate-600 focus:border-cyan-500 focus:ring-0 focus:outline-none"></textarea>
                             </div>
 
                             <div class="grid grid-cols-2 gap-4">
                                 <div class="flex flex-col gap-1.5">
-                                    <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">RFC (Opcional)</label>
-                                    <input type="text" name="rfc" placeholder="RFC123456" class="w-full h-9 rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs text-slate-700 placeholder-slate-400 focus:border-brand-teal focus:border-cyan-500">
+                                    <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">RFC (Opcional)</label>
+                                    <input type="text" name="rfc" placeholder="RFC123456" class="w-full h-9 rounded-lg border border-slate-800 bg-slate-900 px-3 text-xs text-white placeholder-slate-600 focus:border-cyan-500">
                                 </div>
                                 <div class="flex flex-col gap-1.5">
-                                    <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Comisión %</label>
-                                    <input type="number" name="comision_porcentaje" required value="15" min="0" max="100" class="w-full h-9 rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                                    <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Comisión %</label>
+                                    <input type="number" name="comision_porcentaje" required value="15" min="0" max="100" class="w-full h-9 rounded-lg border border-slate-800 bg-slate-900 px-3 text-xs text-white focus:border-cyan-500">
                                 </div>
                             </div>
 
                             <div class="flex flex-col gap-1.5">
-                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Correo Electrónico de Contacto</label>
-                                <input type="email" name="correo" required placeholder="proveedor@correo.com" class="w-full h-9 rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs text-slate-700 placeholder-slate-400 focus:border-brand-teal focus:border-cyan-500">
+                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Correo Electrónico de Contacto</label>
+                                <input type="email" name="correo" required placeholder="proveedor@correo.com" class="w-full h-9 rounded-lg border border-slate-800 bg-slate-900 px-3 text-xs text-white placeholder-slate-600 focus:border-cyan-500">
                             </div>
 
                             <div class="flex flex-col gap-1.5">
-                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Nombre del Representante</label>
-                                <input type="text" name="representante_nombre" required placeholder="Carlos Gómez" class="w-full h-9 rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs text-slate-700 placeholder-slate-400 focus:border-brand-teal focus:border-cyan-500">
+                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Nombre del Representante</label>
+                                <input type="text" name="representante_nombre" required placeholder="Carlos Gómez" class="w-full h-9 rounded-lg border border-slate-800 bg-slate-900 px-3 text-xs text-white placeholder-slate-600 focus:border-cyan-500">
                             </div>
 
                             <div class="flex flex-col gap-1.5">
-                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Teléfono del Representante</label>
-                                <input type="text" name="representante_telefono" required placeholder="+52 999 123 4567" class="w-full h-9 rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs text-slate-700 placeholder-slate-400 focus:border-brand-teal focus:border-cyan-500 focus:ring-0 focus:outline-none">
+                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Teléfono del Representante</label>
+                                <input type="text" name="representante_telefono" required placeholder="+52 999 123 4567" class="w-full h-9 rounded-lg border border-slate-800 bg-slate-900 px-3 text-xs text-white placeholder-slate-600 focus:border-cyan-500 focus:ring-0 focus:outline-none">
                             </div>
 
                             <div class="flex flex-col gap-1.5">
-                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Contraseña de Acceso (Usuario)</label>
-                                <input type="password" name="password" required placeholder="Mínimo 6 caracteres" minlength="6" class="w-full h-9 rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs text-slate-700 placeholder-slate-400 focus:border-brand-teal focus:border-cyan-500">
+                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Contraseña de Acceso (Usuario)</label>
+                                <input type="password" name="password" required placeholder="Mínimo 6 caracteres" minlength="6" class="w-full h-9 rounded-lg border border-slate-800 bg-slate-900 px-3 text-xs text-white placeholder-slate-600 focus:border-cyan-500">
                             </div>
 
                             <div class="flex flex-col gap-1.5">
-                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">URL Foto / Logo del Proveedor (Opcional)</label>
-                                <input type="url" name="foto_url" placeholder="https://..." class="w-full h-9 rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs text-slate-700 placeholder-slate-400 focus:border-brand-teal focus:border-cyan-500">
+                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">URL Foto / Logo del Proveedor (Opcional)</label>
+                                <input type="url" name="foto_url" placeholder="https://..." class="w-full h-9 rounded-lg border border-slate-800 bg-slate-900 px-3 text-xs text-white placeholder-slate-600 focus:border-cyan-500">
                             </div>
 
-                            <button type="submit" class="w-full h-10 inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-brand-teal to-brand-teal-hover text-xs font-bold uppercase text-white shadow-lg cursor-pointer">
+                            <button type="submit" class="w-full h-10 inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-cyan-500 to-indigo-600 text-xs font-bold uppercase text-white shadow-lg cursor-pointer">
                                 Guardar Proveedor
                             </button>
                         </form>
                     </div>
 
                     <!-- Lista de Proveedores Registrados -->
-                    <div class="lg:col-span-2 p-6 rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-                        <h2 class="text-xs font-black uppercase tracking-widest text-slate-800 border-b border-slate-200 pb-3 mb-5">
+                    <div class="lg:col-span-2 p-6 rounded-3xl border border-slate-900 bg-slate-950/40 shadow-xl overflow-hidden">
+                        <h2 class="text-xs font-black uppercase tracking-widest text-slate-200 border-b border-slate-900 pb-3 mb-5">
                             Operadores Registrados
                         </h2>
 
                         <div class="overflow-x-auto">
                             <table class="w-full text-left text-xs border-collapse">
                                 <thead>
-                                    <tr class="border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider bg-slate-50/80">
+                                    <tr class="border-b border-slate-900 text-slate-400 font-bold uppercase tracking-wider">
                                         <th class="py-3 px-2 w-10"></th>
                                         <th class="py-3 px-2">Empresa</th>
                                         <th class="py-3 px-2">Representante</th>
@@ -554,28 +546,28 @@
                                         <th class="py-3 px-2 text-center">Acciones</th>
                                     </tr>
                                 </thead>
-                                <tbody class="divide-y divide-slate-100">
+                                <tbody class="divide-y divide-slate-900/60">
                                     @foreach($proveedores as $prov)
-                                        <tr class="hover:bg-slate-900/40 transition-colors text-slate-700">
+                                        <tr class="hover:bg-slate-900/40 transition-colors text-slate-300">
                                             <td class="py-3.5 px-2">
                                                 @if($prov->foto_url)
                                                     <img src="{{ $prov->foto_url }}" alt="{{ $prov->nombre_empresa }}" class="h-8 w-8 rounded-full object-cover border border-slate-800">
                                                 @else
-                                                    <div class="h-8 w-8 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-[9px] font-black text-brand-teal">
+                                                    <div class="h-8 w-8 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-[9px] font-black text-cyan-400">
                                                         {{ substr($prov->nombre_empresa, 0, 2) }}
                                                     </div>
                                                 @endif
                                             </td>
                                             <td class="py-3.5 px-2 font-bold text-white">{{ $prov->nombre_empresa }}</td>
                                             <td class="py-3.5 px-2">{{ $prov->representante_nombre }}</td>
-                                            <td class="py-3.5 px-2 font-mono text-[10px] text-slate-500">
+                                            <td class="py-3.5 px-2 font-mono text-[10px] text-slate-400">
                                                 {{ $prov->correo }}<br>{{ $prov->representante_telefono }}
                                             </td>
-                                            <td class="py-3.5 px-2 text-center font-bold text-brand-teal">{{ $prov->tours_count }}</td>
-                                            <td class="py-3.5 px-2 text-center text-rose-600">{{ $prov->comision_percentage ?? $prov->comision_porcentaje }}%</td>
+                                            <td class="py-3.5 px-2 text-center font-bold text-cyan-400">{{ $prov->tours_count }}</td>
+                                            <td class="py-3.5 px-2 text-center text-rose-400">{{ $prov->comision_percentage ?? $prov->comision_porcentaje }}%</td>
                                             <td class="py-3.5 px-2 text-center">
                                                 <button onclick="openEditProveedorModal({{ $prov->id }}, '{{ addslashes($prov->nombre_empresa) }}', '{{ addslashes($prov->descripcion) }}', '{{ $prov->rfc }}', '{{ $prov->correo }}', '{{ addslashes($prov->representante_nombre) }}', '{{ $prov->representante_telefono }}', {{ $prov->comision_percentage ?? $prov->comision_porcentaje }}, '{{ $prov->foto_url }}')" 
-                                                        class="px-2.5 py-1 rounded-md bg-brand-teal/10 hover:bg-brand-teal border border-brand-teal/30 text-[10px] font-bold uppercase text-brand-teal hover:text-white transition-colors cursor-pointer">
+                                                        class="px-2.5 py-1 rounded-md bg-slate-900 hover:bg-slate-800 border border-slate-800 text-[10px] font-bold uppercase text-slate-300 hover:text-cyan-400 transition-colors cursor-pointer">
                                                     Editar
                                                 </button>
                                             </td>
@@ -599,21 +591,21 @@
                         <div class="p-6 rounded-3xl border border-slate-900 bg-slate-950/40 shadow-xl flex flex-col gap-5">
                             <div class="flex items-center justify-between gap-4 border-b border-slate-900 pb-4">
                                 <div>
-                                    <h2 class="text-xs font-black uppercase tracking-widest text-brand-teal">
+                                    <h2 class="text-xs font-black uppercase tracking-widest text-cyan-400">
                                         Catálogo de Tours
                                     </h2>
                                     <p class="text-[10px] text-slate-500 mt-0.5">Selecciona un tour para ver su disponibilidad</p>
                                 </div>
                                 
                                 <!-- Botón Crear Nuevo Tour -->
-                                <button type="button" onclick="openCreateTourModal()" class="h-8 px-3 inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-brand-teal to-brand-teal-hover text-[10px] font-black uppercase text-white shadow-lg cursor-pointer transition-transform hover:scale-[1.02]">
+                                <button type="button" onclick="openCreateTourModal()" class="h-8 px-3 inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-cyan-500 to-indigo-600 text-[10px] font-black uppercase text-white shadow-lg cursor-pointer transition-transform hover:scale-[1.02]">
                                     + Nuevo
                                 </button>
                             </div>
 
                             <!-- Buscador de Tours en la lista -->
                             <div class="relative">
-                                <input type="text" id="tour-list-search" oninput="filterTourList()" placeholder="Buscar tour por nombre..." class="w-full h-9 rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs text-slate-750 placeholder-slate-400 focus:border-brand-teal focus:outline-none">
+                                <input type="text" id="tour-list-search" oninput="filterTourList()" placeholder="Buscar tour por nombre..." class="w-full h-9 rounded-lg border border-slate-800 bg-slate-900/60 px-3 text-xs text-white placeholder-slate-600 focus:border-cyan-500 focus:outline-none">
                                 <div class="absolute right-3 top-2.5 text-slate-600">
                                     <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -626,7 +618,7 @@
                                 @foreach($tours as $t)
                                     <div id="tour-card-{{ $t->id }}" 
                                          onclick="selectTourForCalendar('{{ $t->id }}')" 
-                                         class="tour-list-card p-3 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-350 transition-all duration-250 cursor-pointer flex gap-3 group relative animate-fade-in"
+                                         class="tour-list-card p-3 rounded-2xl border border-slate-900 bg-slate-950/60 hover:bg-slate-900/40 hover:border-slate-800 transition-all duration-200 cursor-pointer flex gap-3 group relative animate-fade-in"
                                          data-titulo="{{ $t->nombre }}"
                                          data-resumen="{{ $t->resumen }}"
                                          data-detalle="{{ $t->detalle }}"
@@ -644,36 +636,36 @@
                                          data-no-incluye="{{ implode(', ', $t->no_incluye ?: []) }}">
                                         
                                         <!-- Foto miniatura -->
-                                        <div class="h-16 w-16 rounded-xl bg-slate-100 overflow-hidden flex-shrink-0">
+                                        <div class="h-16 w-16 rounded-xl bg-slate-900 overflow-hidden flex-shrink-0">
                                             <img src="{{ $t->imagen_destacada }}" alt="{{ $t->nombre }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                                         </div>
 
                                         <!-- Información central -->
                                         <div class="flex-grow min-w-0 flex flex-col justify-between py-0.5">
                                             <div>
-                                                <h4 class="font-bold text-slate-800 text-xs truncate tour-card-name" title="{{ $t->nombre }}">
+                                                <h4 class="font-bold text-white text-xs truncate tour-card-name" title="{{ $t->nombre }}">
                                                     {{ $t->nombre }}
                                                 </h4>
                                                 <span class="text-[9px] text-slate-500 block truncate mt-0.5">Operador: {{ $t->proveedor->nombre_empresa }}</span>
                                             </div>
                                             <div class="flex items-center justify-between mt-1">
-                                                <span class="text-[10px] font-black text-brand-teal">${{ number_format($t->precio_base_usd) }} MXN</span>
-                                                <span class="text-[9px] text-slate-500 font-semibold uppercase tracking-wider">{{ $t->ubicacion }}</span>
+                                                <span class="text-[10px] font-black text-cyan-400">${{ number_format($t->precio_base_usd) }} MXN</span>
+                                                <span class="text-[9px] text-slate-400 font-semibold uppercase tracking-wider">{{ $t->ubicacion }}</span>
                                             </div>
                                         </div>
 
                                         <!-- Acciones rápidas (Modificadores) -->
-                                        <div class="flex flex-col gap-1.5 justify-center pl-2 border-l border-slate-200">
+                                        <div class="flex flex-col gap-1.5 justify-center pl-2 border-l border-slate-900">
                                             <button type="button" 
                                                     onclick="event.stopPropagation(); openEditTourModal('{{ $t->id }}')"
-                                                    class="h-6 w-6 inline-flex items-center justify-center rounded bg-amber-50 hover:bg-brand-orange border border-brand-orange/20 text-[10px] text-brand-orange hover:text-white transition-colors cursor-pointer" 
+                                                    class="h-6 w-6 inline-flex items-center justify-center rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 text-[10px] text-indigo-400 hover:text-indigo-300 transition-colors cursor-pointer" 
                                                     title="Editar Ficha">
                                                 ✏️
                                             </button>
                                             <a href="{{ route('tours.show', $t->id) }}" 
                                                target="_blank" 
                                                onclick="event.stopPropagation();" 
-                                               class="h-6 w-6 inline-flex items-center justify-center rounded bg-cyan-50 hover:bg-brand-teal border border-brand-teal/20 text-[10px] text-brand-teal hover:text-white transition-colors" 
+                                               class="h-6 w-6 inline-flex items-center justify-center rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 text-[10px] text-cyan-400 hover:text-cyan-300 transition-colors" 
                                                title="Ver Ficha">
                                                 🔗
                                             </a>
@@ -696,16 +688,16 @@
                         </select>
 
                         <!-- CONTENEDOR PRINCIPAL CALENDARIO -->
-                        <div class="p-6 rounded-3xl border border-slate-200 bg-white shadow-md min-h-[400px] flex flex-col justify-between" id="calendar-main-panel">
+                        <div class="p-6 rounded-3xl border border-slate-900 bg-slate-950/80 backdrop-blur-md shadow-2xl min-h-[400px] flex flex-col justify-between" id="calendar-main-panel">
                             
                             <!-- Estado Vacío (Empty State) cuando no hay tour seleccionado -->
                             <div id="calendar-empty-state" class="flex flex-col items-center justify-center text-center py-20 flex-grow animate-fade-in">
-                                <div class="h-16 w-16 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-400 mb-4 animate-pulse">
+                                <div class="h-16 w-16 rounded-full bg-slate-900/60 border border-slate-800/80 flex items-center justify-center text-slate-500 mb-4 animate-pulse">
                                     <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                     </svg>
                                 </div>
-                                <h3 class="text-sm font-black text-slate-700 uppercase tracking-widest">Gestión de Disponibilidad</h3>
+                                <h3 class="text-sm font-black text-slate-300 uppercase tracking-widest">Gestión de Disponibilidad</h3>
                                 <p class="text-xs text-slate-500 max-w-xs mt-2 leading-relaxed">
                                     Selecciona uno de los tours de la columna izquierda para cargar y gestionar sus salidas en el calendario.
                                 </p>
@@ -713,22 +705,19 @@
 
                             <!-- Contenedor del Calendario (Se muestra al seleccionar un tour) -->
                             <div class="calendar-widget-container hidden flex-grow flex flex-col gap-4 animate-fade-in">
-                                <div class="flex items-center justify-between border-b border-slate-200 pb-4 mb-2">
+                                <div class="flex items-center justify-between border-b border-slate-900 pb-4 mb-2">
                                     <div>
-                                        <span class="text-[9px] font-black uppercase tracking-widest text-brand-teal block">Calendario Activo</span>
-                                        <h3 class="text-xs font-bold text-slate-800 mt-0.5 truncate max-w-[280px]" id="calendar-active-tour-title">Nombre del Tour</h3>
+                                        <span class="text-[9px] font-black uppercase tracking-widest text-cyan-400 block">Calendario Activo</span>
+                                        <h3 class="text-xs font-black text-white mt-0.5 truncate max-w-[280px]" id="calendar-active-tour-title">Nombre del Tour</h3>
                                     </div>
 
-                                    <!-- Botones de acción y navegación de mes -->
+                                    <!-- Botones de navegación de mes -->
                                     <div class="flex items-center gap-2">
-                                        <button type="button" onclick="openBatchModal()" class="h-8 px-3 rounded-lg border border-brand-orange/30 bg-brand-orange/5 text-[9px] font-bold uppercase tracking-wider text-brand-orange hover:bg-brand-orange hover:text-white transition-colors cursor-pointer flex items-center gap-1 shadow-xs">
-                                            📅 Lote
-                                        </button>
-                                        <button type="button" class="prev-month-btn h-8 w-8 rounded-lg bg-white border border-slate-200 text-slate-600 hover:text-brand-teal hover:bg-slate-50 flex items-center justify-center transition-colors cursor-pointer text-xs">
+                                        <button type="button" class="prev-month-btn h-8 w-8 rounded-lg bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer text-xs">
                                             &larr;
                                         </button>
-                                        <span class="current-month-label text-[10px] font-black uppercase tracking-wider text-slate-700 min-w-[100px] text-center"></span>
-                                        <button type="button" class="next-month-btn h-8 w-8 rounded-lg bg-white border border-slate-200 text-slate-600 hover:text-brand-teal hover:bg-slate-50 flex items-center justify-center transition-colors cursor-pointer text-xs">
+                                        <span class="current-month-label text-[10px] font-black uppercase tracking-wider text-slate-300 min-w-[100px] text-center"></span>
+                                        <button type="button" class="next-month-btn h-8 w-8 rounded-lg bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer text-xs">
                                             &rarr;
                                         </button>
                                     </div>
@@ -751,18 +740,18 @@
                                 </div>
 
                                 <!-- Leyenda/Guía Rápida Compacta -->
-                                <div class="border-t border-slate-200 pt-4 mt-4 flex flex-wrap items-center justify-between gap-4 text-[10px] text-slate-500">
+                                <div class="border-t border-slate-900 pt-4 mt-4 flex flex-wrap items-center justify-between gap-4 text-[10px] text-slate-500">
                                     <div class="flex items-center gap-4">
                                         <div class="flex items-center gap-1.5">
                                             <span class="w-2.5 h-2.5 rounded bg-emerald-500/10 border border-emerald-500/30 block"></span>
                                             <span>Salidas programadas</span>
                                         </div>
                                         <div class="flex items-center gap-1.5">
-                                            <span class="w-2.5 h-2.5 rounded bg-slate-100 border border-slate-200 block"></span>
+                                            <span class="w-2.5 h-2.5 rounded bg-slate-900/60 border border-slate-800/40 block"></span>
                                             <span>Día Cerrado</span>
                                         </div>
                                     </div>
-                                    <span class="text-slate-500">💡 Haz clic sobre un día futuro para abrir el editor de salidas.</span>
+                                    <span class="text-slate-400">💡 Haz clic sobre un día futuro para abrir el editor de salidas.</span>
                                 </div>
 
                             </div>
@@ -776,15 +765,15 @@
 
             <!-- PESTAÑA: USUARIOS Y ROLES (Solo Administrador) -->
             <div id="tab-content-usuarios" class="tab-pane hidden animate-fade-in">
-                <div class="p-6 rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-                    <h2 class="text-xs font-black uppercase tracking-widest text-slate-800 border-b border-slate-200 pb-3 mb-5">
+                <div class="p-6 rounded-3xl border border-slate-900 bg-slate-950/40 shadow-xl overflow-hidden">
+                    <h2 class="text-xs font-black uppercase tracking-widest text-slate-200 border-b border-slate-900 pb-3 mb-5">
                         Usuarios Registrados & Permisos de Acceso
                     </h2>
 
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs border-collapse">
                             <thead>
-                                <tr class="border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider bg-slate-50/80">
+                                <tr class="border-b border-slate-900 text-slate-400 font-bold uppercase tracking-wider">
                                     <th class="py-3 px-2">Nombre</th>
                                     <th class="py-3 px-2">Email</th>
                                     <th class="py-3 px-2 text-center">Rol</th>
@@ -792,32 +781,32 @@
                                     <th class="py-3 px-2 text-center">Acciones</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-slate-100">
+                            <tbody class="divide-y divide-slate-900/60">
                                 @foreach($usuarios as $usr)
-                                    <tr class="hover:bg-slate-50 transition-colors text-slate-700">
-                                        <td class="py-3.5 px-2 font-bold text-slate-800">{{ $usr->name }}</td>
+                                    <tr class="hover:bg-slate-900/40 transition-colors text-slate-300">
+                                        <td class="py-3.5 px-2 font-bold text-white">{{ $usr->name }}</td>
                                         <td class="py-3.5 px-2 font-mono text-[11px]">{{ $usr->email }}</td>
                                         <td class="py-3.5 px-2 text-center">
                                             <span class="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider rounded
-                                                @if($usr->isAdmin()) bg-red-50 text-red-700 border border-red-200
-                                                @elseif($usr->isProveedor()) bg-cyan-50 text-brand-teal border border-cyan-200
-                                                @else bg-slate-100 text-slate-600 border border-slate-200
+                                                @if($usr->isAdmin()) bg-red-900/30 text-red-400 border border-red-500/20
+                                                @elseif($usr->isProveedor()) bg-cyan-900/30 text-cyan-400 border border-cyan-500/20
+                                                @else bg-slate-900 text-slate-400 border border-slate-800/60
                                                 @endif">
                                                 {{ $usr->tipo }}
                                             </span>
                                         </td>
-                                        <td class="py-3.5 px-2 text-xs text-slate-500">
+                                        <td class="py-3.5 px-2 text-xs text-slate-400">
                                             {{ $usr->proveedor ? $usr->proveedor->nombre_empresa : 'Ninguno' }}
                                         </td>
                                         <td class="py-3.5 px-2 text-center flex items-center justify-center gap-2">
                                             
                                             <!-- Botón Rol Modal -->
-                                            <button onclick="openRoleModal('{{ $usr->id }}', '{{ $usr->name }}', '{{ $usr->tipo }}', '{{ $usr->proveedor_id }}')" class="px-2.5 py-1 rounded bg-cyan-50 hover:bg-brand-teal border border-brand-teal/30 text-[9px] font-bold text-brand-teal hover:text-white transition-colors cursor-pointer" title="Cambiar Rol">
+                                            <button onclick="openRoleModal('{{ $usr->id }}', '{{ $usr->name }}', '{{ $usr->tipo }}', '{{ $usr->proveedor_id }}')" class="px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 text-[9px] font-bold text-slate-200 transition-colors cursor-pointer" title="Cambiar Rol">
                                                 🔑 Rol
                                             </button>
 
                                             <!-- Botón Clave Modal -->
-                                            <button onclick="openPasswordModal('{{ $usr->id }}', '{{ $usr->name }}')" class="px-2.5 py-1 rounded bg-rose-50 hover:bg-rose-500 border border-rose-200 text-[9px] font-bold text-rose-600 hover:text-white transition-colors cursor-pointer" title="Reset Clave">
+                                            <button onclick="openPasswordModal('{{ $usr->id }}', '{{ $usr->name }}')" class="px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 text-[9px] font-bold text-rose-400 hover:text-rose-300 transition-colors cursor-pointer" title="Reset Clave">
                                                 🔄 Clave
                                             </button>
                                         </td>
@@ -830,19 +819,19 @@
             </div>
 
             <!-- MODAL: CAMBIAR ROL DE USUARIO -->
-            <div id="role-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-white/60 backdrop-blur-xs transition-all duration-200">
-                <div class="w-full max-w-sm p-6 rounded-3xl border border-slate-200 bg-white shadow-xl relative max-h-[90vh] overflow-y-auto">
-                    <button onclick="closeRoleModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-800 transition-colors cursor-pointer">✕</button>
+            <div id="role-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm transition-all duration-200">
+                <div class="w-full max-w-sm p-6 rounded-3xl border border-slate-900 bg-slate-950 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+                    <button onclick="closeRoleModal()" class="absolute top-4 right-4 text-slate-500 hover:text-white transition-colors cursor-pointer">✕</button>
                     
-                    <h3 class="text-xs font-black uppercase tracking-widest text-brand-teal mb-2">Cambiar Rol & Sucursal</h3>
-                    <p class="text-[11px] text-slate-500 mb-5">Usuario: <span id="role-modal-username" class="text-slate-800 font-bold"></span></p>
+                    <h3 class="text-xs font-black uppercase tracking-widest text-cyan-400 mb-2">Cambiar Rol & Sucursal</h3>
+                    <p class="text-[11px] text-slate-400 mb-5">Usuario: <span id="role-modal-username" class="text-white font-bold"></span></p>
 
                     <form id="role-modal-form" method="POST" class="flex flex-col gap-4">
                         @csrf
                         
                         <div class="flex flex-col gap-1.5">
-                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Nuevo Rol</label>
-                            <select name="tipo" id="role-modal-tipo" onchange="toggleProveedorDropdown(this.value)" required class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal cursor-pointer">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Nuevo Rol</label>
+                            <select name="tipo" id="role-modal-tipo" onchange="toggleProveedorDropdown(this.value)" required class="w-full h-9 rounded-lg border border-slate-800 bg-slate-900 px-3 text-xs text-white focus:border-cyan-500 cursor-pointer">
                                 <option value="Cliente">Cliente (Viajero)</option>
                                 <option value="PT">PT (Proveedor de Tours)</option>
                                 <option value="Admin">Administrador</option>
@@ -851,8 +840,8 @@
 
                         <!-- Dropdown de Proveedores (Sólo visible para PT) -->
                         <div id="role-modal-prov-group" class="hidden flex flex-col gap-1.5">
-                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Asociar Operadora (Proveedor)</label>
-                            <select name="proveedor_id" id="role-modal-prov-id" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal cursor-pointer">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Asociar Operadora (Proveedor)</label>
+                            <select name="proveedor_id" id="role-modal-prov-id" class="w-full h-9 rounded-lg border border-slate-800 bg-slate-900 px-3 text-xs text-white focus:border-cyan-500 cursor-pointer">
                                 <option value="">Selecciona Operadora...</option>
                                 @foreach($proveedores as $prov)
                                     <option value="{{ $prov->id }}">{{ $prov->nombre_empresa }}</option>
@@ -860,7 +849,7 @@
                             </select>
                         </div>
 
-                        <button type="submit" class="w-full h-10 inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-brand-teal to-brand-teal-hover text-xs font-bold uppercase text-white shadow-lg cursor-pointer transition-all mt-2">
+                        <button type="submit" class="w-full h-10 inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-cyan-500 to-indigo-600 text-xs font-bold uppercase text-white shadow-lg cursor-pointer transition-all mt-2">
                             Actualizar Permisos
                         </button>
                     </form>
@@ -868,19 +857,19 @@
             </div>
 
             <!-- MODAL: RESTABLECER CONTRASEÑA -->
-            <div id="password-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-white/60 backdrop-blur-xs transition-all duration-200">
-                <div class="w-full max-w-sm p-6 rounded-3xl border border-slate-200 bg-white shadow-xl relative max-h-[90vh] overflow-y-auto">
-                    <button onclick="closePasswordModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-800 transition-colors cursor-pointer">✕</button>
+            <div id="password-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm transition-all duration-200">
+                <div class="w-full max-w-sm p-6 rounded-3xl border border-slate-900 bg-slate-950 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+                    <button onclick="closePasswordModal()" class="absolute top-4 right-4 text-slate-500 hover:text-white transition-colors cursor-pointer">✕</button>
                     
-                    <h3 class="text-xs font-black uppercase tracking-widest text-rose-600 mb-2">Restablecer Contraseña</h3>
-                    <p class="text-[11px] text-slate-500 mb-5">Usuario: <span id="pass-modal-username" class="text-slate-800 font-bold"></span></p>
+                    <h3 class="text-xs font-black uppercase tracking-widest text-rose-400 mb-2">Restablecer Contraseña</h3>
+                    <p class="text-[11px] text-slate-400 mb-5">Usuario: <span id="pass-modal-username" class="text-white font-bold"></span></p>
 
                     <form id="pass-modal-form" method="POST" class="flex flex-col gap-4">
                         @csrf
                         
                         <div class="flex flex-col gap-1.5">
-                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Nueva Contraseña</label>
-                            <input type="password" name="new_password" required placeholder="Ingresa mínimo 6 caracteres" minlength="6" class="w-full h-10 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 placeholder-slate-400 focus:border-brand-teal focus:bg-white">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Nueva Contraseña</label>
+                            <input type="password" name="new_password" required placeholder="Ingresa mínimo 6 caracteres" minlength="6" class="w-full h-10 rounded-lg border border-slate-800 bg-slate-900 px-3 text-xs text-white placeholder-slate-700 focus:border-cyan-500">
                         </div>
 
                         <button type="submit" class="w-full h-10 inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-rose-500 to-pink-600 text-xs font-bold uppercase text-white shadow-lg cursor-pointer transition-all mt-2">
@@ -891,58 +880,58 @@
             </div>
 
             <!-- MODAL: EDITAR PROVEEDOR -->
-            <div id="edit-proveedor-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-white/60 backdrop-blur-xs transition-all duration-200">
-                <div class="w-full max-w-lg p-6 rounded-3xl border border-slate-200 bg-white shadow-xl relative max-h-[90vh] overflow-y-auto">
-                    <button onclick="closeEditProveedorModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-800 transition-colors cursor-pointer">✕</button>
+            <div id="edit-proveedor-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm transition-all duration-200">
+                <div class="w-full max-w-lg p-6 rounded-3xl border border-slate-900 bg-slate-950 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+                    <button onclick="closeEditProveedorModal()" class="absolute top-4 right-4 text-slate-500 hover:text-white transition-colors cursor-pointer">✕</button>
                     
-                    <h3 class="text-xs font-black uppercase tracking-widest text-brand-teal mb-4 border-b border-slate-200 pb-2">Editar Proveedor</h3>
+                    <h3 class="text-xs font-black uppercase tracking-widest text-cyan-400 mb-4 border-b border-slate-900 pb-2">Editar Proveedor</h3>
 
                     <form id="edit-prov-form" method="POST" class="flex flex-col gap-4">
                         @csrf
                         
                         <div class="flex flex-col gap-1.5">
-                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Nombre de la Empresa</label>
-                            <input type="text" name="nombre_empresa" id="edit-prov-name" required class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Nombre de la Empresa</label>
+                            <input type="text" name="nombre_empresa" id="edit-prov-name" required class="w-full h-9 rounded-lg border border-slate-800 bg-slate-900 px-3 text-xs text-white focus:border-cyan-500">
                         </div>
 
                         <div class="flex flex-col gap-1.5">
-                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Descripción / Especialidad</label>
-                            <textarea name="descripcion" id="edit-prov-desc" required rows="3" class="w-full rounded-lg border border-slate-200 bg-white p-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white"></textarea>
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Descripción / Especialidad</label>
+                            <textarea name="descripcion" id="edit-prov-desc" required rows="3" class="w-full rounded-lg border border-slate-800 bg-slate-900 p-3 text-xs text-white focus:border-cyan-500"></textarea>
                         </div>
 
                         <div class="grid grid-cols-2 gap-4">
                             <div class="flex flex-col gap-1.5">
-                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">RFC (Opcional)</label>
-                                <input type="text" name="rfc" id="edit-prov-rfc" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">RFC (Opcional)</label>
+                                <input type="text" name="rfc" id="edit-prov-rfc" class="w-full h-9 rounded-lg border border-slate-800 bg-slate-900 px-3 text-xs text-white focus:border-cyan-500">
                             </div>
                             <div class="flex flex-col gap-1.5">
-                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Comisión %</label>
-                                <input type="number" name="comision_porcentaje" id="edit-prov-commission" required min="0" max="100" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Comisión %</label>
+                                <input type="number" name="comision_porcentaje" id="edit-prov-commission" required min="0" max="100" class="w-full h-9 rounded-lg border border-slate-800 bg-slate-900 px-3 text-xs text-white focus:border-cyan-500">
                             </div>
                         </div>
 
                         <div class="flex flex-col gap-1.5">
-                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Correo Electrónico de Contacto</label>
-                            <input type="email" name="correo" id="edit-prov-email" required class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Correo Electrónico de Contacto</label>
+                            <input type="email" name="correo" id="edit-prov-email" required class="w-full h-9 rounded-lg border border-slate-800 bg-slate-900 px-3 text-xs text-white focus:border-cyan-500">
                         </div>
 
                         <div class="grid grid-cols-2 gap-4">
                             <div class="flex flex-col gap-1.5">
-                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Nombre del Representante</label>
-                                <input type="text" name="representante_nombre" id="edit-prov-rep-name" required class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Nombre del Representante</label>
+                                <input type="text" name="representante_nombre" id="edit-prov-rep-name" required class="w-full h-9 rounded-lg border border-slate-800 bg-slate-900 px-3 text-xs text-white focus:border-cyan-500">
                             </div>
                             <div class="flex flex-col gap-1.5">
-                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Teléfono del Representante</label>
-                                <input type="text" name="representante_telefono" id="edit-prov-rep-tel" required class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Teléfono del Representante</label>
+                                <input type="text" name="representante_telefono" id="edit-prov-rep-tel" required class="w-full h-9 rounded-lg border border-slate-800 bg-slate-900 px-3 text-xs text-white focus:border-cyan-500">
                             </div>
                         </div>
 
                         <div class="flex flex-col gap-1.5">
-                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">URL Foto / Logo del Proveedor (Opcional)</label>
-                            <input type="url" name="foto_url" id="edit-prov-foto" placeholder="https://..." class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 placeholder-slate-400 focus:border-brand-teal focus:bg-white">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">URL Foto / Logo del Proveedor (Opcional)</label>
+                            <input type="url" name="foto_url" id="edit-prov-foto" placeholder="https://..." class="w-full h-9 rounded-lg border border-slate-800 bg-slate-900 px-3 text-xs text-white placeholder-slate-700 focus:border-cyan-500">
                         </div>
 
-                        <button type="submit" class="w-full h-10 inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-brand-teal to-brand-teal-hover text-xs font-bold uppercase text-white shadow-lg cursor-pointer transition-all mt-2">
+                        <button type="submit" class="w-full h-10 inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-cyan-500 to-indigo-600 text-xs font-bold uppercase text-white shadow-lg cursor-pointer transition-all mt-2">
                             Guardar Cambios
                         </button>
                     </form>
@@ -950,14 +939,14 @@
             </div>
 
             <!-- Modal de Creación de Tour (Solo Administrador) -->
-            <div id="create-tour-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-white/60 backdrop-blur-xs transition-all duration-200">
-                <div class="relative w-full max-w-2xl rounded-3xl border border-slate-200 bg-white p-6 shadow-xl overflow-y-auto max-h-[90vh]">
+            <div id="create-tour-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm transition-all duration-200">
+                <div class="relative w-full max-w-2xl rounded-3xl border border-slate-900 bg-slate-950 p-6 shadow-2xl overflow-y-auto max-h-[90vh]">
                     <!-- Botón Cerrar -->
-                    <button type="button" onclick="closeCreateTourModal()" class="absolute top-4 right-4 text-slate-500 hover:text-slate-800 text-lg cursor-pointer">
+                    <button type="button" onclick="closeCreateTourModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg cursor-pointer">
                         &times;
                     </button>
                     
-                    <h3 class="text-xs font-black uppercase tracking-widest text-brand-teal border-b border-slate-200 pb-3 mb-5">
+                    <h3 class="text-xs font-black uppercase tracking-widest text-cyan-400 border-b border-slate-900 pb-3 mb-5">
                         Crear Nuevo Tour
                     </h3>
 
@@ -966,8 +955,8 @@
                         
                         <!-- Proveedor Asignado -->
                         <div class="flex flex-col gap-1.5">
-                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Asignar Operador (Proveedor)</label>
-                            <select name="proveedor_id" required class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal cursor-pointer">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Asignar Operador (Proveedor)</label>
+                            <select name="proveedor_id" required class="w-full h-9 rounded-lg border border-slate-800 bg-slate-900 px-3 text-xs text-white focus:border-cyan-500 cursor-pointer">
                                 <option value="">-- Selecciona Operador --</option>
                                 @foreach($proveedores as $prov)
                                     <option value="{{ $prov->id }}">{{ $prov->nombre_empresa }}</option>
@@ -977,95 +966,95 @@
 
                         <!-- Título del Tour -->
                         <div class="flex flex-col gap-1.5">
-                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Título del Tour</label>
-                            <input type="text" name="titulo" required placeholder="Ej. Excursión a Chichén Itzá Premium" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Título del Tour</label>
+                            <input type="text" name="titulo" required placeholder="Ej. Excursión a Chichén Itzá Premium" class="w-full h-9 rounded-lg border border-slate-800 bg-slate-900 px-3 text-xs text-white focus:border-cyan-500">
                         </div>
 
                         <!-- Resumen del Tour -->
                         <div class="flex flex-col gap-1.5">
-                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Resumen (Descripción Corta)</label>
-                            <input type="text" name="descripcion_corta" required placeholder="Ej. Vive una experiencia inolvidable visitando una de las maravillas..." class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Resumen (Descripción Corta)</label>
+                            <input type="text" name="descripcion_corta" required placeholder="Ej. Vive una experiencia inolvidable visitando una de las maravillas..." class="w-full h-9 rounded-lg border border-slate-800 bg-slate-900 px-3 text-xs text-white focus:border-cyan-500">
                         </div>
 
                         <!-- Descripción Larga -->
                         <div class="flex flex-col gap-1.5">
-                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Descripción Detallada (Larga)</label>
-                            <textarea name="descripcion_larga" required placeholder="Describe paso a paso el itinerario y detalles del tour..." rows="4" class="w-full rounded-lg border border-slate-200 bg-white p-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white"></textarea>
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Descripción Detallada (Larga)</label>
+                            <textarea name="descripcion_larga" required placeholder="Describe paso a paso el itinerario y detalles del tour..." rows="4" class="w-full rounded-lg border border-slate-800 bg-slate-900 p-3 text-xs text-white focus:border-cyan-500"></textarea>
                         </div>
 
                         <!-- Condiciones Financieras y Logística -->
                         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
                             <div class="flex flex-col gap-1.5">
-                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Precio MXN</label>
-                                <input type="number" name="precio_base_usd" required min="1" placeholder="1200" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Precio MXN</label>
+                                <input type="number" name="precio_base_usd" required min="1" placeholder="1200" class="w-full h-9 rounded-lg border border-slate-800 bg-slate-900 px-3 text-xs text-white focus:border-cyan-500">
                             </div>
                             <div class="flex flex-col gap-1.5">
-                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Duración</label>
-                                <input type="text" name="duracion" required placeholder="Ej. 12 horas" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Duración</label>
+                                <input type="text" name="duracion" required placeholder="Ej. 12 horas" class="w-full h-9 rounded-lg border border-slate-800 bg-slate-900 px-3 text-xs text-white focus:border-cyan-500">
                             </div>
                             <div class="flex flex-col gap-1.5">
-                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Ubicación</label>
-                                <input type="text" name="ubicacion" required placeholder="Ej. Chichén Itzá" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Ubicación</label>
+                                <input type="text" name="ubicacion" required placeholder="Ej. Chichén Itzá" class="w-full h-9 rounded-lg border border-slate-800 bg-slate-900 px-3 text-xs text-white focus:border-cyan-500">
                             </div>
                             <div class="flex flex-col gap-1.5">
-                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">País</label>
-                                <input type="text" name="pais" required value="México" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">País</label>
+                                <input type="text" name="pais" required value="México" class="w-full h-9 rounded-lg border border-slate-800 bg-slate-900 px-3 text-xs text-white focus:border-cyan-500">
                             </div>
                         </div>
 
                         <!-- Tags -->
                         <div class="flex flex-col gap-1.5">
-                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Tags (separados por coma)</label>
-                            <input type="text" name="tags" placeholder="Cultura, Aventura, Arqueología" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Tags (separados por coma)</label>
+                            <input type="text" name="tags" placeholder="Cultura, Aventura, Arqueología" class="w-full h-9 rounded-lg border border-slate-800 bg-slate-900 px-3 text-xs text-white focus:border-cyan-500">
                         </div>
 
                         <!-- Punto de encuentro y fotos -->
                         <div class="flex flex-col gap-1.5">
-                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Punto de Encuentro (Dirección y detalles)</label>
-                            <input type="text" name="punto_encuentro" placeholder="Ej. Lobby de su hotel o Marina de Cancún" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Punto de Encuentro (Dirección y detalles)</label>
+                            <input type="text" name="punto_encuentro" placeholder="Ej. Lobby de su hotel o Marina de Cancún" class="w-full h-9 rounded-lg border border-slate-800 bg-slate-900 px-3 text-xs text-white focus:border-cyan-500">
                         </div>
 
                         <!-- Carga Dual de Imagen Destacada (Portada) -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div class="flex flex-col gap-1.5">
-                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Subir Imagen de Portada (Destacada)</label>
-                                <input type="file" name="imagen_destacada_file" accept="image/*" class="w-full text-xs text-slate-500 file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-[10px] file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 cursor-pointer">
+                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Subir Imagen de Portada (Destacada)</label>
+                                <input type="file" name="imagen_destacada_file" accept="image/*" class="w-full text-xs text-slate-400 file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-[10px] file:font-semibold file:bg-slate-900 file:text-cyan-400 hover:file:bg-slate-800 cursor-pointer">
                             </div>
                             <div class="flex flex-col gap-1.5">
-                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">O URL de Portada (Opcional)</label>
-                                <input type="url" name="imagen_destacada" placeholder="https://..." class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">O URL de Portada (Opcional)</label>
+                                <input type="url" name="imagen_destacada" placeholder="https://..." class="w-full h-9 rounded-lg border border-slate-800 bg-slate-900 px-3 text-xs text-white focus:border-cyan-500">
                             </div>
                         </div>
 
                         <!-- Carga Dual de Galería Adicional -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div class="flex flex-col gap-1.5">
-                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Subir Fotos a Galería Adicional</label>
-                                <input type="file" name="galeria_files[]" multiple accept="image/*" class="w-full text-xs text-slate-500 file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-[10px] file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 cursor-pointer">
+                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Subir Fotos a Galería Adicional</label>
+                                <input type="file" name="galeria_files[]" multiple accept="image/*" class="w-full text-xs text-slate-400 file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-[10px] file:font-semibold file:bg-slate-900 file:text-cyan-400 hover:file:bg-slate-800 cursor-pointer">
                             </div>
                             <div class="flex flex-col gap-1.5">
-                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">O URLs de Galería (coma, Opcional)</label>
-                                <textarea name="galeria" placeholder="https://url1.com, https://url2.com" rows="1" class="w-full rounded-lg border border-slate-200 bg-white p-2 text-xs text-slate-700 focus:border-brand-teal focus:bg-white"></textarea>
+                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">O URLs de Galería (coma, Opcional)</label>
+                                <textarea name="galeria" placeholder="https://url1.com, https://url2.com" rows="1" class="w-full rounded-lg border border-slate-800 bg-slate-900 p-2 text-xs text-white focus:border-cyan-500"></textarea>
                             </div>
                         </div>
 
                         <!-- Inclusiones y Exclusiones -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div class="flex flex-col gap-1.5">
-                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Qué Incluye (separados por coma)</label>
-                                <textarea name="incluye" placeholder="Ej. Guía certificado, Transportación climatizada, Entradas oficiales" rows="2" class="w-full rounded-lg border border-slate-200 bg-white p-2.5 text-xs text-slate-700 placeholder-slate-400 focus:border-brand-teal focus:bg-white focus:ring-0 focus:outline-none"></textarea>
+                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Qué Incluye (separados por coma)</label>
+                                <textarea name="incluye" placeholder="Ej. Guía certificado, Transportación climatizada, Entradas oficiales" rows="2" class="w-full rounded-lg border border-slate-800 bg-slate-900 p-2.5 text-xs text-white placeholder-slate-600 focus:border-cyan-500 focus:ring-0 focus:outline-none"></textarea>
                             </div>
                             <div class="flex flex-col gap-1.5">
-                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">No Incluye (separados por coma)</label>
-                                <textarea name="no_incluye" placeholder="Ej. Propinas, Souvenirs, Almuerzo" rows="2" class="w-full rounded-lg border border-slate-200 bg-white p-2.5 text-xs text-slate-700 placeholder-slate-400 focus:border-brand-teal focus:bg-white focus:ring-0 focus:outline-none"></textarea>
+                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">No Incluye (separados por coma)</label>
+                                <textarea name="no_incluye" placeholder="Ej. Propinas, Souvenirs, Almuerzo" rows="2" class="w-full rounded-lg border border-slate-800 bg-slate-900 p-2.5 text-xs text-white placeholder-slate-600 focus:border-cyan-500 focus:ring-0 focus:outline-none"></textarea>
                             </div>
                         </div>
 
                         <!-- Itinerario de Viaje -->
-                        <div class="flex flex-col gap-3 border-t border-slate-200 pt-4">
+                        <div class="flex flex-col gap-3 border-t border-slate-900 pt-4">
                             <div class="flex items-center justify-between">
-                                <h4 class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Itinerario de Viaje (Pasos)</h4>
-                                <button type="button" onclick="addItineraryRow('create')" class="px-2 py-1 rounded bg-slate-50 hover:bg-slate-100 border border-slate-200 text-[9px] font-bold text-slate-600 transition-colors cursor-pointer">
+                                <h4 class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Itinerario de Viaje (Pasos)</h4>
+                                <button type="button" onclick="addItineraryRow('create')" class="px-2 py-1 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 text-[9px] font-bold text-cyan-400 transition-colors cursor-pointer">
                                     + Añadir Paso
                                 </button>
                             </div>
@@ -1076,10 +1065,10 @@
 
                         <!-- Botones de Acción -->
                         <div class="flex gap-3 mt-2">
-                            <button type="button" onclick="closeCreateTourModal()" class="w-1/3 h-10 rounded-lg border border-slate-200 hover:bg-slate-100 text-xs font-bold text-slate-500 transition-colors cursor-pointer">
+                            <button type="button" onclick="closeCreateTourModal()" class="w-1/3 h-10 rounded-lg border border-slate-800 hover:bg-slate-900 text-xs font-bold text-slate-400 transition-colors cursor-pointer">
                                 Cancelar
                             </button>
-                            <button type="submit" class="w-2/3 h-10 rounded-lg bg-gradient-to-r from-brand-teal to-brand-teal-hover text-xs font-black uppercase text-white shadow-lg cursor-pointer">
+                            <button type="submit" class="w-2/3 h-10 rounded-lg bg-gradient-to-r from-cyan-500 to-indigo-600 text-xs font-black uppercase text-white shadow-lg cursor-pointer">
                                 Crear Tour
                             </button>
                         </div>
@@ -1088,14 +1077,14 @@
             </div>
 
             <!-- Modal de Edición de Tour (Solo Administrador) -->
-            <div id="edit-tour-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-white/60 backdrop-blur-xs transition-all duration-200">
-                <div class="relative w-full max-w-2xl rounded-3xl border border-slate-200 bg-white p-6 shadow-xl overflow-y-auto max-h-[90vh]">
+            <div id="edit-tour-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm transition-all duration-200">
+                <div class="relative w-full max-w-2xl rounded-3xl border border-slate-900 bg-slate-950 p-6 shadow-2xl overflow-y-auto max-h-[90vh]">
                     <!-- Botón Cerrar -->
-                    <button type="button" onclick="closeEditTourModal()" class="absolute top-4 right-4 text-slate-500 hover:text-slate-800 text-lg cursor-pointer">
+                    <button type="button" onclick="closeEditTourModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg cursor-pointer">
                         &times;
                     </button>
                     
-                    <h3 class="text-xs font-black uppercase tracking-widest text-brand-teal border-b border-slate-200 pb-3 mb-5">
+                    <h3 class="text-xs font-black uppercase tracking-widest text-cyan-400 border-b border-slate-900 pb-3 mb-5">
                         Editar Tour
                     </h3>
 
@@ -1104,8 +1093,8 @@
                         
                         <!-- Proveedor Asignado -->
                         <div class="flex flex-col gap-1.5">
-                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Asignar Operador (Proveedor)</label>
-                            <select name="proveedor_id" id="edit-tour-proveedor" required class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal cursor-pointer">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Asignar Operador (Proveedor)</label>
+                            <select name="proveedor_id" id="edit-tour-proveedor" required class="w-full h-9 rounded-lg border border-slate-800 bg-slate-900 px-3 text-xs text-white focus:border-cyan-500 cursor-pointer">
                                 @foreach($proveedores as $prov)
                                     <option value="{{ $prov->id }}">{{ $prov->nombre_empresa }}</option>
                                 @endforeach
@@ -1114,95 +1103,95 @@
 
                         <!-- Título del Tour -->
                         <div class="flex flex-col gap-1.5">
-                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Título del Tour</label>
-                            <input type="text" name="titulo" id="edit-tour-titulo" required class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Título del Tour</label>
+                            <input type="text" name="titulo" id="edit-tour-titulo" required class="w-full h-9 rounded-lg border border-slate-800 bg-slate-900 px-3 text-xs text-white focus:border-cyan-500">
                         </div>
 
                         <!-- Resumen del Tour -->
                         <div class="flex flex-col gap-1.5">
-                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Resumen (Descripción Corta)</label>
-                            <input type="text" name="descripcion_corta" id="edit-tour-resumen" required class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Resumen (Descripción Corta)</label>
+                            <input type="text" name="descripcion_corta" id="edit-tour-resumen" required class="w-full h-9 rounded-lg border border-slate-800 bg-slate-900 px-3 text-xs text-white focus:border-cyan-500">
                         </div>
 
                         <!-- Descripción Larga -->
                         <div class="flex flex-col gap-1.5">
-                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Descripción Detallada (Larga)</label>
-                            <textarea name="descripcion_larga" id="edit-tour-detalle" required rows="4" class="w-full rounded-lg border border-slate-200 bg-white p-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white"></textarea>
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Descripción Detallada (Larga)</label>
+                            <textarea name="descripcion_larga" id="edit-tour-detalle" required rows="4" class="w-full rounded-lg border border-slate-800 bg-slate-900 p-3 text-xs text-white focus:border-cyan-500"></textarea>
                         </div>
 
                         <!-- Condiciones Financieras y Logística -->
                         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
                             <div class="flex flex-col gap-1.5">
-                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Precio MXN</label>
-                                <input type="number" name="precio_base_usd" id="edit-tour-precio" required min="1" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Precio MXN</label>
+                                <input type="number" name="precio_base_usd" id="edit-tour-precio" required min="1" class="w-full h-9 rounded-lg border border-slate-800 bg-slate-900 px-3 text-xs text-white focus:border-cyan-500">
                             </div>
                             <div class="flex flex-col gap-1.5">
-                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Duración</label>
-                                <input type="text" name="duracion" id="edit-tour-duracion" required class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Duración</label>
+                                <input type="text" name="duracion" id="edit-tour-duracion" required class="w-full h-9 rounded-lg border border-slate-800 bg-slate-900 px-3 text-xs text-white focus:border-cyan-500">
                             </div>
                             <div class="flex flex-col gap-1.5">
-                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Ubicación</label>
-                                <input type="text" name="ubicacion" id="edit-tour-ubicacion" required class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Ubicación</label>
+                                <input type="text" name="ubicacion" id="edit-tour-ubicacion" required class="w-full h-9 rounded-lg border border-slate-800 bg-slate-900 px-3 text-xs text-white focus:border-cyan-500">
                             </div>
                             <div class="flex flex-col gap-1.5">
-                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">País</label>
-                                <input type="text" name="pais" id="edit-tour-pais" required class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">País</label>
+                                <input type="text" name="pais" id="edit-tour-pais" required class="w-full h-9 rounded-lg border border-slate-800 bg-slate-900 px-3 text-xs text-white focus:border-cyan-500">
                             </div>
                         </div>
 
                         <!-- Tags -->
                         <div class="flex flex-col gap-1.5">
-                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Tags (separados por coma)</label>
-                            <input type="text" name="tags" id="edit-tour-tags" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Tags (separados por coma)</label>
+                            <input type="text" name="tags" id="edit-tour-tags" class="w-full h-9 rounded-lg border border-slate-800 bg-slate-900 px-3 text-xs text-white focus:border-cyan-500">
                         </div>
 
                         <!-- Punto de encuentro y fotos -->
                         <div class="flex flex-col gap-1.5">
-                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Punto de Encuentro (Dirección y detalles)</label>
-                            <input type="text" name="punto_encuentro" id="edit-tour-punto-encuentro" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Punto de Encuentro (Dirección y detalles)</label>
+                            <input type="text" name="punto_encuentro" id="edit-tour-punto-encuentro" class="w-full h-9 rounded-lg border border-slate-800 bg-slate-900 px-3 text-xs text-white focus:border-cyan-500">
                         </div>
 
                         <!-- Carga Dual de Imagen Destacada (Portada) -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div class="flex flex-col gap-1.5">
-                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Subir Nueva Imagen de Portada (Destacada)</label>
-                                <input type="file" name="imagen_destacada_file" accept="image/*" class="w-full text-xs text-slate-500 file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-[10px] file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 cursor-pointer">
+                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Subir Nueva Imagen de Portada (Destacada)</label>
+                                <input type="file" name="imagen_destacada_file" accept="image/*" class="w-full text-xs text-slate-400 file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-[10px] file:font-semibold file:bg-slate-900 file:text-cyan-400 hover:file:bg-slate-800 cursor-pointer">
                             </div>
                             <div class="flex flex-col gap-1.5">
-                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">O URL de Portada Actual</label>
-                                <input type="url" name="imagen_destacada" id="edit-tour-imagen" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">O URL de Portada Actual</label>
+                                <input type="url" name="imagen_destacada" id="edit-tour-imagen" class="w-full h-9 rounded-lg border border-slate-800 bg-slate-900 px-3 text-xs text-white focus:border-cyan-500">
                             </div>
                         </div>
 
                         <!-- Carga Dual de Galería Adicional -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div class="flex flex-col gap-1.5">
-                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Subir Nuevas Fotos a Galería Adicional</label>
-                                <input type="file" name="galeria_files[]" multiple accept="image/*" class="w-full text-xs text-slate-500 file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-[10px] file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 cursor-pointer">
+                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Subir Nuevas Fotos a Galería Adicional</label>
+                                <input type="file" name="galeria_files[]" multiple accept="image/*" class="w-full text-xs text-slate-400 file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-[10px] file:font-semibold file:bg-slate-900 file:text-cyan-400 hover:file:bg-slate-800 cursor-pointer">
                             </div>
                             <div class="flex flex-col gap-1.5">
-                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">O URLs de Galería Actuales (coma)</label>
-                                <textarea name="galeria" id="edit-tour-galeria" rows="1" class="w-full rounded-lg border border-slate-200 bg-white p-2 text-xs text-slate-700 focus:border-brand-teal focus:bg-white"></textarea>
+                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">O URLs de Galería Actuales (coma)</label>
+                                <textarea name="galeria" id="edit-tour-galeria" rows="1" class="w-full rounded-lg border border-slate-800 bg-slate-900 p-2 text-xs text-white focus:border-cyan-500"></textarea>
                             </div>
                         </div>
 
                         <!-- Inclusiones y Exclusiones -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div class="flex flex-col gap-1.5">
-                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Qué Incluye (separados por coma)</label>
-                                <textarea name="incluye" id="edit-tour-incluye" rows="2" class="w-full rounded-lg border border-slate-200 bg-white p-2.5 text-xs text-slate-700 placeholder-slate-400 focus:border-brand-teal focus:ring-0 focus:outline-none"></textarea>
+                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Qué Incluye (separados por coma)</label>
+                                <textarea name="incluye" id="edit-tour-incluye" rows="2" class="w-full rounded-lg border border-slate-800 bg-slate-900 p-2.5 text-xs text-white focus:border-cyan-500 focus:ring-0 focus:outline-none"></textarea>
                             </div>
                             <div class="flex flex-col gap-1.5">
-                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">No Incluye (separados por coma)</label>
-                                <textarea name="no_incluye" id="edit-tour-no-incluye" rows="2" class="w-full rounded-lg border border-slate-200 bg-white p-2.5 text-xs text-slate-700 placeholder-slate-400 focus:border-brand-teal focus:ring-0 focus:outline-none"></textarea>
+                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">No Incluye (separados por coma)</label>
+                                <textarea name="no_incluye" id="edit-tour-no-incluye" rows="2" class="w-full rounded-lg border border-slate-800 bg-slate-900 p-2.5 text-xs text-white focus:border-cyan-500 focus:ring-0 focus:outline-none"></textarea>
                             </div>
                         </div>
 
                         <!-- Itinerario de Viaje -->
-                        <div class="flex flex-col gap-3 border-t border-slate-200 pt-4">
+                        <div class="flex flex-col gap-3 border-t border-slate-900 pt-4">
                             <div class="flex items-center justify-between">
-                                <h4 class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Itinerario de Viaje (Pasos)</h4>
-                                <button type="button" onclick="addItineraryRow('edit')" class="px-2 py-1 rounded bg-slate-50 hover:bg-slate-100 border border-slate-200 text-[9px] font-bold text-slate-600 transition-colors cursor-pointer">
+                                <h4 class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Itinerario de Viaje (Pasos)</h4>
+                                <button type="button" onclick="addItineraryRow('edit')" class="px-2 py-1 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 text-[9px] font-bold text-cyan-400 transition-colors cursor-pointer">
                                     + Añadir Paso
                                 </button>
                             </div>
@@ -1213,10 +1202,10 @@
 
                         <!-- Botones de Acción -->
                         <div class="flex gap-3 mt-2">
-                            <button type="button" onclick="closeEditTourModal()" class="w-1/3 h-10 rounded-lg border border-slate-200 hover:bg-slate-100 text-xs font-bold text-slate-500 transition-colors cursor-pointer">
+                            <button type="button" onclick="closeEditTourModal()" class="w-1/3 h-10 rounded-lg border border-slate-800 hover:bg-slate-900 text-xs font-bold text-slate-400 transition-colors cursor-pointer">
                                 Cancelar
                             </button>
-                            <button type="submit" class="w-2/3 h-10 rounded-lg bg-gradient-to-r from-brand-teal to-brand-teal-hover text-xs font-black uppercase text-white shadow-lg cursor-pointer">
+                            <button type="submit" class="w-2/3 h-10 rounded-lg bg-gradient-to-r from-cyan-500 to-indigo-600 text-xs font-black uppercase text-white shadow-lg cursor-pointer">
                                 Guardar Cambios
                             </button>
                         </div>
@@ -1226,108 +1215,15 @@
         @endif
     </div>
 
-    <!-- Modal de Disponibilidad en Lote (Múltiples Fechas) -->
-    <div id="batch-availability-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-white/60 backdrop-blur-xs animate-fade-in">
-        <div class="relative w-full max-w-lg rounded-3xl border border-slate-200 bg-white p-6 shadow-xl max-h-[90vh] overflow-y-auto">
-            <!-- Botón Cerrar -->
-            <button type="button" onclick="closeBatchModal()" class="absolute top-4 right-4 text-slate-500 hover:text-slate-800 text-lg cursor-pointer">
-                &times;
-            </button>
-            
-            <h3 class="text-xs font-black uppercase tracking-widest text-brand-teal border-b border-slate-200 pb-3 mb-5">
-                Configuración de Salidas en Lote
-            </h3>
-            
-            <form id="batch-availability-form" class="flex flex-col gap-4">
-                <input type="hidden" id="batch-tour-id" name="tour_id">
-                
-                <!-- Rango de Fechas -->
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="flex flex-col gap-1.5">
-                        <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Fecha de Inicio</label>
-                        <input type="date" id="batch-fecha-inicio" name="fecha_inicio" required class="w-full h-10 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:ring-0 focus:outline-none">
-                    </div>
-                    <div class="flex flex-col gap-1.5">
-                        <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Fecha de Fin</label>
-                        <input type="date" id="batch-fecha-fin" name="fecha_fin" required class="w-full h-10 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:ring-0 focus:outline-none">
-                    </div>
-                </div>
-                
-                <!-- Días de la Semana -->
-                <div class="flex flex-col gap-1.5">
-                    <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Aplicar a los días de la semana</label>
-                    <div class="grid grid-cols-4 sm:grid-cols-7 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200">
-                        @foreach([['Lu', 1], ['Ma', 2], ['Mi', 3], ['Ju', 4], ['Vi', 5], ['Sá', 6], ['Do', 0]] as $d)
-                            <label class="flex flex-col items-center gap-1 cursor-pointer select-none">
-                                <span class="text-[9px] font-bold text-slate-500 uppercase">{{ $d[0] }}</span>
-                                <input type="checkbox" name="batch_dias_semana" value="{{ $d[1] }}" checked class="rounded border-slate-300 text-brand-teal focus:ring-brand-teal h-4.5 w-4.5">
-                            </label>
-                        @endforeach
-                    </div>
-                </div>
-
-                <!-- Acción a realizar -->
-                <div class="flex flex-col gap-1.5">
-                    <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Acción</label>
-                    <div class="grid grid-cols-2 gap-3">
-                        <label class="flex items-center gap-2 p-3 rounded-xl border border-slate-200 bg-white cursor-pointer select-none">
-                            <input type="radio" name="batch_accion" value="habilitar" checked onchange="toggleBatchSalidas(true)" class="text-brand-teal focus:ring-brand-teal h-4 w-4">
-                            <div class="text-left">
-                                <p class="text-xs font-bold text-slate-800">Habilitar Salidas</p>
-                                <p class="text-[8px] text-slate-400">Crear o actualizar horarios</p>
-                            </div>
-                        </label>
-                        <label class="flex items-center gap-2 p-3 rounded-xl border border-slate-200 bg-white cursor-pointer select-none">
-                            <input type="radio" name="batch_accion" value="deshabilitar" onchange="toggleBatchSalidas(false)" class="text-brand-teal focus:ring-brand-teal h-4 w-4">
-                            <div class="text-left">
-                                <p class="text-xs font-bold text-slate-800">Deshabilitar Salidas</p>
-                                <p class="text-[8px] text-slate-400">Remover disponibilidad</p>
-                            </div>
-                        </label>
-                    </div>
-                </div>
-                
-                <!-- Contenedor de Salidas -->
-                <div id="batch-salidas-wrapper" class="flex flex-col gap-3">
-                    <div class="flex justify-between items-center">
-                        <h4 class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Definir Horarios y Cupos</h4>
-                        <button type="button" onclick="addBatchSalidaRow()" class="px-2 py-1 rounded bg-slate-50 hover:bg-slate-100 border border-slate-200 text-[9px] font-bold text-brand-teal transition-colors cursor-pointer shadow-xs">
-                            + Añadir Horario
-                        </button>
-                    </div>
-                    
-                    <div id="batch-salidas-list" class="flex flex-col gap-2 max-h-[180px] overflow-y-auto pr-1">
-                        <!-- Filas dinámicas -->
-                    </div>
-                </div>
-                
-                <!-- Advertencia -->
-                <div id="batch-warning-alert" class="hidden p-3 rounded-xl border border-amber-200 bg-amber-50 text-amber-700 text-[9px] font-semibold leading-relaxed">
-                    <!-- Advertencias dinámicas -->
-                </div>
-
-                <!-- Botones de Acción -->
-                <div class="flex gap-3 mt-4">
-                    <button type="button" onclick="closeBatchModal()" class="w-1/3 h-10 rounded-lg border border-slate-200 hover:bg-slate-50 text-xs font-bold text-slate-500 transition-colors cursor-pointer">
-                        Cancelar
-                    </button>
-                    <button type="submit" class="w-2/3 h-10 rounded-lg bg-gradient-to-r from-brand-teal to-brand-teal-hover text-xs font-black uppercase text-white shadow-lg cursor-pointer">
-                        Aplicar Cambios en Lote
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
     <!-- Modal de Disponibilidad por Día (Estilo Airbnb Premium) -->
-    <div id="edit-day-availability-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-white/60 backdrop-blur-xs animate-fade-in">
-        <div class="relative w-full max-w-md rounded-3xl border border-slate-200 bg-white p-6 shadow-xl max-h-[90vh] overflow-y-auto">
+    <div id="edit-day-availability-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in">
+        <div class="relative w-full max-w-md rounded-3xl border border-slate-900 bg-slate-950 p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
             <!-- Botón Cerrar -->
-            <button type="button" onclick="closeDayModal()" class="absolute top-4 right-4 text-slate-500 hover:text-slate-800 text-lg cursor-pointer">
+            <button type="button" onclick="closeDayModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg cursor-pointer">
                 &times;
             </button>
             
-            <h3 class="text-xs font-black uppercase tracking-widest text-brand-teal border-b border-slate-200 pb-3 mb-5" id="modal-date-title">
+            <h3 class="text-xs font-black uppercase tracking-widest text-cyan-400 border-b border-slate-900 pb-3 mb-5" id="modal-date-title">
                 Disponibilidad: -
             </h3>
             
@@ -1336,19 +1232,19 @@
                 <input type="hidden" id="modal-fecha" name="fecha">
                 
                 <!-- Toggle Habilitado -->
-                <div class="flex items-center justify-between p-3 rounded-xl border border-slate-200 bg-slate-50">
-                    <span class="text-xs font-bold text-slate-700">¿Habilitar salidas para este día?</span>
+                <div class="flex items-center justify-between p-3 rounded-xl border border-slate-900 bg-slate-900/10">
+                    <span class="text-xs font-bold text-white">¿Habilitar salidas para este día?</span>
                     <label class="relative inline-flex items-center cursor-pointer">
                         <input type="checkbox" id="modal-habilitado" name="habilitado" class="sr-only peer" onchange="toggleModalSalidas(this.checked)">
-                        <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-teal peer-checked:after:bg-white"></div>
+                        <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-400 after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-cyan-500 peer-checked:after:bg-white"></div>
                     </label>
                 </div>
                 
                 <!-- Contenedor de Salidas -->
                 <div id="modal-salidas-wrapper" class="hidden flex flex-col gap-3">
                     <div class="flex justify-between items-center">
-                        <h4 class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Salidas Programadas</h4>
-                        <button type="button" onclick="addSalidaRow()" class="px-2 py-1 rounded bg-slate-50 hover:bg-slate-100 border border-slate-200 text-[9px] font-bold text-brand-teal transition-colors cursor-pointer">
+                        <h4 class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Salidas Programadas</h4>
+                        <button type="button" onclick="addSalidaRow()" class="px-2 py-1 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 text-[9px] font-bold text-cyan-400 transition-colors cursor-pointer">
                             + Añadir Salida
                         </button>
                     </div>
@@ -1359,16 +1255,16 @@
                 </div>
                 
                 <!-- Alertas de advertencia en el modal -->
-                <div id="modal-warning-alert" class="hidden p-3 rounded-xl border border-amber-200 bg-amber-50 text-amber-600 text-[10px] font-medium leading-relaxed">
+                <div id="modal-warning-alert" class="hidden p-3 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-400 text-[10px] font-medium leading-relaxed">
                     <!-- Advertencias dinámicas -->
                 </div>
 
                 <!-- Botones de Acción -->
                 <div class="flex gap-3 mt-4">
-                    <button type="button" onclick="closeDayModal()" class="w-1/3 h-10 rounded-lg border border-slate-200 hover:bg-slate-100 text-xs font-bold text-slate-500 transition-colors cursor-pointer">
+                    <button type="button" onclick="closeDayModal()" class="w-1/3 h-10 rounded-lg border border-slate-800 hover:bg-slate-900 text-xs font-bold text-slate-400 transition-colors cursor-pointer">
                         Cancelar
                     </button>
-                    <button type="submit" class="w-2/3 h-10 rounded-lg bg-gradient-to-r from-brand-teal to-brand-teal-hover text-xs font-black uppercase text-white shadow-lg cursor-pointer">
+                    <button type="submit" class="w-2/3 h-10 rounded-lg bg-gradient-to-r from-cyan-500 to-indigo-600 text-xs font-black uppercase text-white shadow-lg cursor-pointer">
                         Guardar Cambios
                     </button>
                 </div>
@@ -1456,8 +1352,8 @@
             // Quitar resalte de botones
             const buttons = document.querySelectorAll('.tab-btn');
             buttons.forEach(btn => {
-                btn.classList.remove('border-cyan-400', 'text-brand-teal');
-                btn.classList.add('border-transparent', 'text-slate-500');
+                btn.classList.remove('border-cyan-400', 'text-cyan-400');
+                btn.classList.add('border-transparent', 'text-slate-400');
             });
 
             // Mostrar el seleccionado
@@ -1466,8 +1362,8 @@
 
             const activeBtn = document.getElementById(`tab-btn-${tabId}`);
             if (activeBtn) {
-                activeBtn.classList.remove('border-transparent', 'text-slate-500');
-                activeBtn.classList.add('border-cyan-400', 'text-brand-teal');
+                activeBtn.classList.remove('border-transparent', 'text-slate-400');
+                activeBtn.classList.add('border-cyan-400', 'text-cyan-400');
             }
 
             // Guardar pestaña activa en localStorage
@@ -1807,12 +1703,12 @@
 
                 if (dayDetails.length > 0) {
                     // Celda con reservas
-                    dayCell.className += ' border-cyan-500/30 bg-cyan-500/5 hover:bg-cyan-500/10 cursor-pointer hover:border-cyan-500/60 text-brand-teal';
-                    dayNumSpan.className += ' text-cyan-700';
+                    dayCell.className += ' border-cyan-500/30 bg-cyan-500/5 hover:bg-cyan-500/10 cursor-pointer hover:border-cyan-500/60 text-cyan-400';
+                    dayNumSpan.className += ' text-cyan-300';
 
                     // Badge de pasajeros
                     const badge = document.createElement('span');
-                    badge.className = 'text-[9px] bg-cyan-100 border border-cyan-200 text-brand-teal px-1 py-0.5 rounded font-mono font-bold w-full text-center truncate';
+                    badge.className = 'text-[9px] bg-cyan-950/60 border border-cyan-900 text-cyan-400 px-1 py-0.5 rounded font-mono font-bold w-full text-center truncate';
                     badge.innerHTML = `👥 ${totalPax}`;
                     dayCell.appendChild(badge);
 
@@ -1827,7 +1723,7 @@
                     });
                 } else {
                     // Celda sin reservas
-                    dayCell.className += ' border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:text-slate-700';
+                    dayCell.className += ' border-slate-900 bg-slate-950/10 text-slate-500 hover:border-slate-800 hover:text-slate-300';
                 }
 
                 grid.appendChild(dayCell);
@@ -1844,35 +1740,35 @@
             const formattedDate = dateObj.toLocaleDateString('es-ES', options);
 
             let html = `
-                <div class="mb-2 border-b border-slate-200 pb-2">
+                <div class="mb-2 border-b border-slate-900 pb-2">
                     <p class="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Fecha Seleccionada</p>
-                    <p class="text-xs font-black text-brand-teal capitalize">${formattedDate}</p>
+                    <p class="text-xs font-black text-cyan-400 capitalize">${formattedDate}</p>
                 </div>
                 <div class="flex flex-col gap-3">
             `;
 
             details.forEach(item => {
                 html += `
-                    <div class="p-3 rounded-2xl border border-slate-200 bg-white flex flex-col gap-2 shadow-sm hover:border-slate-300 transition-colors">
-                        <div class="flex items-center justify-between border-b border-slate-100 pb-1.5">
-                            <span class="text-[10px] font-black text-brand-teal font-mono">${item.ticket}</span>
-                            <span class="text-[9px] font-bold bg-cyan-50 text-brand-teal border border-cyan-200 px-1.5 py-0.5 rounded-lg">👥 ${item.pax} pax</span>
+                    <div class="p-3 rounded-2xl border border-slate-900 bg-slate-950/60 flex flex-col gap-2 shadow-lg hover:border-slate-800 transition-colors">
+                        <div class="flex items-center justify-between border-b border-slate-900 pb-1.5">
+                            <span class="text-[10px] font-black text-cyan-400 font-mono">${item.ticket}</span>
+                            <span class="text-[9px] font-bold bg-cyan-950 text-cyan-400 border border-cyan-800/40 px-1.5 py-0.5 rounded-lg">👥 ${item.pax} pax</span>
                         </div>
                         <div>
-                            <p class="text-[11px] font-black text-slate-800 leading-snug">${item.tour_nombre}</p>
+                            <p class="text-[11px] font-black text-white leading-snug">${item.tour_nombre}</p>
                             <p class="text-[9px] text-slate-500 mt-0.5">Operado por: ${item.proveedor_nombre}</p>
                         </div>
-                        <div class="grid grid-cols-2 gap-2 text-[10px] bg-slate-50 p-2 rounded-xl border border-slate-100 mt-1">
+                        <div class="grid grid-cols-2 gap-2 text-[10px] bg-slate-900/20 p-2 rounded-xl border border-slate-900/60 mt-1">
                             <div>
                                 <span class="text-slate-500 block text-[8px] uppercase font-bold">Cliente</span>
-                                <span class="text-slate-700 font-semibold truncate block">${item.cliente}</span>
+                                <span class="text-slate-300 font-semibold truncate block">${item.cliente}</span>
                             </div>
                             <div>
                                 <span class="text-slate-500 block text-[8px] uppercase font-bold">Salida</span>
-                                <span class="text-slate-700 font-mono font-bold block">${item.horario}</span>
+                                <span class="text-slate-300 font-mono font-bold block">${item.horario}</span>
                             </div>
                         </div>
-                        <div class="flex flex-col gap-1 text-[9px] text-slate-500 mt-1 border-t border-slate-100 pt-1.5">
+                        <div class="flex flex-col gap-1 text-[9px] text-slate-400 mt-1 border-t border-slate-900/60 pt-1.5">
                             <div class="flex items-center gap-1.5 truncate">
                                 <span>📧</span>
                                 <span class="truncate" title="${item.correo}">${item.correo}</span>
@@ -2036,7 +1932,7 @@
                 // Celdas vacías al inicio
                 for (let i = 0; i < emptySlots; i++) {
                     const emptyCell = document.createElement('div');
-                    emptyCell.className = 'min-h-[64px] bg-slate-50 rounded-lg opacity-30 border border-slate-100';
+                    emptyCell.className = 'min-h-[56px] bg-slate-900/10 rounded-lg opacity-20 border border-slate-950';
                     grid.appendChild(emptyCell);
                 }
 
@@ -2047,11 +1943,11 @@
                     const isPast = cellDate < today;
 
                     const dayCell = document.createElement('div');
-                    dayCell.className = `min-h-[64px] p-1.5 rounded-xl border flex flex-col justify-between transition-all select-none ${isPast ? 'bg-slate-50 border-slate-100 opacity-40 cursor-not-allowed' : 'bg-white border-slate-200 hover:border-brand-teal hover:shadow-sm cursor-pointer'}`;
+                    dayCell.className = `min-h-[64px] p-1.5 rounded-xl border flex flex-col justify-between transition-all select-none ${isPast ? 'bg-slate-900/30 border-slate-900/50 opacity-40 cursor-not-allowed' : 'bg-slate-900/40 border-slate-900 hover:border-cyan-500/50 cursor-pointer'}`;
                     
                     // Número del día
                     const dayNum = document.createElement('span');
-                    dayNum.className = `text-[10px] font-bold ${isPast ? 'text-slate-400' : 'text-slate-600'}`;
+                    dayNum.className = `text-[10px] font-bold ${isPast ? 'text-slate-600' : 'text-slate-400'}`;
                     dayNum.textContent = day;
                     dayCell.appendChild(dayNum);
 
@@ -2063,14 +1959,14 @@
                     if (salidas.length > 0) {
                         // Cambiar estilo de día habilitado
                         if (!isPast) {
-                            dayCell.className = 'min-h-[64px] p-1.5 rounded-xl border bg-emerald-50 border-emerald-200 hover:border-emerald-400 hover:shadow-sm transition-all cursor-pointer select-none';
-                            dayNum.className = 'text-[10px] font-bold text-emerald-700';
+                            dayCell.className = 'min-h-[64px] p-1.5 rounded-xl border bg-emerald-500/5 border-emerald-500/20 hover:border-emerald-400 transition-all cursor-pointer select-none';
+                            dayNum.className = 'text-[10px] font-bold text-emerald-400';
                         }
                         
                         // Agregar micro-indicadores para cada salida
                         salidas.forEach(sal => {
                             const badge = document.createElement('div');
-                            badge.className = `text-[8px] font-semibold px-1 py-0.5 rounded truncate ${sal.cupo_reservado > 0 ? 'bg-indigo-950 text-brand-orange' : 'bg-emerald-950 text-emerald-600'}`;
+                            badge.className = `text-[8px] font-semibold px-1 py-0.5 rounded truncate ${sal.cupo_reservado > 0 ? 'bg-indigo-950 text-indigo-400' : 'bg-emerald-950 text-emerald-400'}`;
                             badge.textContent = `${sal.horario} (${sal.cupo_reservado}/${sal.cupo_maximo})`;
                             infoContainer.appendChild(badge);
                         });
@@ -2128,10 +2024,8 @@
 
             if (salidas.length > 0) {
                 checkboxHabilitado.checked = true;
-                // Mostrar el wrapper directamente SIN agregar fila default
-                // (las filas vendrán del forEach a continuación)
-                document.getElementById('modal-salidas-wrapper').classList.remove('hidden');
-
+                toggleModalSalidas(true);
+                
                 salidas.forEach(sal => {
                     addSalidaRow(sal.horario, sal.cupo_maximo, sal.cupo_reservado);
                 });
@@ -2151,8 +2045,7 @@
             const wrapper = document.getElementById('modal-salidas-wrapper');
             if (isHabilitado) {
                 wrapper.classList.remove('hidden');
-                // Solo agrega fila default si la lista está vacía
-                // (esto ocurre cuando el USUARIO activa el toggle manualmente)
+                // Si la lista está vacía, agregar una salida predeterminada
                 const list = document.getElementById('modal-salidas-list');
                 if (list.children.length === 0) {
                     addSalidaRow('09:00', 20, 0);
@@ -2166,20 +2059,20 @@
             const listContainer = document.getElementById('modal-salidas-list');
             
             const row = document.createElement('div');
-            row.className = 'salida-row flex gap-2 items-center p-2 rounded-xl border border-slate-200 bg-slate-50';
+            row.className = 'salida-row flex gap-2 items-center p-2 rounded-xl border border-slate-900 bg-slate-900/20';
             
             row.innerHTML = `
                 <div class="w-1/2 flex flex-col gap-1">
                     <label class="text-[8px] font-bold text-slate-500 uppercase tracking-wider">Horario de Salida</label>
-                    <input type="time" class="salida-horario w-full h-8 rounded-lg border border-slate-800 bg-slate-50 px-2 text-xs text-slate-800 border-slate-200 focus:border-brand-teal" value="${horario}" required ${cupoReservado > 0 ? 'readonly title="Este horario ya tiene reservas y no se puede modificar"' : ''}>
+                    <input type="time" class="salida-horario w-full h-8 rounded-lg border border-slate-800 bg-slate-950 px-2 text-xs text-white focus:border-cyan-500" value="${horario}" required ${cupoReservado > 0 ? 'readonly title="Este horario ya tiene reservas y no se puede modificar"' : ''}>
                 </div>
                 <div class="w-1/3 flex flex-col gap-1">
                     <label class="text-[8px] font-bold text-slate-500 uppercase tracking-wider">Cupo Máx.</label>
-                    <input type="number" class="salida-cupo-maximo w-full h-8 rounded-lg border border-slate-800 bg-slate-50 px-2 text-xs text-slate-800 border-slate-200 focus:border-brand-teal" value="${cupoMaximo}" min="${cupoReservado || 1}" required>
+                    <input type="number" class="salida-cupo-maximo w-full h-8 rounded-lg border border-slate-800 bg-slate-950 px-2 text-xs text-white focus:border-cyan-500" value="${cupoMaximo}" min="${cupoReservado || 1}" required>
                 </div>
                 <div class="w-1/4 text-center flex flex-col gap-1 justify-center">
                     <span class="text-[8px] font-bold text-slate-500 uppercase tracking-wider">Reservados</span>
-                    <span class="text-xs font-black text-brand-teal ${cupoReservado > 0 ? 'text-brand-orange' : 'text-slate-500'}">
+                    <span class="text-xs font-black text-cyan-400 ${cupoReservado > 0 ? 'text-indigo-400' : 'text-slate-500'}">
                         <span class="salida-reservados-label">${cupoReservado}</span>
                     </span>
                 </div>
@@ -2276,212 +2169,21 @@
             });
         });
 
-        // --- MODAL DE CONFIGURACIÓN EN LOTE ---
-
-        function openBatchModal() {
-            if (!currentTourId) {
-                alert('Por favor, selecciona primero un tour del calendario.');
-                return;
-            }
-            // Pre-poblar el tour_id
-            document.getElementById('batch-tour-id').value = currentTourId;
-
-            // Inicializar las fechas: inicio = hoy, fin = en 1 mes
-            const hoy = new Date();
-            const fin = new Date();
-            fin.setMonth(fin.getMonth() + 1);
-            const toISO = d => d.toISOString().split('T')[0];
-
-            document.getElementById('batch-fecha-inicio').value = toISO(hoy);
-            document.getElementById('batch-fecha-fin').value = toISO(fin);
-
-            // Todos los días marcados por defecto
-            document.querySelectorAll('input[name="batch_dias_semana"]').forEach(cb => cb.checked = true);
-
-            // Acción: habilitar por defecto
-            document.querySelector('input[name="batch_accion"][value="habilitar"]').checked = true;
-            toggleBatchSalidas(true);
-
-            // Advertencia oculta
-            const wa = document.getElementById('batch-warning-alert');
-            wa.classList.add('hidden');
-            wa.innerHTML = '';
-
-            // Una fila de salida por defecto
-            const listEl = document.getElementById('batch-salidas-list');
-            listEl.innerHTML = '';
-            addBatchSalidaRow();
-
-            document.getElementById('batch-availability-modal').classList.remove('hidden');
-        }
-
-        function closeBatchModal() {
-            document.getElementById('batch-availability-modal').classList.add('hidden');
-        }
-
-        function toggleBatchSalidas(mostrar) {
-            const wrapper = document.getElementById('batch-salidas-wrapper');
-            if (mostrar) {
-                wrapper.style.display = '';
-                wrapper.classList.remove('hidden');
-            } else {
-                wrapper.style.display = 'none';
-            }
-        }
-
-        function addBatchSalidaRow(horario = '09:00', cupoMaximo = 20) {
-            const listContainer = document.getElementById('batch-salidas-list');
-            const row = document.createElement('div');
-            row.className = 'batch-salida-row flex gap-2 items-center p-2.5 rounded-xl border border-slate-200 bg-slate-50';
-            row.innerHTML = `
-                <div class="w-1/2 flex flex-col gap-1">
-                    <label class="text-[8px] font-bold text-slate-500 uppercase tracking-wider">Horario de Salida</label>
-                    <input type="time" class="batch-salida-horario w-full h-8 rounded-lg border border-slate-200 bg-white px-2 text-xs text-slate-800 focus:border-brand-teal focus:ring-0 focus:outline-none" value="${horario}" required>
-                </div>
-                <div class="w-1/3 flex flex-col gap-1">
-                    <label class="text-[8px] font-bold text-slate-500 uppercase tracking-wider">Cupo Máx.</label>
-                    <input type="number" class="batch-salida-cupo w-full h-8 rounded-lg border border-slate-200 bg-white px-2 text-xs text-slate-800 focus:border-brand-teal focus:ring-0 focus:outline-none" value="${cupoMaximo}" min="1" required>
-                </div>
-                <div class="pt-4 ml-auto">
-                    <button type="button" class="text-red-400 hover:text-red-600 text-xl font-bold px-1 transition-colors cursor-pointer" onclick="this.closest('.batch-salida-row').remove()">
-                        &times;
-                    </button>
-                </div>
-            `;
-            listContainer.appendChild(row);
-        }
-
-        // Submit del formulario en lote
-        document.getElementById('batch-availability-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-
-            const tour_id = document.getElementById('batch-tour-id').value;
-            const fecha_inicio = document.getElementById('batch-fecha-inicio').value;
-            const fecha_fin = document.getElementById('batch-fecha-fin').value;
-            const accion = document.querySelector('input[name="batch_accion"]:checked')?.value || 'habilitar';
-
-            // Recoger días de la semana
-            const diasSeleccionados = [];
-            document.querySelectorAll('input[name="batch_dias_semana"]:checked').forEach(cb => {
-                diasSeleccionados.push(parseInt(cb.value));
-            });
-
-            if (diasSeleccionados.length === 0) {
-                alert('Selecciona al menos un día de la semana.');
-                return;
-            }
-
-            if (!fecha_inicio || !fecha_fin) {
-                alert('Selecciona el rango de fechas.');
-                return;
-            }
-
-            // Recoger salidas (si aplica)
-            const salidasRaw = [];
-            if (accion === 'habilitar') {
-                let isValid = true;
-                document.querySelectorAll('.batch-salida-row').forEach(row => {
-                    const horario = row.querySelector('.batch-salida-horario').value;
-                    const cupo = parseInt(row.querySelector('.batch-salida-cupo').value || 0);
-                    if (!horario || cupo < 1) {
-                        isValid = false;
-                        return;
-                    }
-                    salidasRaw.push({ horario, cupo_maximo: cupo });
-                });
-
-                if (!isValid) {
-                    alert('Revisa los horarios y cupos: todos son obligatorios y el cupo mínimo es 1.');
-                    return;
-                }
-
-                if (salidasRaw.length === 0) {
-                    alert('Agrega al menos un horario de salida para habilitar las fechas.');
-                    return;
-                }
-            }
-
-            // Deduplicar horarios: si hay dos filas con el mismo horario, se queda con el último
-            const salidasMap = {};
-            salidasRaw.forEach(s => { salidasMap[s.horario] = s.cupo_maximo; });
-            const salidas = Object.entries(salidasMap).map(([horario, cupo_maximo]) => ({ horario, cupo_maximo }));
-
-            if (salidasRaw.length !== salidas.length) {
-                console.warn('[Batch] Se detectaron horarios duplicados en el formulario. Se eliminaron las copias.');
-            }
-
-            // Deshabilitar el botón para evitar doble click
-            const submitBtn = this.querySelector('[type="submit"]');
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Procesando...';
-
-            fetch('/dashboard/dates/update-batch', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': window.Laravel.csrfToken
-                },
-                body: JSON.stringify({
-                    tour_id: tour_id,
-                    fecha_inicio: fecha_inicio,
-                    fecha_fin: fecha_fin,
-                    dias_semana: diasSeleccionados,
-                    accion: accion,
-                    salidas: salidas
-                })
-            })
-            .then(res => res.json())
-            .then(data => {
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Aplicar Cambios en Lote';
-
-                if (data.success) {
-                    const wa = document.getElementById('batch-warning-alert');
-                    if (data.warnings && data.warnings.length > 0) {
-                        wa.classList.remove('hidden');
-                        wa.innerHTML = `<p class="font-bold mb-1">⚠️ Proceso completado con advertencias:</p><ul class="list-disc pl-4 space-y-0.5">${data.warnings.map(w => `<li>${w}</li>`).join('')}</ul>`;
-                    } else {
-                        closeBatchModal();
-                    }
-
-                    // Mostrar mensaje de éxito
-                    const msg = `✅ ${data.message} (${data.total_dias ?? 0} días procesados)`;
-                    // Pequeño toast de confirmación
-                    const toast = document.createElement('div');
-                    toast.className = 'fixed bottom-6 right-6 z-[9999] px-5 py-3 rounded-2xl bg-brand-teal text-white text-xs font-bold shadow-2xl animate-fade-in';
-                    toast.textContent = msg;
-                    document.body.appendChild(toast);
-                    setTimeout(() => toast.remove(), 5000);
-
-                    loadCalendar(); // Refrescar el calendario
-                } else {
-                    alert('Error: ' + (data.message || data.error || 'No se pudo procesar la solicitud.'));
-                }
-            })
-            .catch(err => {
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Aplicar Cambios en Lote';
-                console.error(err);
-                alert('Ocurrió un error al procesar la solicitud.');
-            });
-        });
-
         // --- DINÁMICA DE PASOS DE ITINERARIO ---
-
         function addItineraryRow(type, titulo = '', descripcion = '') {
             const container = document.getElementById(`${type}-itinerary-container`);
             if (!container) return;
 
             const row = document.createElement('div');
-            row.className = 'itinerary-row flex gap-2.5 items-start p-3 rounded-xl border border-slate-200 bg-slate-50';
+            row.className = 'itinerary-row flex gap-2.5 items-start p-3 rounded-xl border border-slate-900 bg-slate-900/20';
             
             row.innerHTML = `
                 <div class="flex-grow flex flex-col gap-2">
                     <div class="flex gap-2">
-                        <span class="step-num text-[10px] font-mono text-brand-teal mt-2 font-bold"></span>
-                        <input type="text" name="itinerario_titulos[]" placeholder="Título del paso (Ej. Punto de partida)" class="w-full h-8 rounded-lg border border-slate-800 bg-slate-50 px-2.5 text-xs text-slate-800 border-slate-200 focus:border-brand-teal" value="${titulo}" required>
+                        <span class="step-num text-[10px] font-mono text-cyan-400 mt-2 font-bold"></span>
+                        <input type="text" name="itinerario_titulos[]" placeholder="Título del paso (Ej. Punto de partida)" class="w-full h-8 rounded-lg border border-slate-800 bg-slate-950 px-2.5 text-xs text-white focus:border-cyan-500" value="${titulo}" required>
                     </div>
-                    <textarea name="itinerario_descripciones[]" placeholder="Descripción detallada de lo que se realiza en este paso..." rows="2" class="w-full rounded-lg border border-slate-800 bg-slate-50 p-2 text-xs text-slate-800 border-slate-200 focus:border-brand-teal" required>${descripcion}</textarea>
+                    <textarea name="itinerario_descripciones[]" placeholder="Descripción detallada de lo que se realiza en este paso..." rows="2" class="w-full rounded-lg border border-slate-800 bg-slate-950 p-2 text-xs text-white focus:border-cyan-500" required>${descripcion}</textarea>
                 </div>
                 <div class="pt-1.5">
                     <button type="button" class="text-red-500 hover:text-red-400 text-lg font-bold px-1 transition-colors cursor-pointer" onclick="this.closest('.itinerary-row').remove(); updateStepNumbers('${type}');">
@@ -2615,12 +2317,12 @@
             // Resaltar la tarjeta seleccionada
             document.querySelectorAll('.tour-list-card').forEach(card => {
                 card.classList.remove('border-cyan-500', 'ring-1', 'ring-cyan-500/20', 'bg-slate-900/30');
-                card.classList.add('border-brand-teal', 'bg-brand-teal/5', 'ring-1', 'ring-brand-teal/20');
+                card.classList.add('border-slate-900', 'bg-slate-950/60');
             });
 
             const selectedCard = document.getElementById(`tour-card-${tourId}`);
             if (selectedCard) {
-                selectedCard.classList.remove('border-brand-teal', 'bg-brand-teal/5', 'ring-1', 'ring-brand-teal/20');
+                selectedCard.classList.remove('border-slate-900', 'bg-slate-950/60');
                 selectedCard.classList.add('border-cyan-500', 'ring-1', 'ring-cyan-500/20', 'bg-slate-900/30');
 
                 // Actualizar título de calendario activo

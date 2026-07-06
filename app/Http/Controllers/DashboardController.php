@@ -3,7 +3,7 @@
  * @file DashboardController.php
  * @description Controlador para gestionar el panel de administración (Admin) y el panel de proveedor (PT).
  *              Incluye: métricas, reservas, gestión de tours/proveedores/usuarios y disponibilidad.
- * @date 2026-06-10
+ * @date 2026-06-29
  * @author Antigravity
  */
 
@@ -711,6 +711,164 @@ class DashboardController extends Controller
             'message' => __('Disponibilidad actualizada correctamente.'),
             'warnings' => $advertencias,
             'fechas' => $this->getFechasDeDia($tourId, $fecha)
+        ]);
+    }
+
+    /**
+     * Actualiza en lote la disponibilidad de un rango de fechas para un tour.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function updateBatchAvailability(Request $request)
+    {
+        $user = Auth::user();
+        if (!$user || (!$user->isAdmin() && !$user->isProveedor())) {
+            return response()->json(['error' => __('No autorizado.')], 403);
+        }
+
+        $request->validate([
+            'tour_id' => 'required|exists:tours,id',
+            'fecha_inicio' => 'required|date',
+            'fecha_fin' => 'required|date|after_or_equal:fecha_inicio',
+            'dias_semana' => 'required|array',
+            'dias_semana.*' => 'integer|between:0,6',
+            'accion' => 'required|string|in:habilitar,deshabilitar',
+            'salidas' => 'nullable|array',
+            'salidas.*.horario' => 'required_if:accion,habilitar|string|regex:/^\d{2}:\d{2}$/',
+            'salidas.*.cupo_maximo' => 'required_if:accion,habilitar|integer|min:1'
+        ]);
+
+        $tourId = $request->input('tour_id');
+        $fechaInicioStr = $request->input('fecha_inicio');
+        $fechaFinStr = $request->input('fecha_fin');
+        $diasSemana = $request->input('dias_semana');
+        $accion = $request->input('accion');
+        $salidas = $request->input('salidas', []);
+
+        $tour = Tour::findOrFail($tourId);
+
+        if ($user->isProveedor() && $tour->proveedor_id !== $user->proveedor_id) {
+            return response()->json(['error' => __('No autorizado para este tour.')], 403);
+        }
+
+        $inicio = new \DateTime($fechaInicioStr);
+        $fin = new \DateTime($fechaFinStr);
+        $intervalo = new \DateInterval('P1D');
+        $periodo = new \DatePeriod($inicio, $intervalo, $fin->modify('+1 day'));
+
+        $fechasAProcesar = [];
+        foreach ($periodo as $dt) {
+            $w = (int) $dt->format('w'); // 0 (Domingo) a 6 (Sábado)
+            if (in_array($w, $diasSemana)) {
+                $fechasAProcesar[] = $dt->format('Y-m-d');
+            }
+        }
+
+        if (empty($fechasAProcesar)) {
+            return response()->json([
+                'success' => false,
+                'message' => __('No se encontraron fechas que coincidan con los días de la semana seleccionados en el rango indicado.')
+            ], 422);
+        }
+
+        $advertencias = [];
+        $contadorFechasModificadas = 0;
+
+        if ($accion === 'deshabilitar') {
+            foreach ($fechasAProcesar as $fecha) {
+                $existentes = TourFecha::where('tour_id', $tourId)
+                    ->where('fecha', $fecha)
+                    ->get();
+
+                if ($existentes->isEmpty()) {
+                    continue;
+                }
+
+                $conReservas = $existentes->where('cupo_reservado', '>', 0);
+                if ($conReservas->isNotEmpty()) {
+                    // Borrar las que no tienen reservas
+                    $sinReservas = $existentes->where('cupo_reservado', 0);
+                    foreach ($sinReservas as $f) {
+                        $f->delete();
+                    }
+                    $horariosConservados = $conReservas->pluck('horario')->toArray();
+                    $advertencias[] = __(':fecha: No se pudieron deshabilitar salidas a las :horarios porque tienen reservas.', [
+                        'fecha' => $fecha,
+                        'horarios' => implode(', ', $horariosConservados)
+                    ]);
+                } else {
+                    TourFecha::where('tour_id', $tourId)->where('fecha', $fecha)->delete();
+                }
+                $contadorFechasModificadas++;
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => __('Proceso completado. Se deshabilitaron las salidas en el rango seleccionado.'),
+                'warnings' => $advertencias,
+                'total_dias' => $contadorFechasModificadas
+            ]);
+        }
+
+        // Si es 'habilitar'
+        // Deduplicar salidas por horario (si vienen dos filas con el mismo horario, se queda la última)
+        $salidasUnicas = [];
+        foreach ($salidas as $salida) {
+            $salidasUnicas[$salida['horario']] = $salida;
+        }
+        $salidas = array_values($salidasUnicas);
+
+        $horariosEnviados = collect($salidas)->pluck('horario')->toArray();
+
+        foreach ($fechasAProcesar as $fecha) {
+            $existentes = TourFecha::where('tour_id', $tourId)
+                ->where('fecha', $fecha)
+                ->get();
+
+            // 1. Eliminar horarios no enviados si no tienen reservas
+            foreach ($existentes as $existente) {
+                if (!in_array($existente->horario, $horariosEnviados)) {
+                    if ($existente->cupo_reservado > 0) {
+                        $advertencias[] = __(':fecha: El horario :horario no se pudo eliminar porque tiene reservas.', [
+                            'fecha' => $fecha,
+                            'horario' => $existente->horario
+                        ]);
+                    } else {
+                        $existente->delete();
+                    }
+                }
+            }
+
+            // 2. Crear o actualizar horarios enviados
+            foreach ($salidas as $salida) {
+                $horario = $salida['horario'];
+                $cupoMaximo = (int) $salida['cupo_maximo'];
+
+                $existente = $existentes->firstWhere('horario', $horario);
+                if ($existente && $existente->cupo_reservado > $cupoMaximo) {
+                    $advertencias[] = __(':fecha: No se pudo reducir el cupo del horario :horario a :cupo porque ya hay :reservas reservas.', [
+                        'fecha' => $fecha,
+                        'horario' => $horario,
+                        'cupo' => $cupoMaximo,
+                        'reservas' => $existente->cupo_reservado
+                    ]);
+                    $cupoMaximo = $existente->cupo_reservado;
+                }
+
+                TourFecha::updateOrCreate(
+                    ['tour_id' => $tourId, 'fecha' => $fecha, 'horario' => $horario],
+                    ['cupo_maximo' => $cupoMaximo]
+                );
+            }
+            $contadorFechasModificadas++;
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => __('Proceso completado. Se configuraron :total fechas de salida con éxito.', ['total' => $contadorFechasModificadas]),
+            'warnings' => $advertencias,
+            'total_dias' => $contadorFechasModificadas
         ]);
     }
 

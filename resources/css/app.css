@@ -2,8 +2,8 @@
 
 /**
  * @file app.css
- * @description Hoja de estilos principal. Incorpora Tailwind CSS v4, configuraciones de fuentes Bunny y animaciones de interacción premium.
- * @date 2026-06-08
+ * @description Hoja de estilos principal. Incorpora Tailwind CSS v4, configuraciones de fuentes Bunny, colores corporativos de marca y animaciones de interacción premium.
+ * @date 2026-06-29
  * @author Antigravity
  */
 
@@ -13,6 +13,10 @@
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+    --color-brand-teal: #007a63;
+    --color-brand-teal-hover: #009478;
+    --color-brand-orange: #ed722e;
+    --color-brand-orange-hover: #f2854b;
 }
 
 /* Animaciones y Clases Especiales Premium */
@@ -26,14 +30,14 @@
     }
     
     .text-glow {
-        text-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+        text-shadow: 0 0 15px rgba(0, 122, 99, 0.2);
     }
     
     .bg-grid-pattern {
         background-size: 30px 30px;
         background-image: 
-            linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px),
-            linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px);
+            linear-gradient(to right, rgba(0, 122, 99, 0.03) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(0, 122, 99, 0.03) 1px, transparent 1px);
     }
 }
 
@@ -57,17 +61,17 @@
     }
 }
 
-/* Scrollbar moderno */
+/* Scrollbar moderno adaptado a tema claro */
 ::-webkit-scrollbar {
     width: 8px;
 }
 ::-webkit-scrollbar-track {
-    background: #0f172a;
+    background: #f1f5f9;
 }
 ::-webkit-scrollbar-thumb {
-    background: #334155;
+    background: #cbd5e1;
     border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-    background: #475569;
+    background: #94a3b8;
 }

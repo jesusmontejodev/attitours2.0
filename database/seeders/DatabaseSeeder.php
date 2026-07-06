@@ -2,7 +2,7 @@
 /**
  * @file DatabaseSeeder.php
  * @description Seeder principal de la base de datos para inicializar Atti Tours con usuarios de prueba, proveedores, tours y disponibilidad.
- * @date 2026-06-08
+ * @date 2026-06-29
  * @author Antigravity
  */
 
@@ -57,7 +57,7 @@ class DatabaseSeeder extends Seeder
         $usuarioProveedor = User::create([
             'name' => 'Carlos Gómez (Amigo Tours)',
             'email' => 'proveedor@attitours.com',
-            'password' => Hash::make('prov123'),
+            'password' => Hash::make('proveedor123'),
             'tipo' => 'PT',
             'telefono' => '+52 55 8765 4321',
             'pais' => 'México',

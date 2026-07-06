@@ -2,7 +2,7 @@
 /**
  * @file web.php
  * @description Registro de todas las rutas HTTP de la plataforma Atti Tours 2.0.
- * @date 2026-06-10
+ * @date 2026-06-29
  * @author Antigravity
  */
 
@@ -72,6 +72,7 @@ Route::middleware(['auth'])->prefix('dashboard')->group(function () {
     Route::post('/dates', [DashboardController::class, 'updateDates'])->name('dashboard.dates');
     Route::get('/tour/{id}/fechas', [DashboardController::class, 'getTourFechasJson'])->name('dashboard.tour.fechas.json');
     Route::post('/dates/update-single-day', [DashboardController::class, 'updateSingleDayAvailability'])->name('dashboard.dates.update-single-day');
+    Route::post('/dates/update-batch', [DashboardController::class, 'updateBatchAvailability'])->name('dashboard.dates.update-batch');
     
     // Rutas Administrativas Nuevas
     Route::post('/proveedor', [DashboardController::class, 'storeProveedor'])->name('dashboard.proveedor');
