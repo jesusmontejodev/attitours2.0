@@ -1012,4 +1012,96 @@ class DashboardController extends Controller
 
         return redirect()->route('dashboard')->with('success', __('Tour actualizado exitosamente.'))->with('active_tab', 'tours');
     }
+
+    // =========================================================================
+    // ELIMINAR TOUR
+    // =========================================================================
+
+    /**
+     * Elimina un tour y toda su disponibilidad si no tiene reservas activas.
+     *
+     * @param string $id
+     * @return JsonResponse
+     */
+    public function destroyTour(string $id): JsonResponse
+    {
+        $user = Auth::user();
+        if (!$user || !$user->isAdmin()) {
+            return response()->json(['success' => false, 'message' => 'No autorizado.'], 403);
+        }
+
+        $tour = Tour::find($id);
+        if (!$tour) {
+            return response()->json(['success' => false, 'message' => 'Tour no encontrado.'], 404);
+        }
+
+        // Verificar si existen reservas activas ligadas a este tour
+        $reservasActivas = ReservaTour::where('tour_id', $id)
+            ->whereHas('reserva', function ($q) {
+                $q->whereIn('estado', ['pendiente', 'confirmada', 'pagada']);
+            })->count();
+
+        if ($reservasActivas > 0) {
+            return response()->json([
+                'success' => false,
+                'message' => "No se puede eliminar el tour porque tiene {$reservasActivas} reserva(s) activa(s). Cancélalas primero."
+            ], 422);
+        }
+
+        // Eliminar fechas de disponibilidad y luego el tour
+        TourFecha::where('tour_id', $id)->delete();
+        $tour->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Tour eliminado correctamente.'
+        ]);
+    }
+
+    // =========================================================================
+    // ELIMINAR PROVEEDOR
+    // =========================================================================
+
+    /**
+     * Elimina un proveedor si ninguno de sus tours tiene reservas activas.
+     *
+     * @param int $id
+     * @return JsonResponse
+     */
+    public function destroyProveedor(int $id): JsonResponse
+    {
+        $user = Auth::user();
+        if (!$user || !$user->isAdmin()) {
+            return response()->json(['success' => false, 'message' => 'No autorizado.'], 403);
+        }
+
+        $proveedor = Proveedor::find($id);
+        if (!$proveedor) {
+            return response()->json(['success' => false, 'message' => 'Proveedor no encontrado.'], 404);
+        }
+
+        // Verificar si algún tour del proveedor tiene reservas activas
+        $toursIds = Tour::where('proveedor_id', $id)->pluck('id');
+        $reservasActivas = ReservaTour::whereIn('tour_id', $toursIds)
+            ->whereHas('reserva', function ($q) {
+                $q->whereIn('estado', ['pendiente', 'confirmada', 'pagada']);
+            })->count();
+
+        if ($reservasActivas > 0) {
+            return response()->json([
+                'success' => false,
+                'message' => "No se puede eliminar el proveedor porque tiene {$reservasActivas} reserva(s) activa(s) en sus tours."
+            ], 422);
+        }
+
+        // Eliminar fechas de tours, luego tours, luego el proveedor
+        TourFecha::whereIn('tour_id', $toursIds)->delete();
+        Tour::where('proveedor_id', $id)->delete();
+        $proveedor->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Proveedor y sus tours eliminados correctamente.'
+        ]);
+    }
 }

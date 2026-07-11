@@ -220,7 +220,7 @@
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
                 <!-- Panel Izquierdo: Calendario mensual -->
                 <div class="lg:col-span-2 p-6 rounded-3xl border border-slate-200 bg-white shadow-md">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-900 pb-4 mb-5">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4 mb-5">
                         <div>
                             <h2 class="text-xs font-black uppercase tracking-widest text-brand-teal">
                                 Calendario de Operación (Viajes Programados)
@@ -279,7 +279,7 @@
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div class="lg:col-span-3">
                     <div class="p-6 rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-900 pb-3 mb-5">
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-3 mb-5">
                             <h2 class="text-xs font-black uppercase tracking-widest text-slate-800">
                                 {{ Auth::user()->isAdmin() ? __('globalBookingsList') : __('vendorBookingsList') }}
                             </h2>
@@ -317,7 +317,7 @@
                                                     $toursNombres = $res->detalles->map(function($d) { return $d->tour->nombre ?? ''; })->implode(', ');
                                                     $proveedoresNombres = $res->detalles->map(function($d) { return $d->tour->proveedor->nombre_empresa ?? ''; })->filter()->unique()->implode(', ');
                                                 @endphp
-                                                <tr class="reserva-row hover:bg-slate-900/40 transition-colors text-slate-700"
+                                                <tr class="reserva-row hover:bg-slate-50 transition-colors text-slate-700"
                                                     data-proveedores="{{ $provIds }}"
                                                     data-tours="{{ $tourIds }}"
                                                     data-fecha-compra="{{ $fechaCompra }}"
@@ -334,7 +334,7 @@
                                                         <span class="block text-slate-700">{{ $res->fecha_reserva->format('Y-m-d H:i') }}</span>
                                                         <span class="text-[10px] text-slate-500 block truncate mt-0.5" title="{{ $proveedoresNombres }}">{{ $proveedoresNombres }}</span>
                                                     </td>
-                                                    <td class="py-3.5 px-2 text-right font-bold text-white">${{ number_format($res->precio_total_usd) }}</td>
+                                                    <td class="py-3.5 px-2 text-right font-bold text-slate-800">${{ number_format($res->precio_total_usd) }}</td>
                                                     <td class="py-3.5 px-2 text-right text-rose-600 font-bold">${{ number_format($res->comision_total_usd, 2) }}</td>
                                                 </tr>
                                             @endforeach
@@ -359,11 +359,11 @@
                                         </thead>
                                         <tbody class="divide-y divide-slate-100">
                                             @foreach($reservaDetalles as $det)
-                                                <tr class="hover:bg-slate-900/40 transition-colors text-slate-700">
+                                                <tr class="hover:bg-slate-50 transition-colors text-slate-700">
                                                     <td class="py-3.5 px-2 font-black text-brand-teal">{{ $det->reserva->ticket_codigo }}</td>
                                                     <td class="py-3.5 px-2 truncate max-w-[150px]" title="{{ $det->tour->nombre }}">{{ $det->tour->nombre }}</td>
                                                     <td class="py-3.5 px-2 text-[10px]">{{ $det->fecha_seleccionada->format('Y-m-d') }}</td>
-                                                    <td class="py-3.5 px-2 text-center font-bold text-white">{{ $det->cantidad_personas }}</td>
+                                                    <td class="py-3.5 px-2 text-center font-bold text-slate-800">{{ $det->cantidad_personas }}</td>
                                                     <td class="py-3.5 px-2 text-right text-emerald-600">${{ number_format(($det->precio_unitario_usd * $det->cantidad_personas) - $det->comision_usd, 2) }}</td>
                                                 </tr>
                                             @endforeach
@@ -381,7 +381,7 @@
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-10">
                     <!-- Calendario de Disponibilidad -->
                     <div class="lg:col-span-2 p-6 rounded-3xl border border-slate-200 bg-white shadow-md">
-                        <h2 class="text-xs font-black uppercase tracking-widest text-brand-teal border-b border-slate-900 pb-3 mb-4">
+                        <h2 class="text-xs font-black uppercase tracking-widest text-brand-teal border-b border-slate-200 pb-3 mb-4">
                             Calendario de Disponibilidad (Modo Anfitrión)
                         </h2>
 
@@ -476,7 +476,7 @@
                     
                     <!-- Formulario de creación de Proveedor -->
                     <div class="lg:col-span-1 p-6 rounded-3xl border border-slate-200 bg-white shadow-md">
-                        <h2 class="text-xs font-black uppercase tracking-widest text-brand-teal border-b border-slate-900 pb-3 mb-4">
+                        <h2 class="text-xs font-black uppercase tracking-widest text-brand-teal border-b border-slate-200 pb-3 mb-4">
                             Registrar Nuevo Proveedor
                         </h2>
 
@@ -556,17 +556,17 @@
                                 </thead>
                                 <tbody class="divide-y divide-slate-100">
                                     @foreach($proveedores as $prov)
-                                        <tr class="hover:bg-slate-900/40 transition-colors text-slate-700">
+                                        <tr class="hover:bg-slate-50 transition-colors text-slate-700">
                                             <td class="py-3.5 px-2">
                                                 @if($prov->foto_url)
                                                     <img src="{{ $prov->foto_url }}" alt="{{ $prov->nombre_empresa }}" class="h-8 w-8 rounded-full object-cover border border-slate-800">
                                                 @else
-                                                    <div class="h-8 w-8 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-[9px] font-black text-brand-teal">
+                                                    <div class="h-8 w-8 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-[9px] font-black text-brand-teal">
                                                         {{ substr($prov->nombre_empresa, 0, 2) }}
                                                     </div>
                                                 @endif
                                             </td>
-                                            <td class="py-3.5 px-2 font-bold text-white">{{ $prov->nombre_empresa }}</td>
+                                            <td class="py-3.5 px-2 font-bold text-slate-800">{{ $prov->nombre_empresa }}</td>
                                             <td class="py-3.5 px-2">{{ $prov->representante_nombre }}</td>
                                             <td class="py-3.5 px-2 font-mono text-[10px] text-slate-500">
                                                 {{ $prov->correo }}<br>{{ $prov->representante_telefono }}
@@ -574,10 +574,16 @@
                                             <td class="py-3.5 px-2 text-center font-bold text-brand-teal">{{ $prov->tours_count }}</td>
                                             <td class="py-3.5 px-2 text-center text-rose-600">{{ $prov->comision_percentage ?? $prov->comision_porcentaje }}%</td>
                                             <td class="py-3.5 px-2 text-center">
-                                                <button onclick="openEditProveedorModal({{ $prov->id }}, '{{ addslashes($prov->nombre_empresa) }}', '{{ addslashes($prov->descripcion) }}', '{{ $prov->rfc }}', '{{ $prov->correo }}', '{{ addslashes($prov->representante_nombre) }}', '{{ $prov->representante_telefono }}', {{ $prov->comision_percentage ?? $prov->comision_porcentaje }}, '{{ $prov->foto_url }}')" 
-                                                        class="px-2.5 py-1 rounded-md bg-brand-teal/10 hover:bg-brand-teal border border-brand-teal/30 text-[10px] font-bold uppercase text-brand-teal hover:text-white transition-colors cursor-pointer">
-                                                    Editar
-                                                </button>
+                                                <div class="flex items-center justify-center gap-2">
+                                                    <button onclick="openEditProveedorModal({{ $prov->id }}, '{{ addslashes($prov->nombre_empresa) }}', '{{ addslashes($prov->descripcion) }}', '{{ $prov->rfc }}', '{{ $prov->correo }}', '{{ addslashes($prov->representante_nombre) }}', '{{ $prov->representante_telefono }}', {{ $prov->comision_percentage ?? $prov->comision_porcentaje }}, '{{ $prov->foto_url }}')" 
+                                                            class="px-2.5 py-1 rounded-md bg-brand-teal/10 hover:bg-brand-teal border border-brand-teal/30 text-[10px] font-bold uppercase text-brand-teal hover:text-white transition-colors cursor-pointer">
+                                                        Editar
+                                                    </button>
+                                                    <button onclick="confirmDeleteProveedor({{ $prov->id }}, '{{ addslashes($prov->nombre_empresa) }}')" 
+                                                            class="px-2.5 py-1 rounded-md bg-rose-50 hover:bg-rose-500 border border-rose-200 text-[10px] font-bold uppercase text-rose-600 hover:text-white transition-colors cursor-pointer">
+                                                        Eliminar
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     @endforeach
@@ -596,8 +602,8 @@
                     <!-- COLUMNA IZQUIERDA (Catálogo & Selector de Tours - lg:col-span-5) -->
                     <div class="lg:col-span-5 flex flex-col gap-6">
                         <!-- Tarjeta Contenedora del Catálogo -->
-                        <div class="p-6 rounded-3xl border border-slate-900 bg-slate-950/40 shadow-xl flex flex-col gap-5">
-                            <div class="flex items-center justify-between gap-4 border-b border-slate-900 pb-4">
+                        <div class="p-6 rounded-3xl border border-slate-200 bg-white shadow-xl flex flex-col gap-5">
+                            <div class="flex items-center justify-between gap-4 border-b border-slate-200 pb-4">
                                 <div>
                                     <h2 class="text-xs font-black uppercase tracking-widest text-brand-teal">
                                         Catálogo de Tours
@@ -677,6 +683,12 @@
                                                title="Ver Ficha">
                                                 🔗
                                             </a>
+                                            <button type="button"
+                                                    onclick="event.stopPropagation(); confirmDeleteTour('{{ $t->id }}', '{{ addslashes($t->nombre) }}')"
+                                                    class="h-6 w-6 inline-flex items-center justify-center rounded bg-rose-50 hover:bg-rose-500 border border-rose-200 text-[10px] text-rose-500 hover:text-white transition-colors cursor-pointer"
+                                                    title="Eliminar Tour">
+                                                🗑️
+                                            </button>
                                         </div>
                                     </div>
                                 @endforeach
@@ -1037,6 +1049,21 @@
                             </div>
                         </div>
 
+                        <!-- Leyenda de formatos para imagen de portada -->
+                        <div class="flex items-start gap-2 px-3 py-2 rounded-lg bg-slate-50 border border-slate-200">
+                            <svg class="w-3.5 h-3.5 text-brand-teal mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <div class="flex flex-col gap-1">
+                                <p class="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Imagen de Portada</p>
+                                <p class="text-[10px] text-slate-500 leading-relaxed">
+                                    Formatos permitidos: <span class="font-semibold text-slate-700">JPG, JPEG, PNG, WEBP, GIF</span>
+                                    &nbsp;·&nbsp; Peso máximo: <span class="font-semibold text-slate-700">5 MB</span>
+                                    &nbsp;·&nbsp; Se recomienda una imagen horizontal (16:9) de al menos <span class="font-semibold text-slate-700">1200 × 675 px</span>.
+                                </p>
+                            </div>
+                        </div>
+
                         <!-- Carga Dual de Galería Adicional -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div class="flex flex-col gap-1.5">
@@ -1046,6 +1073,21 @@
                             <div class="flex flex-col gap-1.5">
                                 <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">O URLs de Galería (coma, Opcional)</label>
                                 <textarea name="galeria" placeholder="https://url1.com, https://url2.com" rows="1" class="w-full rounded-lg border border-slate-200 bg-white p-2 text-xs text-slate-700 focus:border-brand-teal focus:bg-white"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Leyenda de formatos para galería adicional -->
+                        <div class="flex items-start gap-2 px-3 py-2 rounded-lg bg-slate-50 border border-slate-200">
+                            <svg class="w-3.5 h-3.5 text-amber-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            <div class="flex flex-col gap-1">
+                                <p class="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Galería de Fotos</p>
+                                <p class="text-[10px] text-slate-500 leading-relaxed">
+                                    Formatos permitidos: <span class="font-semibold text-slate-700">JPG, JPEG, PNG, WEBP, GIF</span>
+                                    &nbsp;·&nbsp; Peso máximo por foto: <span class="font-semibold text-slate-700">5 MB</span>
+                                    &nbsp;·&nbsp; Puedes seleccionar <span class="font-semibold text-slate-700">múltiples archivos</span> a la vez.
+                                </p>
                             </div>
                         </div>
 
@@ -1174,6 +1216,21 @@
                             </div>
                         </div>
 
+                        <!-- Leyenda de formatos para imagen de portada (editar) -->
+                        <div class="flex items-start gap-2 px-3 py-2 rounded-lg bg-slate-50 border border-slate-200">
+                            <svg class="w-3.5 h-3.5 text-brand-teal mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <div class="flex flex-col gap-1">
+                                <p class="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Imagen de Portada</p>
+                                <p class="text-[10px] text-slate-500 leading-relaxed">
+                                    Formatos permitidos: <span class="font-semibold text-slate-700">JPG, JPEG, PNG, WEBP, GIF</span>
+                                    &nbsp;·&nbsp; Peso máximo: <span class="font-semibold text-slate-700">5 MB</span>
+                                    &nbsp;·&nbsp; Se recomienda una imagen horizontal (16:9) de al menos <span class="font-semibold text-slate-700">1200 × 675 px</span>.
+                                </p>
+                            </div>
+                        </div>
+
                         <!-- Carga Dual de Galería Adicional -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div class="flex flex-col gap-1.5">
@@ -1183,6 +1240,21 @@
                             <div class="flex flex-col gap-1.5">
                                 <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">O URLs de Galería Actuales (coma)</label>
                                 <textarea name="galeria" id="edit-tour-galeria" rows="1" class="w-full rounded-lg border border-slate-200 bg-white p-2 text-xs text-slate-700 focus:border-brand-teal focus:bg-white"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Leyenda de formatos para galería adicional (editar) -->
+                        <div class="flex items-start gap-2 px-3 py-2 rounded-lg bg-slate-50 border border-slate-200">
+                            <svg class="w-3.5 h-3.5 text-amber-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            <div class="flex flex-col gap-1">
+                                <p class="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Galería de Fotos</p>
+                                <p class="text-[10px] text-slate-500 leading-relaxed">
+                                    Formatos permitidos: <span class="font-semibold text-slate-700">JPG, JPEG, PNG, WEBP, GIF</span>
+                                    &nbsp;·&nbsp; Peso máximo por foto: <span class="font-semibold text-slate-700">5 MB</span>
+                                    &nbsp;·&nbsp; Puedes seleccionar <span class="font-semibold text-slate-700">múltiples archivos</span> a la vez.
+                                </p>
                             </div>
                         </div>
 
@@ -2614,14 +2686,14 @@
 
             // Resaltar la tarjeta seleccionada
             document.querySelectorAll('.tour-list-card').forEach(card => {
-                card.classList.remove('border-cyan-500', 'ring-1', 'ring-cyan-500/20', 'bg-slate-900/30');
-                card.classList.add('border-brand-teal', 'bg-brand-teal/5', 'ring-1', 'ring-brand-teal/20');
+                card.classList.remove('border-cyan-500', 'ring-1', 'ring-cyan-500/20', 'bg-brand-teal/10');
+                card.classList.add('border-slate-200', 'bg-white', 'ring-0');
             });
 
             const selectedCard = document.getElementById(`tour-card-${tourId}`);
             if (selectedCard) {
                 selectedCard.classList.remove('border-brand-teal', 'bg-brand-teal/5', 'ring-1', 'ring-brand-teal/20');
-                selectedCard.classList.add('border-cyan-500', 'ring-1', 'ring-cyan-500/20', 'bg-slate-900/30');
+                selectedCard.classList.add('border-cyan-500', 'ring-1', 'ring-cyan-500/20', 'bg-brand-teal/10');
 
                 // Actualizar título de calendario activo
                 const tourName = selectedCard.querySelector('.tour-card-name').textContent.trim();
@@ -2647,5 +2719,195 @@
             }
         }
         </script>
+
+    <!-- ====================================================================== -->
+    <!-- MODAL: CONFIRMAR ELIMINACIÓN DE TOUR                                    -->
+    <!-- ====================================================================== -->
+    <div id="delete-tour-modal" class="hidden fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in">
+        <div class="w-full max-w-sm mx-4 p-6 rounded-3xl border border-rose-200 bg-white shadow-2xl relative">
+            <div class="flex flex-col items-center text-center gap-4">
+                <div class="h-16 w-16 rounded-2xl bg-rose-50 border border-rose-100 flex items-center justify-center text-3xl">
+                    🗑️
+                </div>
+                <div>
+                    <h3 class="text-sm font-black text-slate-800 uppercase tracking-wide">Eliminar Tour</h3>
+                    <p class="text-xs text-slate-500 mt-1.5 leading-relaxed">
+                        ¿Estás seguro de que deseas eliminar el tour<br>
+                        <strong id="delete-tour-name" class="text-slate-700 font-bold"></strong>?<br>
+                        <span class="text-rose-600 font-semibold">Esta acción no se puede deshacer.</span>
+                    </p>
+                </div>
+                <div id="delete-tour-error" class="hidden w-full text-[11px] text-rose-700 bg-rose-50 border border-rose-200 rounded-xl px-3 py-2 font-semibold"></div>
+                <div class="flex gap-3 w-full mt-2">
+                    <button onclick="closeDeleteTourModal()" class="flex-1 h-10 rounded-xl border border-slate-200 hover:bg-slate-100 text-xs font-bold text-slate-500 transition-colors cursor-pointer">
+                        Cancelar
+                    </button>
+                    <button id="delete-tour-btn" onclick="executDeleteTour()" class="flex-1 h-10 rounded-xl bg-rose-500 hover:bg-rose-600 text-xs font-black uppercase text-white shadow transition-colors cursor-pointer">
+                        Sí, eliminar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====================================================================== -->
+    <!-- MODAL: CONFIRMAR ELIMINACIÓN DE PROVEEDOR                               -->
+    <!-- ====================================================================== -->
+    <div id="delete-proveedor-modal" class="hidden fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in">
+        <div class="w-full max-w-sm mx-4 p-6 rounded-3xl border border-rose-200 bg-white shadow-2xl relative">
+            <div class="flex flex-col items-center text-center gap-4">
+                <div class="h-16 w-16 rounded-2xl bg-rose-50 border border-rose-100 flex items-center justify-center text-3xl">
+                    🏢
+                </div>
+                <div>
+                    <h3 class="text-sm font-black text-slate-800 uppercase tracking-wide">Eliminar Proveedor</h3>
+                    <p class="text-xs text-slate-500 mt-1.5 leading-relaxed">
+                        ¿Eliminar el proveedor<br>
+                        <strong id="delete-proveedor-name" class="text-slate-700 font-bold"></strong>?<br>
+                        <span class="text-rose-600 font-semibold">Se eliminarán también todos sus tours y fechas.<br>Esta acción no se puede deshacer.</span>
+                    </p>
+                </div>
+                <div id="delete-proveedor-error" class="hidden w-full text-[11px] text-rose-700 bg-rose-50 border border-rose-200 rounded-xl px-3 py-2 font-semibold"></div>
+                <div class="flex gap-3 w-full mt-2">
+                    <button onclick="closeDeleteProveedorModal()" class="flex-1 h-10 rounded-xl border border-slate-200 hover:bg-slate-100 text-xs font-bold text-slate-500 transition-colors cursor-pointer">
+                        Cancelar
+                    </button>
+                    <button id="delete-proveedor-btn" onclick="executeDeleteProveedor()" class="flex-1 h-10 rounded-xl bg-rose-500 hover:bg-rose-600 text-xs font-black uppercase text-white shadow transition-colors cursor-pointer">
+                        Sí, eliminar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // =========================================================================
+    // JS: ELIMINAR TOUR
+    // =========================================================================
+    let _deleteTourId = null;
+
+    function confirmDeleteTour(id, nombre) {
+        _deleteTourId = id;
+        document.getElementById('delete-tour-name').textContent = nombre;
+        document.getElementById('delete-tour-error').classList.add('hidden');
+        document.getElementById('delete-tour-error').textContent = '';
+        document.getElementById('delete-tour-btn').disabled = false;
+        document.getElementById('delete-tour-btn').textContent = 'Sí, eliminar';
+        document.getElementById('delete-tour-modal').classList.remove('hidden');
+    }
+
+    function closeDeleteTourModal() {
+        document.getElementById('delete-tour-modal').classList.add('hidden');
+        _deleteTourId = null;
+    }
+
+    function executDeleteTour() {
+        if (!_deleteTourId) return;
+        const btn = document.getElementById('delete-tour-btn');
+        btn.disabled = true;
+        btn.textContent = 'Eliminando...';
+
+        fetch(`/dashboard/tour/${_deleteTourId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': window.Laravel.csrfToken
+            }
+        })
+        .then(r => r.json())
+        .then(data => {
+            btn.disabled = false;
+            btn.textContent = 'Sí, eliminar';
+            if (data.success) {
+                // Eliminar la tarjeta del tour de la UI
+                const card = document.getElementById(`tour-card-${_deleteTourId}`);
+                if (card) card.remove();
+
+                closeDeleteTourModal();
+                showToast('✅ ' + data.message, 'teal');
+            } else {
+                document.getElementById('delete-tour-error').classList.remove('hidden');
+                document.getElementById('delete-tour-error').textContent = data.message;
+            }
+        })
+        .catch(() => {
+            btn.disabled = false;
+            btn.textContent = 'Sí, eliminar';
+            document.getElementById('delete-tour-error').classList.remove('hidden');
+            document.getElementById('delete-tour-error').textContent = 'Error de conexión. Intenta de nuevo.';
+        });
+    }
+
+    // =========================================================================
+    // JS: ELIMINAR PROVEEDOR
+    // =========================================================================
+    let _deleteProveedorId = null;
+
+    function confirmDeleteProveedor(id, nombre) {
+        _deleteProveedorId = id;
+        document.getElementById('delete-proveedor-name').textContent = nombre;
+        document.getElementById('delete-proveedor-error').classList.add('hidden');
+        document.getElementById('delete-proveedor-error').textContent = '';
+        document.getElementById('delete-proveedor-btn').disabled = false;
+        document.getElementById('delete-proveedor-btn').textContent = 'Sí, eliminar';
+        document.getElementById('delete-proveedor-modal').classList.remove('hidden');
+    }
+
+    function closeDeleteProveedorModal() {
+        document.getElementById('delete-proveedor-modal').classList.add('hidden');
+        _deleteProveedorId = null;
+    }
+
+    function executeDeleteProveedor() {
+        if (!_deleteProveedorId) return;
+        const btn = document.getElementById('delete-proveedor-btn');
+        btn.disabled = true;
+        btn.textContent = 'Eliminando...';
+
+        fetch(`/dashboard/proveedor/${_deleteProveedorId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': window.Laravel.csrfToken
+            }
+        })
+        .then(r => r.json())
+        .then(data => {
+            btn.disabled = false;
+            btn.textContent = 'Sí, eliminar';
+            if (data.success) {
+                closeDeleteProveedorModal();
+                showToast('✅ ' + data.message, 'teal');
+                // Recargar la página para reflejar los cambios en la tabla de proveedores
+                setTimeout(() => window.location.reload(), 1500);
+            } else {
+                document.getElementById('delete-proveedor-error').classList.remove('hidden');
+                document.getElementById('delete-proveedor-error').textContent = data.message;
+            }
+        })
+        .catch(() => {
+            btn.disabled = false;
+            btn.textContent = 'Sí, eliminar';
+            document.getElementById('delete-proveedor-error').classList.remove('hidden');
+            document.getElementById('delete-proveedor-error').textContent = 'Error de conexión. Intenta de nuevo.';
+        });
+    }
+
+    // =========================================================================
+    // JS: HELPER — TOAST DE NOTIFICACIÓN
+    // =========================================================================
+    function showToast(msg, type = 'teal') {
+        const colorMap = {
+            teal: 'bg-brand-teal text-white',
+            rose: 'bg-rose-500 text-white',
+            orange: 'bg-brand-orange text-white'
+        };
+        const toast = document.createElement('div');
+        toast.className = `fixed bottom-6 right-6 z-[9999] px-5 py-3 rounded-2xl ${colorMap[type] || colorMap.teal} text-xs font-bold shadow-2xl animate-fade-in`;
+        toast.textContent = msg;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 4500);
+    }
+    </script>
 
 @endsection

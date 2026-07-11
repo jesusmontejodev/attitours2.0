@@ -10,6 +10,31 @@
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 
+/* ============================================================
+   FORZAR MODO CLARO — Toda la app es solo light mode.
+   Esto neutraliza prefers-color-scheme:dark del sistema del usuario.
+   ============================================================ */
+:root {
+    color-scheme: light;
+}
+
+/* Garantiza que el body y html SIEMPRE sean blancos/claros */
+html, body {
+    background-color: #f8fafc !important;
+    color: #1e293b !important;
+}
+
+/* Cancela cualquier dark-mode que el browser quiera aplicar */
+@media (prefers-color-scheme: dark) {
+    :root {
+        color-scheme: light;
+    }
+    html, body {
+        background-color: #f8fafc !important;
+        color: #1e293b !important;
+    }
+}
+
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';

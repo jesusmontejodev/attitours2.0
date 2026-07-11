@@ -175,7 +175,7 @@
                                         <span class="text-emerald-600 font-bold mt-0.5">&check;</span>
                                         {{ $inc }}
                                     </li>
-                                </endforeach
+                                @endforeach
                             @else
                                 <li class="flex items-start gap-2">
                                     <span class="text-emerald-600 font-bold mt-0.5">&check;</span>

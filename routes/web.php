@@ -79,9 +79,11 @@ Route::middleware(['auth'])->prefix('dashboard')->group(function () {
     Route::post('/proveedor/{id}/update', [DashboardController::class, 'updateProveedor'])->name('dashboard.proveedor.update');
     Route::post('/tour', [DashboardController::class, 'storeTour'])->name('dashboard.tour');
     Route::post('/tour/{id}/update', [DashboardController::class, 'updateTour'])->name('dashboard.tour.update');
+    Route::delete('/tour/{id}', [DashboardController::class, 'destroyTour'])->name('dashboard.tour.destroy');
     Route::post('/tour-fechas', [DashboardController::class, 'storeTourFechas'])->name('dashboard.tour-fechas');
     Route::post('/user/{id}/role', [DashboardController::class, 'updateUserRole'])->name('dashboard.user.role');
     Route::post('/user/{id}/reset-password', [DashboardController::class, 'resetUserPassword'])->name('dashboard.user.reset-password');
+    Route::delete('/proveedor/{id}', [DashboardController::class, 'destroyProveedor'])->name('dashboard.proveedor.destroy');
 
     // ── QR de Asistencia ──────────────────────────────────────────────────────
     Route::get('/qr', [QrScanController::class, 'showScanner'])->name('dashboard.qr.scanner');
