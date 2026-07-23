@@ -480,7 +480,7 @@
                             Registrar Nuevo Proveedor
                         </h2>
 
-                        <form action="{{ route('dashboard.proveedor') }}" method="POST" class="flex flex-col gap-4">
+                        <form action="{{ route('dashboard.proveedor') }}" method="POST" enctype="multipart/form-data" class="flex flex-col gap-4">
                             @csrf
                             
                             <div class="flex flex-col gap-1.5">
@@ -525,8 +525,9 @@
                             </div>
 
                             <div class="flex flex-col gap-1.5">
-                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">URL Foto / Logo del Proveedor (Opcional)</label>
-                                <input type="url" name="foto_url" placeholder="https://..." class="w-full h-9 rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs text-slate-700 placeholder-slate-400 focus:border-brand-teal focus:border-cyan-500">
+                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Logo / Foto del Proveedor</label>
+                                <input type="file" name="foto_file" accept="image/jpeg,image/png,image/webp" class="w-full text-xs text-slate-700 bg-slate-50 border border-slate-200 rounded-lg p-2 focus:border-brand-teal">
+                                <span class="text-[9px] text-slate-400 font-semibold">📷 Formatos permitidos: JPG, PNG, WEBP (hasta 15MB). Se optimizará automáticamente para alta velocidad.</span>
                             </div>
 
                             <button type="submit" class="w-full h-10 inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-brand-teal to-brand-teal-hover text-xs font-bold uppercase text-white shadow-lg cursor-pointer">
@@ -909,7 +910,7 @@
                     
                     <h3 class="text-xs font-black uppercase tracking-widest text-brand-teal mb-4 border-b border-slate-200 pb-2">Editar Proveedor</h3>
 
-                    <form id="edit-prov-form" method="POST" class="flex flex-col gap-4">
+                    <form id="edit-prov-form" method="POST" enctype="multipart/form-data" class="flex flex-col gap-4">
                         @csrf
                         
                         <div class="flex flex-col gap-1.5">
@@ -950,8 +951,9 @@
                         </div>
 
                         <div class="flex flex-col gap-1.5">
-                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">URL Foto / Logo del Proveedor (Opcional)</label>
-                            <input type="url" name="foto_url" id="edit-prov-foto" placeholder="https://..." class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 placeholder-slate-400 focus:border-brand-teal focus:bg-white">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Cambiar Logo / Foto del Proveedor</label>
+                            <input type="file" name="foto_file" accept="image/jpeg,image/png,image/webp" class="w-full text-xs text-slate-700 bg-slate-50 border border-slate-200 rounded-lg p-2 focus:border-brand-teal">
+                            <span class="text-[9px] text-slate-400 font-semibold">📷 Formatos permitidos: JPG, PNG, WEBP (hasta 15MB). Se optimizará automáticamente para alta velocidad.</span>
                         </div>
 
                         <button type="submit" class="w-full h-10 inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-brand-teal to-brand-teal-hover text-xs font-bold uppercase text-white shadow-lg cursor-pointer transition-all mt-2">
@@ -1037,58 +1039,25 @@
                             <input type="text" name="punto_encuentro" placeholder="Ej. Lobby de su hotel o Marina de Cancún" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
                         </div>
 
-                        <!-- Carga Dual de Imagen Destacada (Portada) -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div class="flex flex-col gap-1.5">
-                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Subir Imagen de Portada (Destacada)</label>
-                                <input type="file" name="imagen_destacada_file" accept="image/*" class="w-full text-xs text-slate-500 file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-[10px] file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 cursor-pointer">
-                            </div>
-                            <div class="flex flex-col gap-1.5">
-                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">O URL de Portada (Opcional)</label>
-                                <input type="url" name="imagen_destacada" placeholder="https://..." class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
-                            </div>
+                        <!-- Carga de Imagen Destacada (Portada) -->
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Subir Imagen de Portada (Destacada)</label>
+                            <input type="file" name="imagen_destacada_file" accept="image/jpeg,image/png,image/webp" class="w-full text-xs text-slate-700 bg-slate-50 border border-slate-200 rounded-lg p-2 focus:border-brand-teal">
+                            <span class="text-[9px] text-slate-400 font-semibold">📷 Formatos: JPG, PNG, WEBP (hasta 15MB). Se optimizará automáticamente para alta velocidad.</span>
                         </div>
 
-                        <!-- Leyenda de formatos para imagen de portada -->
-                        <div class="flex items-start gap-2 px-3 py-2 rounded-lg bg-slate-50 border border-slate-200">
-                            <svg class="w-3.5 h-3.5 text-brand-teal mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <div class="flex flex-col gap-1">
-                                <p class="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Imagen de Portada</p>
-                                <p class="text-[10px] text-slate-500 leading-relaxed">
-                                    Formatos permitidos: <span class="font-semibold text-slate-700">JPG, JPEG, PNG, WEBP, GIF</span>
-                                    &nbsp;·&nbsp; Peso máximo: <span class="font-semibold text-slate-700">5 MB</span>
-                                    &nbsp;·&nbsp; Se recomienda una imagen horizontal (16:9) de al menos <span class="font-semibold text-slate-700">1200 × 675 px</span>.
-                                </p>
-                            </div>
+                        <!-- Carga de Galería Adicional de Fotos -->
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Subir Fotos a Galería Adicional del Tour</label>
+                            <input type="file" name="galeria_files[]" multiple accept="image/jpeg,image/png,image/webp" class="w-full text-xs text-slate-700 bg-slate-50 border border-slate-200 rounded-lg p-2 focus:border-brand-teal">
+                            <span class="text-[9px] text-slate-400 font-semibold">📸 Selecciona varios archivos JPG, PNG, WEBP (hasta 15MB por foto).</span>
                         </div>
 
-                        <!-- Carga Dual de Galería Adicional -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div class="flex flex-col gap-1.5">
-                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Subir Fotos a Galería Adicional</label>
-                                <input type="file" name="galeria_files[]" multiple accept="image/*" class="w-full text-xs text-slate-500 file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-[10px] file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 cursor-pointer">
-                            </div>
-                            <div class="flex flex-col gap-1.5">
-                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">O URLs de Galería (coma, Opcional)</label>
-                                <textarea name="galeria" placeholder="https://url1.com, https://url2.com" rows="1" class="w-full rounded-lg border border-slate-200 bg-white p-2 text-xs text-slate-700 focus:border-brand-teal focus:bg-white"></textarea>
-                            </div>
-                        </div>
-
-                        <!-- Leyenda de formatos para galería adicional -->
-                        <div class="flex items-start gap-2 px-3 py-2 rounded-lg bg-slate-50 border border-slate-200">
-                            <svg class="w-3.5 h-3.5 text-amber-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
-                            <div class="flex flex-col gap-1">
-                                <p class="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Galería de Fotos</p>
-                                <p class="text-[10px] text-slate-500 leading-relaxed">
-                                    Formatos permitidos: <span class="font-semibold text-slate-700">JPG, JPEG, PNG, WEBP, GIF</span>
-                                    &nbsp;·&nbsp; Peso máximo por foto: <span class="font-semibold text-slate-700">5 MB</span>
-                                    &nbsp;·&nbsp; Puedes seleccionar <span class="font-semibold text-slate-700">múltiples archivos</span> a la vez.
-                                </p>
-                            </div>
+                        <!-- Carga de Galería de Experiencias de Viajeros -->
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Subir Fotos a Galería de Experiencias (Fotos reales de viajeros)</label>
+                            <input type="file" name="galeria_exp_files[]" multiple accept="image/jpeg,image/png,image/webp" class="w-full text-xs text-slate-700 bg-slate-50 border border-slate-200 rounded-lg p-2 focus:border-brand-teal">
+                            <span class="text-[9px] text-slate-400 font-semibold">🌟 Fotos reales tomadas por viajeros para la sección de experiencias al final del tour.</span>
                         </div>
 
                         <!-- Inclusiones y Exclusiones -->
@@ -1204,58 +1173,25 @@
                             <input type="text" name="punto_encuentro" id="edit-tour-punto-encuentro" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
                         </div>
 
-                        <!-- Carga Dual de Imagen Destacada (Portada) -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div class="flex flex-col gap-1.5">
-                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Subir Nueva Imagen de Portada (Destacada)</label>
-                                <input type="file" name="imagen_destacada_file" accept="image/*" class="w-full text-xs text-slate-500 file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-[10px] file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 cursor-pointer">
-                            </div>
-                            <div class="flex flex-col gap-1.5">
-                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">O URL de Portada Actual</label>
-                                <input type="url" name="imagen_destacada" id="edit-tour-imagen" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
-                            </div>
+                        <!-- Carga de Imagen Destacada (Portada) -->
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Cambiar Imagen de Portada (Destacada)</label>
+                            <input type="file" name="imagen_destacada_file" accept="image/jpeg,image/png,image/webp" class="w-full text-xs text-slate-700 bg-slate-50 border border-slate-200 rounded-lg p-2 focus:border-brand-teal">
+                            <span class="text-[9px] text-slate-400 font-semibold">📷 Formatos: JPG, PNG, WEBP (hasta 15MB). Se optimizará automáticamente para alta velocidad.</span>
                         </div>
 
-                        <!-- Leyenda de formatos para imagen de portada (editar) -->
-                        <div class="flex items-start gap-2 px-3 py-2 rounded-lg bg-slate-50 border border-slate-200">
-                            <svg class="w-3.5 h-3.5 text-brand-teal mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <div class="flex flex-col gap-1">
-                                <p class="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Imagen de Portada</p>
-                                <p class="text-[10px] text-slate-500 leading-relaxed">
-                                    Formatos permitidos: <span class="font-semibold text-slate-700">JPG, JPEG, PNG, WEBP, GIF</span>
-                                    &nbsp;·&nbsp; Peso máximo: <span class="font-semibold text-slate-700">5 MB</span>
-                                    &nbsp;·&nbsp; Se recomienda una imagen horizontal (16:9) de al menos <span class="font-semibold text-slate-700">1200 × 675 px</span>.
-                                </p>
-                            </div>
+                        <!-- Carga de Galería Adicional de Fotos -->
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Añadir Nuevas Fotos a Galería Adicional</label>
+                            <input type="file" name="galeria_files[]" multiple accept="image/jpeg,image/png,image/webp" class="w-full text-xs text-slate-700 bg-slate-50 border border-slate-200 rounded-lg p-2 focus:border-brand-teal">
+                            <span class="text-[9px] text-slate-400 font-semibold">📸 Selecciona varios archivos JPG, PNG, WEBP (hasta 15MB por foto).</span>
                         </div>
 
-                        <!-- Carga Dual de Galería Adicional -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div class="flex flex-col gap-1.5">
-                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Subir Nuevas Fotos a Galería Adicional</label>
-                                <input type="file" name="galeria_files[]" multiple accept="image/*" class="w-full text-xs text-slate-500 file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-[10px] file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 cursor-pointer">
-                            </div>
-                            <div class="flex flex-col gap-1.5">
-                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">O URLs de Galería Actuales (coma)</label>
-                                <textarea name="galeria" id="edit-tour-galeria" rows="1" class="w-full rounded-lg border border-slate-200 bg-white p-2 text-xs text-slate-700 focus:border-brand-teal focus:bg-white"></textarea>
-                            </div>
-                        </div>
-
-                        <!-- Leyenda de formatos para galería adicional (editar) -->
-                        <div class="flex items-start gap-2 px-3 py-2 rounded-lg bg-slate-50 border border-slate-200">
-                            <svg class="w-3.5 h-3.5 text-amber-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
-                            <div class="flex flex-col gap-1">
-                                <p class="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Galería de Fotos</p>
-                                <p class="text-[10px] text-slate-500 leading-relaxed">
-                                    Formatos permitidos: <span class="font-semibold text-slate-700">JPG, JPEG, PNG, WEBP, GIF</span>
-                                    &nbsp;·&nbsp; Peso máximo por foto: <span class="font-semibold text-slate-700">5 MB</span>
-                                    &nbsp;·&nbsp; Puedes seleccionar <span class="font-semibold text-slate-700">múltiples archivos</span> a la vez.
-                                </p>
-                            </div>
+                        <!-- Carga de Galería de Experiencias de Viajeros -->
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Añadir Fotos a Galería de Experiencias (Viajeros)</label>
+                            <input type="file" name="galeria_exp_files[]" multiple accept="image/jpeg,image/png,image/webp" class="w-full text-xs text-slate-700 bg-slate-50 border border-slate-200 rounded-lg p-2 focus:border-brand-teal">
+                            <span class="text-[9px] text-slate-400 font-semibold">🌟 Fotos reales tomadas por viajeros para la sección de experiencias al final del tour.</span>
                         </div>
 
                         <!-- Inclusiones y Exclusiones -->
@@ -1299,10 +1235,10 @@
     </div>
 
     <!-- Modal de Disponibilidad en Lote (Múltiples Fechas) -->
-    <div id="batch-availability-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-white/60 backdrop-blur-xs animate-fade-in">
-        <div class="relative w-full max-w-lg rounded-3xl border border-slate-200 bg-white p-6 shadow-xl max-h-[90vh] overflow-y-auto">
+    <div id="batch-availability-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-fade-in overflow-y-auto">
+        <div class="relative w-full max-w-lg rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
             <!-- Botón Cerrar -->
-            <button type="button" onclick="closeBatchModal()" class="absolute top-4 right-4 text-slate-500 hover:text-slate-800 text-lg cursor-pointer">
+            <button type="button" onclick="closeBatchModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-800 text-lg cursor-pointer">
                 &times;
             </button>
             
@@ -1312,79 +1248,70 @@
             
             <form id="batch-availability-form" class="flex flex-col gap-4">
                 <input type="hidden" id="batch-tour-id" name="tour_id">
-                
+                <input type="hidden" id="batch-fecha" name="fecha">
+
                 <!-- Rango de Fechas -->
                 <div class="grid grid-cols-2 gap-4">
                     <div class="flex flex-col gap-1.5">
-                        <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Fecha de Inicio</label>
-                        <input type="date" id="batch-fecha-inicio" name="fecha_inicio" required class="w-full h-10 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:ring-0 focus:outline-none">
+                        <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Fecha Inicio</label>
+                        <input type="date" id="batch-fecha-inicio" name="fecha_inicio" required class="w-full h-9 rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs text-slate-700 focus:border-brand-teal">
                     </div>
                     <div class="flex flex-col gap-1.5">
-                        <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Fecha de Fin</label>
-                        <input type="date" id="batch-fecha-fin" name="fecha_fin" required class="w-full h-10 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:ring-0 focus:outline-none">
+                        <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Fecha Fin</label>
+                        <input type="date" id="batch-fecha-fin" name="fecha_fin" required class="w-full h-9 rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs text-slate-700 focus:border-brand-teal">
                     </div>
                 </div>
-                
-                <!-- Días de la Semana -->
+
+                <!-- Días de la semana -->
                 <div class="flex flex-col gap-1.5">
-                    <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Aplicar a los días de la semana</label>
-                    <div class="grid grid-cols-4 sm:grid-cols-7 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200">
-                        @foreach([['Lu', 1], ['Ma', 2], ['Mi', 3], ['Ju', 4], ['Vi', 5], ['Sá', 6], ['Do', 0]] as $d)
-                            <label class="flex flex-col items-center gap-1 cursor-pointer select-none">
-                                <span class="text-[9px] font-bold text-slate-500 uppercase">{{ $d[0] }}</span>
-                                <input type="checkbox" name="batch_dias_semana" value="{{ $d[1] }}" checked class="rounded border-slate-300 text-brand-teal focus:ring-brand-teal h-4.5 w-4.5">
+                    <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Días Operativos</label>
+                    <div class="flex flex-wrap gap-2 text-xs">
+                        @foreach(['lun'=>'L','mar'=>'M','mie'=>'M','jue'=>'J','vie'=>'V','sab'=>'S','dom'=>'D'] as $key => $diaLabel)
+                            <label class="inline-flex items-center gap-1 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-lg cursor-pointer hover:bg-slate-100">
+                                <input type="checkbox" name="batch_dias_semana" value="{{ $key }}" checked class="rounded border-slate-300 text-brand-teal focus:ring-brand-teal">
+                                <span class="font-bold text-slate-700">{{ $diaLabel }}</span>
                             </label>
                         @endforeach
                     </div>
                 </div>
 
-                <!-- Acción a realizar -->
-                <div class="flex flex-col gap-1.5">
-                    <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Acción</label>
-                    <div class="grid grid-cols-2 gap-3">
-                        <label class="flex items-center gap-2 p-3 rounded-xl border border-slate-200 bg-white cursor-pointer select-none">
-                            <input type="radio" name="batch_accion" value="habilitar" checked onchange="toggleBatchSalidas(true)" class="text-brand-teal focus:ring-brand-teal h-4 w-4">
-                            <div class="text-left">
-                                <p class="text-xs font-bold text-slate-800">Habilitar Salidas</p>
-                                <p class="text-[8px] text-slate-400">Crear o actualizar horarios</p>
-                            </div>
-                        </label>
-                        <label class="flex items-center gap-2 p-3 rounded-xl border border-slate-200 bg-white cursor-pointer select-none">
-                            <input type="radio" name="batch_accion" value="deshabilitar" onchange="toggleBatchSalidas(false)" class="text-brand-teal focus:ring-brand-teal h-4 w-4">
-                            <div class="text-left">
-                                <p class="text-xs font-bold text-slate-800">Deshabilitar Salidas</p>
-                                <p class="text-[8px] text-slate-400">Remover disponibilidad</p>
-                            </div>
-                        </label>
-                    </div>
+                <!-- Acción: Habilitar o Deshabilitar -->
+                <div class="flex items-center gap-4 p-3 rounded-xl border border-slate-200 bg-slate-50 text-xs font-bold text-slate-700">
+                    <span>Acción:</span>
+                    <label class="inline-flex items-center gap-1.5 cursor-pointer">
+                        <input type="radio" name="batch_accion" value="habilitar" checked onchange="toggleBatchSalidas(true)" class="text-brand-teal focus:ring-brand-teal">
+                        <span>Habilitar Salidas</span>
+                    </label>
+                    <label class="inline-flex items-center gap-1.5 cursor-pointer text-rose-600">
+                        <input type="radio" name="batch_accion" value="deshabilitar" onchange="toggleBatchSalidas(false)" class="text-rose-600 focus:ring-rose-500">
+                        <span>Deshabilitar Días</span>
+                    </label>
                 </div>
-                
-                <!-- Contenedor de Salidas -->
+
+                <!-- Contenedor de Salidas en Lote -->
                 <div id="batch-salidas-wrapper" class="flex flex-col gap-3">
                     <div class="flex justify-between items-center">
-                        <h4 class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Definir Horarios y Cupos</h4>
-                        <button type="button" onclick="addBatchSalidaRow()" class="px-2 py-1 rounded bg-slate-50 hover:bg-slate-100 border border-slate-200 text-[9px] font-bold text-brand-teal transition-colors cursor-pointer shadow-xs">
+                        <h4 class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Horarios y Cupos a Aplicar</h4>
+                        <button type="button" onclick="addBatchSalidaRow()" class="px-2 py-1 rounded bg-slate-50 hover:bg-slate-100 border border-slate-200 text-[9px] font-bold text-brand-teal transition-colors cursor-pointer">
                             + Añadir Horario
                         </button>
                     </div>
-                    
+
                     <div id="batch-salidas-list" class="flex flex-col gap-2 max-h-[180px] overflow-y-auto pr-1">
                         <!-- Filas dinámicas -->
                     </div>
                 </div>
-                
+
                 <!-- Advertencia -->
-                <div id="batch-warning-alert" class="hidden p-3 rounded-xl border border-amber-200 bg-amber-50 text-amber-700 text-[9px] font-semibold leading-relaxed">
-                    <!-- Advertencias dinámicas -->
-                </div>
+                <div id="batch-warning-alert" class="hidden p-3 rounded-xl border border-amber-200 bg-amber-50 text-amber-700 text-[10px] font-medium leading-relaxed"></div>
 
                 <!-- Botones de Acción -->
-                <div class="flex gap-3 mt-4">
-                    <button type="button" onclick="closeBatchModal()" class="w-1/3 h-10 rounded-lg border border-slate-200 hover:bg-slate-50 text-xs font-bold text-slate-500 transition-colors cursor-pointer">
+                <div class="flex gap-3 mt-3">
+                    <button type="button" onclick="closeBatchModal()" class="w-1/3 h-10 rounded-lg border border-slate-200 hover:bg-slate-100 text-xs font-bold text-slate-500 transition-colors cursor-pointer">
                         Cancelar
                     </button>
                     <button type="submit" class="w-2/3 h-10 rounded-lg bg-gradient-to-r from-brand-teal to-brand-teal-hover text-xs font-black uppercase text-white shadow-lg cursor-pointer">
-                        Aplicar Cambios en Lote
+                        Aplicar a Todas las Fechas
                     </button>
                 </div>
             </form>
@@ -1392,8 +1319,8 @@
     </div>
 
     <!-- Modal de Disponibilidad por Día (Estilo Airbnb Premium) -->
-    <div id="edit-day-availability-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-white/60 backdrop-blur-xs animate-fade-in">
-        <div class="relative w-full max-w-md rounded-3xl border border-slate-200 bg-white p-6 shadow-xl max-h-[90vh] overflow-y-auto">
+    <div id="edit-day-availability-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-fade-in overflow-y-auto">
+        <div class="relative w-full max-w-md rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
             <!-- Botón Cerrar -->
             <button type="button" onclick="closeDayModal()" class="absolute top-4 right-4 text-slate-500 hover:text-slate-800 text-lg cursor-pointer">
                 &times;
@@ -1990,7 +1917,9 @@
             document.getElementById('edit-prov-rep-name').value = repName;
             document.getElementById('edit-prov-rep-tel').value = repTel;
             document.getElementById('edit-prov-commission').value = commission;
-            document.getElementById('edit-prov-foto').value = fotoUrl || '';
+            if (document.getElementById('edit-prov-foto')) {
+                document.getElementById('edit-prov-foto').value = fotoUrl || '';
+            }
 
             form.action = `/dashboard/proveedor/${id}/update`;
             modal.classList.remove('hidden');
@@ -2213,10 +2142,20 @@
             }
 
             modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+
+            // Desplazar suavemente el modal al centro del viewport inmediatamente
+            setTimeout(() => {
+                const card = modal.querySelector('.relative');
+                if (card) {
+                    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 30);
         }
 
         function closeDayModal() {
             document.getElementById('edit-day-availability-modal').classList.add('hidden');
+            document.body.style.overflow = '';
         }
 
         function toggleModalSalidas(isHabilitado) {
@@ -2384,11 +2323,21 @@
             listEl.innerHTML = '';
             addBatchSalidaRow();
 
-            document.getElementById('batch-availability-modal').classList.remove('hidden');
+            const modal = document.getElementById('batch-availability-modal');
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+
+            setTimeout(() => {
+                const card = modal.querySelector('.relative');
+                if (card) {
+                    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 30);
         }
 
         function closeBatchModal() {
             document.getElementById('batch-availability-modal').classList.add('hidden');
+            document.body.style.overflow = '';
         }
 
         function toggleBatchSalidas(mostrar) {
@@ -2616,8 +2565,12 @@
             document.getElementById('edit-tour-pais').value = pais;
             document.getElementById('edit-tour-proveedor').value = proveedorId;
             document.getElementById('edit-tour-tags').value = tags;
-            document.getElementById('edit-tour-imagen').value = imagen;
-            document.getElementById('edit-tour-galeria').value = galeria;
+            if (document.getElementById('edit-tour-imagen')) {
+                document.getElementById('edit-tour-imagen').value = imagen;
+            }
+            if (document.getElementById('edit-tour-galeria')) {
+                document.getElementById('edit-tour-galeria').value = galeria;
+            }
             document.getElementById('edit-tour-punto-encuentro').value = puntoEncuentro;
             document.getElementById('edit-tour-incluye').value = incluye;
             document.getElementById('edit-tour-no-incluye').value = noIncluye;
@@ -2707,14 +2660,12 @@
                 const widgetContainer = document.querySelector('#calendar-main-panel .calendar-widget-container');
                 if (widgetContainer) widgetContainer.classList.remove('hidden');
 
-                // Si es dispositivo móvil, hacer scroll suave al panel del calendario
-                if (window.innerWidth < 1024) {
-                    const calendarPanel = document.getElementById('calendar-main-panel');
-                    if (calendarPanel) {
-                        setTimeout(() => {
-                            calendarPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        }, 100);
-                    }
+                // Hacer scroll suave al panel del calendario para visualizar la disponibilidad inmediatamente
+                const calendarPanel = document.getElementById('calendar-main-panel');
+                if (calendarPanel) {
+                    setTimeout(() => {
+                        calendarPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 50);
                 }
             }
         }

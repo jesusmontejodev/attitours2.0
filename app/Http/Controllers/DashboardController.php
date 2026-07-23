@@ -167,11 +167,16 @@ class DashboardController extends Controller
             'representante_telefono'  => 'required|string|max:30',
             'comision_porcentaje'     => 'required|integer|min:0|max:100',
             'password'                => 'required|string|min:6',
-            'foto_url'                => 'nullable|url',
+            'foto_file'               => 'nullable|image|mimes:jpeg,png,jpg,webp|max:15360',
         ]);
 
+        $fotoUrl = null;
+        if ($request->hasFile('foto_file')) {
+            $fotoUrl = \App\Services\ImageOptimizerService::uploadAndOptimize($request->file('foto_file'), 'proveedores');
+        }
+
         try {
-            \Illuminate\Support\Facades\DB::transaction(function () use ($validated) {
+            \Illuminate\Support\Facades\DB::transaction(function () use ($validated, $fotoUrl) {
                 $proveedor = Proveedor::create([
                     'nombre_empresa'          => $validated['nombre_empresa'],
                     'descripcion'             => $validated['descripcion'],
@@ -180,7 +185,7 @@ class DashboardController extends Controller
                     'representante_nombre'    => $validated['representante_nombre'],
                     'representante_telefono'  => $validated['representante_telefono'],
                     'comision_porcentaje'     => $validated['comision_porcentaje'],
-                    'foto_url'                => $validated['foto_url'] ?? null,
+                    'foto_url'                => $fotoUrl,
                 ]);
 
                 User::create([
@@ -223,8 +228,13 @@ class DashboardController extends Controller
             'representante_nombre'   => 'required|string|max:100',
             'representante_telefono' => 'required|string|max:30',
             'comision_porcentaje'    => 'required|integer|min:0|max:100',
-            'foto_url'               => 'nullable|url',
+            'foto_file'              => 'nullable|image|mimes:jpeg,png,jpg,webp|max:15360',
         ]);
+
+        $fotoUrl = $proveedor->foto_url;
+        if ($request->hasFile('foto_file')) {
+            $fotoUrl = \App\Services\ImageOptimizerService::uploadAndOptimize($request->file('foto_file'), 'proveedores');
+        }
 
         try {
             $proveedor->update([
@@ -235,7 +245,7 @@ class DashboardController extends Controller
                 'representante_nombre'   => $validated['representante_nombre'],
                 'representante_telefono' => $validated['representante_telefono'],
                 'comision_porcentaje'    => $validated['comision_porcentaje'],
-                'foto_url'               => $validated['foto_url'] ?? null,
+                'foto_url'               => $fotoUrl,
             ]);
 
             // Sincronizar el correo en el usuario asociado (si existe)
@@ -287,11 +297,11 @@ class DashboardController extends Controller
             'proveedor_id' => 'required|exists:proveedores,id',
             'tags' => 'nullable|string',
             'horarios' => 'nullable|string',
-            'imagen_destacada' => 'nullable|string',
-            'imagen_destacada_file' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
-            'galeria' => 'nullable|string',
+            'imagen_destacada_file' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:15360',
             'galeria_files' => 'nullable|array',
-            'galeria_files.*' => 'image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
+            'galeria_files.*' => 'image|mimes:jpeg,png,jpg,webp|max:15360',
+            'galeria_exp_files' => 'nullable|array',
+            'galeria_exp_files.*' => 'image|mimes:jpeg,png,jpg,webp|max:15360',
             'itinerario_titulos' => 'nullable|array',
             'itinerario_descripciones' => 'nullable|array',
             'incluye' => 'nullable|string',
@@ -313,11 +323,7 @@ class DashboardController extends Controller
         // Procesar Imagen de Portada (Destacada)
         $imagenDefault = 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=800&q=80';
         if ($request->hasFile('imagen_destacada_file')) {
-            $file = $request->file('imagen_destacada_file');
-            $path = $file->store('tours', 'public');
-            $imagenDefault = '/storage/' . $path;
-        } elseif ($request->filled('imagen_destacada')) {
-            $imagenDefault = $request->input('imagen_destacada');
+            $imagenDefault = \App\Services\ImageOptimizerService::uploadAndOptimize($request->file('imagen_destacada_file'), 'tours');
         }
 
         // Inicializar Galería
@@ -326,23 +332,18 @@ class DashboardController extends Controller
         // Procesar archivos de galería subidos
         if ($request->hasFile('galeria_files')) {
             foreach ($request->file('galeria_files') as $file) {
-                $path = $file->store('tours/galeria', 'public');
-                $galeria[] = '/storage/' . $path;
-            }
-        }
-
-        // Procesar URLs adicionales de galería
-        if ($request->filled('galeria')) {
-            $galeriaUrls = array_map('trim', explode(',', $request->input('galeria')));
-            // Filtrar URLs vacías o inválidas
-            $galeriaUrls = array_filter($galeriaUrls, function($url) {
-                return filter_var($url, FILTER_VALIDATE_URL) || strpos($url, '/storage/') === 0;
-            });
-            if (!empty($galeriaUrls)) {
-                $galeria = array_merge($galeria, $galeriaUrls);
+                $galeria[] = \App\Services\ImageOptimizerService::uploadAndOptimize($file, 'tours/galeria');
             }
         }
         $galeria = array_values(array_unique($galeria));
+
+        // Procesar archivos de Galería de Experiencias
+        $galeriaExperiencias = [];
+        if ($request->hasFile('galeria_exp_files')) {
+            foreach ($request->file('galeria_exp_files') as $file) {
+                $galeriaExperiencias[] = \App\Services\ImageOptimizerService::uploadAndOptimize($file, 'tours/experiencias');
+            }
+        }
 
         // Procesar itinerario
         $itinerario = [];
@@ -391,6 +392,7 @@ class DashboardController extends Controller
             'duracion' => $request->input('duracion'),
             'imagen_destacada' => $imagenDefault,
             'galeria' => $galeria,
+            'galeria_experiencias' => $galeriaExperiencias,
             'cupo_maximo' => (int)$request->input('cupo_maximo', 20),
             'tags' => $tags,
             'horarios' => $horarios,
@@ -911,11 +913,11 @@ class DashboardController extends Controller
             'pais' => 'required|string|max:100',
             'proveedor_id' => 'required|exists:proveedores,id',
             'tags' => 'nullable|string',
-            'imagen_destacada' => 'nullable|string',
-            'imagen_destacada_file' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
-            'galeria' => 'nullable|string',
+            'imagen_destacada_file' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:15360',
             'galeria_files' => 'nullable|array',
-            'galeria_files.*' => 'image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
+            'galeria_files.*' => 'image|mimes:jpeg,png,jpg,webp|max:15360',
+            'galeria_exp_files' => 'nullable|array',
+            'galeria_exp_files.*' => 'image|mimes:jpeg,png,jpg,webp|max:15360',
             'itinerario_titulos' => 'nullable|array',
             'itinerario_descripciones' => 'nullable|array',
             'incluye' => 'nullable|string',
@@ -928,35 +930,27 @@ class DashboardController extends Controller
         // Procesar Imagen de Portada (Destacada)
         $imagenDefault = $tour->imagen_destacada ?: 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=800&q=80';
         if ($request->hasFile('imagen_destacada_file')) {
-            $file = $request->file('imagen_destacada_file');
-            $path = $file->store('tours', 'public');
-            $imagenDefault = '/storage/' . $path;
-        } elseif ($request->filled('imagen_destacada')) {
-            $imagenDefault = $request->input('imagen_destacada');
+            $imagenDefault = \App\Services\ImageOptimizerService::uploadAndOptimize($request->file('imagen_destacada_file'), 'tours');
         }
 
         // Inicializar Galería
-        $galeria = [$imagenDefault];
+        $galeria = is_array($tour->galeria) ? $tour->galeria : [$imagenDefault];
 
         // Procesar archivos de galería subidos
         if ($request->hasFile('galeria_files')) {
             foreach ($request->file('galeria_files') as $file) {
-                $path = $file->store('tours/galeria', 'public');
-                $galeria[] = '/storage/' . $path;
-            }
-        }
-
-        // Procesar URLs de galería
-        if ($request->filled('galeria')) {
-            $galeriaUrls = array_map('trim', explode(',', $request->input('galeria')));
-            $galeriaUrls = array_filter($galeriaUrls, function($url) {
-                return filter_var($url, FILTER_VALIDATE_URL) || strpos($url, '/storage/') === 0;
-            });
-            if (!empty($galeriaUrls)) {
-                $galeria = array_merge($galeria, $galeriaUrls);
+                $galeria[] = \App\Services\ImageOptimizerService::uploadAndOptimize($file, 'tours/galeria');
             }
         }
         $galeria = array_values(array_unique($galeria));
+
+        // Procesar archivos de Galería de Experiencias
+        $galeriaExperiencias = is_array($tour->galeria_experiencias) ? $tour->galeria_experiencias : [];
+        if ($request->hasFile('galeria_exp_files')) {
+            foreach ($request->file('galeria_exp_files') as $file) {
+                $galeriaExperiencias[] = \App\Services\ImageOptimizerService::uploadAndOptimize($file, 'tours/experiencias');
+            }
+        }
 
         // Procesar itinerario
         $itinerario = [];
@@ -1004,6 +998,7 @@ class DashboardController extends Controller
             'duracion' => $request->input('duracion'),
             'imagen_destacada' => $imagenDefault,
             'galeria' => $galeria,
+            'galeria_experiencias' => $galeriaExperiencias,
             'tags' => $tags,
             'itinerario' => $itinerario,
             'incluye' => $incluye,

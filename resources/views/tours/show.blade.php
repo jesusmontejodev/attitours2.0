@@ -270,6 +270,34 @@
                             </div>
                         </div>
                     </div>
+                <!-- GALERÍA DE EXPERIENCIAS DE VIAJEROS (Modificación 3) -->
+                <div class="mt-8 pt-8 border-t border-slate-200">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h2 class="text-lg font-bold text-slate-800">Galería de Experiencias</h2>
+                            <p class="text-xs text-slate-500 font-semibold mt-0.5">Fotos reales capturadas por viajeros que han realizado este tour.</p>
+                        </div>
+                        <button type="button" onclick="openExperienceModal(0)" class="px-3 py-1.5 rounded-xl border border-brand-teal/30 bg-brand-teal/10 hover:bg-brand-teal text-brand-teal hover:text-white text-xs font-bold transition-colors cursor-pointer">
+                            VER MÁS 📸
+                        </button>
+                    </div>
+
+                    <!-- Mosaico / Grid de 3 Fotos de viajeros -->
+                    @php $expFotos = $tour->experiencias_fotos; @endphp
+                    <div class="grid grid-cols-3 gap-3">
+                        @foreach(array_slice($expFotos, 0, 3) as $idx => $foto)
+                            <div class="relative h-32 sm:h-36 rounded-2xl overflow-hidden group border border-slate-200 shadow-xs bg-slate-100 cursor-pointer" onclick="openExperienceModal({{ $idx }})">
+                                <img src="{{ $foto }}" alt="Experiencia de viajero" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                                <div class="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors"></div>
+                                @if($idx === 2 && count($expFotos) > 3)
+                                    <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-xs flex flex-col items-center justify-center text-white text-xs font-black uppercase tracking-wider">
+                                        <span>+{{ count($expFotos) - 3 }}</span>
+                                        <span class="text-[9px] font-bold">Ver Más</span>
+                                    </div>
+                                @endif
+                            </div>
+                        @endforeach
+                    </div>
                 </div>
             </div>
 
@@ -658,5 +686,78 @@
                 }
             });
         }
+
+        // --- MODAL LIGHTBOX: GALERÍA DE EXPERIENCIAS DE VIAJEROS ---
+        const expPhotosList = @json($tour->experiencias_fotos);
+        let currentExpIndex = 0;
+
+        function openExperienceModal(index = 0) {
+            currentExpIndex = index;
+            updateExpModalImage();
+            document.getElementById('exp-modal').classList.remove('hidden');
+        }
+
+        function closeExperienceModal() {
+            document.getElementById('exp-modal').classList.add('hidden');
+        }
+
+        function navigateExperience(direction) {
+            currentExpIndex += direction;
+            if (currentExpIndex < 0) currentExpIndex = expPhotosList.length - 1;
+            if (currentExpIndex >= expPhotosList.length) currentExpIndex = 0;
+            updateExpModalImage();
+        }
+
+        function updateExpModalImage() {
+            const img = document.getElementById('exp-modal-img');
+            const counter = document.getElementById('exp-modal-counter');
+            if (img && expPhotosList[currentExpIndex]) {
+                img.src = expPhotosList[currentExpIndex];
+            }
+            if (counter) {
+                counter.textContent = `${currentExpIndex + 1} de ${expPhotosList.length}`;
+            }
+        }
     </script>
+
+    <!-- MODAL LIGHTBOX GALERÍA DE EXPERIENCIAS DE VIAJEROS -->
+    <div id="exp-modal" class="hidden fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-md animate-fade-in p-4">
+        <div class="relative max-w-4xl w-full flex flex-col items-center gap-4">
+            <!-- Botón cerrar -->
+            <button onclick="closeExperienceModal()" class="absolute -top-10 right-0 text-white hover:text-brand-orange text-2xl font-bold cursor-pointer">
+                ✕ Cerrar
+            </button>
+
+            <!-- Cabecera modal -->
+            <div class="text-center text-white space-y-1">
+                <h3 class="text-base font-black uppercase tracking-wider text-brand-teal">Galería de Experiencias</h3>
+                <p class="text-xs text-slate-300 font-semibold">Fotos compartidas por viajeros en este tour · <span id="exp-modal-counter">1 de 6</span></p>
+            </div>
+
+            <!-- Imagen principal -->
+            <div class="relative w-full max-h-[70vh] flex items-center justify-center overflow-hidden rounded-3xl border border-white/20 bg-black/40 shadow-2xl">
+                <img id="exp-modal-img" src="" alt="Experiencia real" class="max-h-[70vh] w-auto object-contain rounded-2xl">
+
+                <!-- Flecha previa -->
+                <button onclick="navigateExperience(-1)" class="absolute left-4 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full bg-black/50 hover:bg-brand-teal text-white flex items-center justify-center text-xl font-bold transition-colors cursor-pointer backdrop-blur-sm">
+                    ❮
+                </button>
+                <!-- Flecha siguiente -->
+                <button onclick="navigateExperience(1)" class="absolute right-4 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full bg-black/50 hover:bg-brand-teal text-white flex items-center justify-center text-xl font-bold transition-colors cursor-pointer backdrop-blur-sm">
+                    ❯
+                </button>
+            </div>
+
+            <!-- Tira de miniaturas -->
+            <div class="flex items-center gap-2 overflow-x-auto max-w-full py-2 px-1">
+                @foreach($tour->experiencias_fotos as $idx => $f)
+                    <img src="{{ $f }}"
+                         alt="Thumb"
+                         onclick="openExperienceModal({{ $idx }})"
+                         class="h-14 w-20 rounded-xl object-cover border-2 border-transparent hover:border-brand-teal cursor-pointer opacity-70 hover:opacity-100 transition-all">
+                @endforeach
+            </div>
+        </div>
+    </div>
 @endsection
+

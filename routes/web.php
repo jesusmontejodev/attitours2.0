@@ -62,6 +62,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::middleware(['auth'])->prefix('mi-cuenta')->group(function () {
     Route::get('/', [ClienteController::class, 'dashboard'])->name('cliente.dashboard');
     Route::post('/perfil', [ClienteController::class, 'updatePerfil'])->name('cliente.perfil.update');
+    Route::post('/eliminar-cuenta', [ClienteController::class, 'deleteCuenta'])->name('cliente.cuenta.delete');
 });
 
 // ==========================================
