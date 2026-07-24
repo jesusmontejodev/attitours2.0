@@ -407,24 +407,24 @@
                                     </button>
                                 </div>
                                 <div class="flex justify-between items-center mb-4">
-                                    <button type="button" class="prev-month-btn px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 hover:text-brand-teal hover:bg-slate-50 transition-colors cursor-pointer text-[10px] font-bold">
-                                        &larr; Ant.
+                                    <button type="button" class="prev-month-btn p-1.5 rounded-full hover:bg-slate-100 text-slate-600 transition-colors cursor-pointer">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
                                     </button>
                                     <h3 class="current-month-label text-xs font-black uppercase tracking-widest text-slate-850"></h3>
-                                    <button type="button" class="next-month-btn px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 hover:text-brand-teal hover:bg-slate-50 transition-colors cursor-pointer text-[10px] font-bold">
-                                        Sig. &rarr;
+                                    <button type="button" class="next-month-btn p-1.5 rounded-full hover:bg-slate-100 text-slate-600 transition-colors cursor-pointer">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
                                     </button>
                                 </div>
                                 
                                 <!-- Días de la semana -->
-                                <div class="grid grid-cols-7 gap-1 text-center text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-2">
-                                    <div>Lun</div>
-                                    <div>Mar</div>
-                                    <div>Mié</div>
-                                    <div>Jue</div>
-                                    <div>Vie</div>
-                                    <div>Sáb</div>
-                                    <div>Dom</div>
+                                <div class="grid grid-cols-7 gap-1.5 text-center text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-3">
+                                    <div>D</div>
+                                    <div>L</div>
+                                    <div>M</div>
+                                    <div>M</div>
+                                    <div>J</div>
+                                    <div>V</div>
+                                    <div>S</div>
                                 </div>
                                 
                                 <!-- Grid del mes -->
@@ -737,25 +737,25 @@
                                         <button type="button" onclick="openBatchModal()" class="h-8 px-3 rounded-lg border border-brand-orange/30 bg-brand-orange/5 text-[9px] font-bold uppercase tracking-wider text-brand-orange hover:bg-brand-orange hover:text-white transition-colors cursor-pointer flex items-center gap-1 shadow-xs">
                                             📅 Lote
                                         </button>
-                                        <button type="button" class="prev-month-btn h-8 w-8 rounded-lg bg-white border border-slate-200 text-slate-600 hover:text-brand-teal hover:bg-slate-50 flex items-center justify-center transition-colors cursor-pointer text-xs">
-                                            &larr;
+                                        <button type="button" class="prev-month-btn p-1.5 rounded-full hover:bg-slate-100 text-slate-600 transition-colors cursor-pointer text-xs">
+                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
                                         </button>
                                         <span class="current-month-label text-[10px] font-black uppercase tracking-wider text-slate-700 min-w-[100px] text-center"></span>
-                                        <button type="button" class="next-month-btn h-8 w-8 rounded-lg bg-white border border-slate-200 text-slate-600 hover:text-brand-teal hover:bg-slate-50 flex items-center justify-center transition-colors cursor-pointer text-xs">
-                                            &rarr;
+                                        <button type="button" class="next-month-btn p-1.5 rounded-full hover:bg-slate-100 text-slate-600 transition-colors cursor-pointer text-xs">
+                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
                                         </button>
                                     </div>
                                 </div>
 
                                 <!-- Días de la semana -->
-                                <div class="grid grid-cols-7 gap-1.5 text-center text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-                                    <div>Lun</div>
-                                    <div>Mar</div>
-                                    <div>Mié</div>
-                                    <div>Jue</div>
-                                    <div>Vie</div>
-                                    <div>Sáb</div>
-                                    <div>Dom</div>
+                                <div class="grid grid-cols-7 gap-1.5 text-center text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-3">
+                                    <div>D</div>
+                                    <div>L</div>
+                                    <div>M</div>
+                                    <div>M</div>
+                                    <div>J</div>
+                                    <div>V</div>
+                                    <div>S</div>
                                 </div>
                                 
                                 <!-- Grid del mes -->
@@ -1756,9 +1756,8 @@
             grid.innerHTML = '';
 
             const totalDays = new Date(resCalYear, resCalMonth, 0).getDate();
-            let startDay = new Date(resCalYear, resCalMonth - 1, 1).getDay();
-            // Ajustar inicio de semana a Lunes (Lunes = 0, Domingo = 6)
-            let emptySlots = startDay === 0 ? 6 : startDay - 1;
+            const startDay = new Date(resCalYear, resCalMonth - 1, 1).getDay(); // Domingo = 0
+            const emptySlots = startDay;
 
             // Días vacíos iniciales
             for (let i = 0; i < emptySlots; i++) {
@@ -2030,9 +2029,8 @@
                 const totalDays = new Date(currentYear, currentMonth, 0).getDate();
                 
                 // Primer día del mes (0 = Domingo, 1 = Lunes, etc.)
-                let startDay = new Date(currentYear, currentMonth - 1, 1).getDay();
-                // Ajustar para iniciar en Lunes (Lunes = 0, Domingo = 6)
-                let emptySlots = startDay === 0 ? 6 : startDay - 1;
+                const startDay = new Date(currentYear, currentMonth - 1, 1).getDay(); // Domingo = 0
+                const emptySlots = startDay;
 
                 // Celdas vacías al inicio
                 for (let i = 0; i < emptySlots; i++) {

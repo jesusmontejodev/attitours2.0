@@ -63,16 +63,42 @@ class HomeController extends Controller
             $query->where('precio_base_usd', '<=', (float) $request->input('price'));
         }
 
-        // 4. Filtrar por fecha disponible
+        // 4. Filtrar por fecha disponible (con soporte para flexibilidad al estilo Airbnb)
         if ($request->filled('date')) {
             $date = $request->input('date');
+            $flexibility = (int) $request->input('flexibility', 0);
             
-            // Buscar los IDs de los tours que tienen esa fecha con cupos libres
-            $tourIdsConFecha = TourFecha::where('fecha', $date)
-                ->whereColumn('cupo_reservado', '<', 'cupo_maximo')
-                ->pluck('tour_id');
+            if ($flexibility > 0) {
+                // Rango flexible: [date - flexibility, date + flexibility]
+                $startDate = \Carbon\Carbon::parse($date)->subDays($flexibility)->toDateString();
+                $endDate = \Carbon\Carbon::parse($date)->addDays($flexibility)->toDateString();
+                
+                $tourIdsConFecha = TourFecha::whereBetween('fecha', [$startDate, $endDate])
+                    ->whereColumn('cupo_reservado', '<', 'cupo_maximo')
+                    ->pluck('tour_id');
+            } else {
+                // Fecha exacta
+                $tourIdsConFecha = TourFecha::where('fecha', $date)
+                    ->whereColumn('cupo_reservado', '<', 'cupo_maximo')
+                    ->pluck('tour_id');
+            }
 
             $query->whereIn('id', $tourIdsConFecha);
+        } elseif ($request->filled('flexible_months')) {
+            // Filtrar por meses flexibles (ej: 2026-07)
+            $months = array_filter(explode(',', $request->input('flexible_months')));
+            
+            if (!empty($months)) {
+                $tourIdsConFecha = TourFecha::where(function ($q) use ($months) {
+                    foreach ($months as $m) {
+                        $q->orWhere('fecha', 'like', $m . '-%');
+                    }
+                })
+                ->whereColumn('cupo_reservado', '<', 'cupo_maximo')
+                ->pluck('tour_id');
+                
+                $query->whereIn('id', $tourIdsConFecha);
+            }
         }
 
         $tours = $query->get();

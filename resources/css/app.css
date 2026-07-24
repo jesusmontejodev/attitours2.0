@@ -100,3 +100,74 @@ html, body {
 ::-webkit-scrollbar-thumb:hover {
     background: #94a3b8;
 }
+
+/* ============================================================
+   ESTILOS DE CALENDARIO MODERNO TIPO AIRBNB
+   ============================================================ */
+.calendar-airbnb-wrapper {
+    box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.08), 0 0 1px 0 rgba(0, 0, 0, 0.1);
+}
+
+.calendar-airbnb-tab-btn {
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.calendar-airbnb-day-btn {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.calendar-airbnb-day-btn:hover:not(.disabled) {
+    background-color: #f1f5f9;
+    color: #0f172a;
+}
+
+.calendar-airbnb-day-btn.selected {
+    background-color: var(--color-brand-teal) !important;
+    color: #ffffff !important;
+    font-weight: 800;
+    box-shadow: 0 4px 10px rgba(0, 122, 99, 0.3);
+}
+
+.calendar-airbnb-day-btn.disabled {
+    color: #cbd5e1 !important;
+    cursor: not-allowed;
+    background-color: transparent !important;
+}
+
+.calendar-airbnb-day-btn.today {
+    border: 2px solid var(--color-brand-teal);
+}
+
+.flexibility-btn {
+    transition: all 0.2s ease;
+}
+
+.flexibility-btn.active {
+    background-color: #0f172a !important;
+    color: #ffffff !important;
+    border-color: #0f172a !important;
+}
+
+.flexible-month-card {
+    transition: all 0.25s ease;
+    border: 2px solid #e2e8f0;
+}
+
+.flexible-month-card:hover {
+    border-color: var(--color-brand-teal);
+    background-color: rgba(0, 122, 99, 0.02);
+}
+
+.flexible-month-card.active {
+    border-color: var(--color-brand-teal) !important;
+    background-color: rgba(0, 122, 99, 0.05) !important;
+}
+

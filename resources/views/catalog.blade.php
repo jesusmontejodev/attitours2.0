@@ -2,8 +2,8 @@
 
 <!-- 
  * @file catalog.blade.php
- * @description Vista Blade para el catálogo de tours. Contiene filtros avanzados y el listado dinámico de tours disponibles. Adaptado a tema claro con colores corporativos e identidad de la marca.
- * @date 2026-06-29
+ * @description Vista Blade para el catálogo de tours. Contiene filtros avanzados y el listado dinámico de tours disponibles. Adaptado a tema claro con colores corporativos e identidad de la marca. Se corrigió el filtro para que no quede fijo (sticky) en dispositivos móviles y PC, permitiendo el scroll correcto.
+ * @date 2026-07-24
  * @author Antigravity
  -->
 
@@ -32,7 +32,7 @@
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
             
             <!-- PANEL DE FILTROS LATERAL -->
-            <aside class="lg:col-span-1 h-fit p-6 rounded-2xl border border-slate-200 bg-white shadow-md sticky top-24">
+            <aside class="lg:col-span-1 h-fit p-6 rounded-2xl border border-slate-200 bg-white shadow-md">
                 <div class="flex items-center justify-between border-b border-slate-200 pb-4 mb-5">
                     <h2 class="text-sm font-bold uppercase tracking-wider text-slate-800">Filtros</h2>
                     <a href="{{ route('catalog') }}" class="text-[10px] font-bold uppercase tracking-widest text-brand-orange hover:text-brand-orange-hover transition-colors">
@@ -67,12 +67,103 @@
                         </select>
                     </div>
 
-                    <!-- Fecha -->
-                    <div class="flex flex-col gap-1.5">
+                    <!-- Fecha (Selector de Calendario Moderno Tipo Airbnb) -->
+                    <div class="relative flex flex-col gap-1.5 cursor-pointer" id="filter-date-wrapper">
                         <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">
                             {{ __('searchDate') }}
                         </label>
-                        <input type="date" name="date" value="{{ request('date') }}" class="w-full h-9 rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs text-slate-750 focus:border-brand-teal focus:bg-white focus:ring-0 focus:outline-none cursor-pointer">
+                        <input type="text" id="filter-date-display" readonly placeholder="¿Cuándo viajas?" class="w-full h-9 rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs text-slate-750 focus:border-brand-teal focus:bg-white focus:ring-0 focus:outline-none cursor-pointer">
+                        <input type="hidden" name="date" id="filter-date-value" value="{{ request('date') }}">
+                        <input type="hidden" name="flexibility" id="filter-flexibility-value" value="{{ request('flexibility', '0') }}">
+                        <input type="hidden" name="flexible_months" id="filter-flexible-months-value" value="{{ request('flexible_months', '') }}">
+
+                        <!-- Dropdown del Calendario Moderno Tipo Airbnb -->
+                        <div id="airbnb-filter-calendar" class="hidden absolute top-full left-0 mt-2 z-[100] w-[92vw] sm:w-[480px] md:w-[600px] p-5 rounded-3xl bg-white border border-slate-200 shadow-2xl animate-fade-in text-left cursor-default">
+                            <!-- Pestañas Superiores -->
+                            <div class="flex justify-center mb-5">
+                                <div class="inline-flex bg-slate-100 p-1 rounded-full border border-slate-200">
+                                    <button type="button" id="tab-fechas" class="px-5 py-1.5 rounded-full text-xs font-bold text-slate-800 bg-white shadow-xs transition-all duration-200 cursor-pointer">
+                                        Fechas
+                                    </button>
+                                    <button type="button" id="tab-flexible" class="px-5 py-1.5 rounded-full text-xs font-semibold text-slate-500 hover:text-slate-800 transition-all duration-200 cursor-pointer">
+                                        Flexible
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Pestaña Fechas (Dos Meses Lado a Lado) -->
+                            <div id="content-fechas" class="block">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <!-- Mes 1 -->
+                                    <div>
+                                        <div class="flex items-center justify-between mb-4">
+                                            <button type="button" id="prev-month-airbnb" class="p-1.5 rounded-full hover:bg-slate-100 text-slate-655 hover:text-brand-teal transition-colors cursor-pointer">
+                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+                                            </button>
+                                            <span id="label-month-1" class="text-xs font-black text-slate-850 uppercase tracking-widest"></span>
+                                            <!-- Botón siguiente exclusivo para móviles -->
+                                            <button type="button" id="next-month-airbnb-mobile" class="p-1.5 rounded-full hover:bg-slate-100 text-slate-655 hover:text-brand-teal transition-colors cursor-pointer md:hidden">
+                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+                                            </button>
+                                            <div class="w-7 hidden md:block"></div> <!-- Spacer en desktop -->
+                                        </div>
+                                        <div class="grid grid-cols-7 gap-1 text-center text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-3">
+                                            <div>D</div><div>L</div><div>M</div><div>M</div><div>J</div><div>V</div><div>S</div>
+                                        </div>
+                                        <div id="grid-month-1" class="grid grid-cols-7 gap-1"></div>
+                                    </div>
+                                    
+                                    <!-- Mes 2 (Oculto en celular) -->
+                                    <div class="hidden md:block">
+                                        <div class="flex items-center justify-between mb-4">
+                                            <div class="w-7"></div> <!-- Spacer -->
+                                            <span id="label-month-2" class="text-xs font-black text-slate-850 uppercase tracking-widest"></span>
+                                            <button type="button" id="next-month-airbnb" class="p-1.5 rounded-full hover:bg-slate-100 text-slate-655 hover:text-brand-teal transition-colors cursor-pointer">
+                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+                                            </button>
+                                        </div>
+                                        <div class="grid grid-cols-7 gap-1 text-center text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-3">
+                                            <div>D</div><div>L</div><div>M</div><div>M</div><div>J</div><div>V</div><div>S</div>
+                                        </div>
+                                        <div id="grid-month-2" class="grid grid-cols-7 gap-1"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Tira de Flexibilidad -->
+                                <div class="mt-6 pt-4 border-t border-slate-100">
+                                    <span class="text-[9px] font-black uppercase tracking-widest text-slate-450 block mb-2">Tolerancia de fechas</span>
+                                    <div class="flex flex-wrap gap-1.5">
+                                        <button type="button" data-flex="0" class="flexibility-btn active text-[10px] font-bold border border-slate-200 bg-white px-3 py-1.5 rounded-full hover:border-slate-800 cursor-pointer">Fechas exactas</button>
+                                        <button type="button" data-flex="1" class="flexibility-btn text-[10px] font-bold border border-slate-200 bg-white px-3 py-1.5 rounded-full hover:border-slate-800 cursor-pointer">± 1 día</button>
+                                        <button type="button" data-flex="2" class="flexibility-btn text-[10px] font-bold border border-slate-200 bg-white px-3 py-1.5 rounded-full hover:border-slate-800 cursor-pointer">± 2 días</button>
+                                        <button type="button" data-flex="3" class="flexibility-btn text-[10px] font-bold border border-slate-200 bg-white px-3 py-1.5 rounded-full hover:border-slate-800 cursor-pointer">± 3 días</button>
+                                        <button type="button" data-flex="7" class="flexibility-btn text-[10px] font-bold border border-slate-200 bg-white px-3 py-1.5 rounded-full hover:border-slate-800 cursor-pointer">± 7 días</button>
+                                        <button type="button" data-flex="14" class="flexibility-btn text-[10px] font-bold border border-slate-200 bg-white px-3 py-1.5 rounded-full hover:border-slate-800 cursor-pointer">± 14 días</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Pestaña Flexible (Selección de Meses Completos) -->
+                            <div id="content-flexible" class="hidden">
+                                <span class="text-[9px] font-black uppercase tracking-widest text-slate-450 block text-center mb-3">¿Cuándo quieres viajar?</span>
+                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-5" id="flexible-months-container">
+                                    <!-- Se generará dinámicamente con JS para los próximos 6 meses -->
+                                </div>
+                                <div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl text-[10px] text-slate-500 font-semibold text-center leading-relaxed">
+                                    ✈️ Selecciona uno o más meses para explorar todos los viajes programados de ese período.
+                                </div>
+                            </div>
+
+                            <!-- Botones de Acción del Calendario -->
+                            <div class="flex items-center justify-between border-t border-slate-150 pt-4 mt-5">
+                                <button type="button" id="clear-airbnb-calendar" class="text-xs font-bold text-slate-500 hover:text-slate-800 hover:underline cursor-pointer">
+                                    Limpiar
+                                </button>
+                                <button type="button" id="apply-airbnb-calendar" class="h-9 px-5 rounded-xl bg-slate-900 text-xs font-bold text-white hover:bg-slate-800 transition-colors shadow-md shadow-slate-950/15 cursor-pointer">
+                                    Aplicar
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Rango de Precio -->
@@ -194,5 +285,325 @@
                 priceVal.textContent = `$${e.target.value} MXN`;
             });
         }
+
+        // ============================================================
+        // LÓGICA DEL CALENDARIO DE BÚSQUEDA ESTILO AIRBNB (CATÁLOGO)
+        // ============================================================
+        // Autor: Antigravity
+        // Última modificación: 2026-07-24
+        
+        let filterActiveTab = '{{ request('flexible_months') ? 'flexible' : 'fechas' }}';
+        let filterSelectedDate = '{{ request('date') }}' || null;
+        let filterFlexibility = parseInt('{{ request('flexibility', '0') }}') || 0;
+        let filterFlexibleMonths = '{{ request('flexible_months') }}' ? '{{ request('flexible_months') }}'.split(',') : [];
+        
+        let filterCalYear = new Date().getFullYear();
+        let filterCalMonth = new Date().getMonth() + 1; // 1-12
+        const todayStr = new Date().toISOString().split('T')[0];
+        const filterToday = new Date(todayStr + 'T00:00:00');
+        
+        const filterWrapper = document.getElementById('filter-date-wrapper');
+        const filterDisplay = document.getElementById('filter-date-display');
+        const filterDropdown = document.getElementById('airbnb-filter-calendar');
+        
+        const tabFechas = document.getElementById('tab-fechas');
+        const tabFlexible = document.getElementById('tab-flexible');
+        const contentFechas = document.getElementById('content-fechas');
+        const contentFlexible = document.getElementById('content-flexible');
+        
+        const labelMonth1 = document.getElementById('label-month-1');
+        const labelMonth2 = document.getElementById('label-month-2');
+        const gridMonth1 = document.getElementById('grid-month-1');
+        const gridMonth2 = document.getElementById('grid-month-2');
+        const prevMonthBtn = document.getElementById('prev-month-airbnb');
+        const nextMonthBtn = document.getElementById('next-month-airbnb');
+        const nextMonthBtnMobile = document.getElementById('next-month-airbnb-mobile');
+        
+        const clearCalBtn = document.getElementById('clear-airbnb-calendar');
+        const applyCalBtn = document.getElementById('apply-airbnb-calendar');
+        const hiddenDate = document.getElementById('filter-date-value');
+        const hiddenFlex = document.getElementById('filter-flexibility-value');
+        const hiddenMonths = document.getElementById('filter-flexible-months-value');
+        
+        // Alternar visualización del dropdown
+        filterDisplay.addEventListener('click', (e) => {
+            e.stopPropagation();
+            filterDropdown.classList.toggle('hidden');
+            if (!filterDropdown.classList.contains('hidden')) {
+                renderFilterCalendars();
+                renderFlexibleMonths();
+            }
+        });
+        
+        filterWrapper.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+        
+        document.addEventListener('click', () => {
+            filterDropdown.classList.add('hidden');
+        });
+        
+        // Cambio de pestañas
+        tabFechas.addEventListener('click', () => {
+            filterActiveTab = 'fechas';
+            tabFechas.classList.add('bg-white', 'text-slate-800', 'shadow-xs');
+            tabFechas.classList.remove('text-slate-500');
+            tabFlexible.classList.remove('bg-white', 'text-slate-800', 'shadow-xs');
+            tabFlexible.classList.add('text-slate-500');
+            contentFechas.classList.remove('hidden');
+            contentFlexible.classList.add('hidden');
+        });
+        
+        tabFlexible.addEventListener('click', () => {
+            filterActiveTab = 'flexible';
+            tabFlexible.classList.add('bg-white', 'text-slate-800', 'shadow-xs');
+            tabFlexible.classList.remove('text-slate-500');
+            tabFechas.classList.remove('bg-white', 'text-slate-800', 'shadow-xs');
+            tabFechas.classList.add('text-slate-500');
+            contentFlexible.classList.remove('hidden');
+            contentFechas.classList.add('hidden');
+        });
+        
+        // Renderizar ambos meses lado a lado
+        function renderFilterCalendars() {
+            renderSingleCalendar(filterCalYear, filterCalMonth, gridMonth1, labelMonth1);
+            
+            // Segundo mes
+            let year2 = filterCalYear;
+            let month2 = filterCalMonth + 1;
+            if (month2 > 12) {
+                month2 = 1;
+                year2++;
+            }
+            renderSingleCalendar(year2, month2, gridMonth2, labelMonth2);
+        }
+        
+        function renderSingleCalendar(year, month, gridEl, labelEl) {
+            gridEl.innerHTML = '';
+            
+            const monthNames = [
+                'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+            ];
+            labelEl.textContent = `${monthNames[month - 1]} ${year}`;
+            
+            const totalDays = new Date(year, month, 0).getDate();
+            const startDay = new Date(year, month - 1, 1).getDay(); // Domingo = 0
+            
+            // Celdas vacías para alineación
+            for (let i = 0; i < startDay; i++) {
+                const empty = document.createElement('div');
+                empty.className = 'aspect-square';
+                gridEl.appendChild(empty);
+            }
+            
+            // Crear días
+            for (let d = 1; d <= totalDays; d++) {
+                const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                const cellDate = new Date(dateStr + 'T00:00:00');
+                const isPast = cellDate < filterToday;
+                const isSelected = filterSelectedDate === dateStr;
+                
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'calendar-airbnb-day-btn';
+                btn.textContent = d;
+                
+                if (isPast) {
+                    btn.classList.add('disabled');
+                    btn.disabled = true;
+                } else {
+                    if (isSelected) {
+                        btn.classList.add('selected');
+                    }
+                    if (cellDate.getTime() === filterToday.getTime()) {
+                        btn.classList.add('today');
+                    }
+                    btn.addEventListener('click', () => {
+                        filterSelectedDate = dateStr;
+                        renderFilterCalendars();
+                    });
+                }
+                gridEl.appendChild(btn);
+            }
+        }
+        
+        // Navegación de meses
+        prevMonthBtn.addEventListener('click', () => {
+            filterCalMonth--;
+            if (filterCalMonth < 1) {
+                filterCalMonth = 12;
+                filterCalYear--;
+            }
+            renderFilterCalendars();
+        });
+        
+        const advanceMonth = () => {
+            filterCalMonth++;
+            if (filterCalMonth > 12) {
+                filterCalMonth = 1;
+                filterCalYear++;
+            }
+            renderFilterCalendars();
+        };
+
+        if (nextMonthBtn) {
+            nextMonthBtn.addEventListener('click', advanceMonth);
+        }
+        if (nextMonthBtnMobile) {
+            nextMonthBtnMobile.addEventListener('click', advanceMonth);
+        }
+        
+        // Control de botones de flexibilidad
+        document.querySelectorAll('.flexibility-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.flexibility-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                filterFlexibility = parseInt(this.getAttribute('data-flex'));
+            });
+        });
+        
+        // Renderizar meses flexibles
+        function renderFlexibleMonths() {
+            const container = document.getElementById('flexible-months-container');
+            container.innerHTML = '';
+            
+            const monthNames = [
+                'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
+                'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'
+            ];
+            
+            const hoy = new Date();
+            for (let i = 0; i < 6; i++) {
+                const tempDate = new Date(hoy.getFullYear(), hoy.getMonth() + i, 1);
+                const yearVal = tempDate.getFullYear();
+                const monthVal = tempDate.getMonth() + 1;
+                const dateKey = `${yearVal}-${String(monthVal).padStart(2, '0')}`;
+                const labelStr = `${monthNames[monthVal - 1]} ${yearVal}`;
+                
+                const card = document.createElement('div');
+                card.className = 'flexible-month-card p-3 rounded-2xl border text-center cursor-pointer select-none';
+                if (filterFlexibleMonths.includes(dateKey)) {
+                    card.classList.add('active');
+                }
+                
+                // Iconos simpáticos según estación
+                let icon = '🌴';
+                if ([11, 0, 1].includes(tempDate.getMonth())) icon = '🏂';
+                else if ([2, 3, 4].includes(tempDate.getMonth())) icon = '🌸';
+                else if ([8, 9, 10].includes(tempDate.getMonth())) icon = '🍁';
+                
+                card.innerHTML = `
+                    <span class="block text-xl mb-1">${icon}</span>
+                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-700">${labelStr}</span>
+                `;
+                
+                card.addEventListener('click', () => {
+                    if (filterFlexibleMonths.includes(dateKey)) {
+                        filterFlexibleMonths = filterFlexibleMonths.filter(m => m !== dateKey);
+                    } else {
+                        filterFlexibleMonths.push(dateKey);
+                    }
+                    renderFlexibleMonths();
+                });
+                
+                container.appendChild(card);
+            }
+        }
+        
+        // Limpiar filtros
+        clearCalBtn.addEventListener('click', () => {
+            filterSelectedDate = null;
+            filterFlexibility = 0;
+            filterFlexibleMonths = [];
+            
+            document.querySelectorAll('.flexibility-btn').forEach(b => b.classList.remove('active'));
+            const defaultFlex = document.querySelector('.flexibility-btn[data-flex="0"]');
+            if (defaultFlex) defaultFlex.classList.add('active');
+            
+            hiddenDate.value = '';
+            hiddenFlex.value = '0';
+            hiddenMonths.value = '';
+            filterDisplay.value = '';
+            
+            renderFilterCalendars();
+            renderFlexibleMonths();
+        });
+        
+        // Aplicar filtros
+        applyCalBtn.addEventListener('click', () => {
+            if (filterActiveTab === 'fechas') {
+                if (filterSelectedDate) {
+                    hiddenDate.value = filterSelectedDate;
+                    hiddenFlex.value = filterFlexibility;
+                    hiddenMonths.value = '';
+                    
+                    const partes = filterSelectedDate.split('-');
+                    const mesesCortos = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+                    const labelMes = mesesCortos[parseInt(partes[1]) - 1];
+                    
+                    let displayText = `${partes[2]} ${labelMes}`;
+                    if (filterFlexibility > 0) {
+                        displayText += ` ±${filterFlexibility}d`;
+                    }
+                    filterDisplay.value = displayText;
+                } else {
+                    hiddenDate.value = '';
+                    hiddenFlex.value = '0';
+                    hiddenMonths.value = '';
+                    filterDisplay.value = '';
+                }
+            } else {
+                // Flexible
+                if (filterFlexibleMonths.length > 0) {
+                    hiddenDate.value = '';
+                    hiddenFlex.value = '0';
+                    hiddenMonths.value = filterFlexibleMonths.join(',');
+                    
+                    const mesesNombres = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+                    const labels = filterFlexibleMonths.map(m => {
+                        const p = m.split('-');
+                        return mesesNombres[parseInt(p[1]) - 1];
+                    });
+                    filterDisplay.value = `Flexible: ${labels.join(', ')}`;
+                } else {
+                    hiddenDate.value = '';
+                    hiddenFlex.value = '0';
+                    hiddenMonths.value = '';
+                    filterDisplay.value = '';
+                }
+            }
+            filterDropdown.classList.add('hidden');
+        });
+
+        // Autoejecutar para pre-poblar display si ya hay valores de búsqueda activos
+        (function initPrepopulatedValues() {
+            if (filterSelectedDate) {
+                const partes = filterSelectedDate.split('-');
+                const mesesCortos = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+                const labelMes = mesesCortos[parseInt(partes[1]) - 1];
+                let displayText = `${partes[2]} ${labelMes}`;
+                if (filterFlexibility > 0) {
+                    displayText += ` ±${filterFlexibility}d`;
+                }
+                filterDisplay.value = displayText;
+                // Activar boton flexibilidad correcto
+                document.querySelectorAll('.flexibility-btn').forEach(b => {
+                    b.classList.remove('active');
+                    if (parseInt(b.getAttribute('data-flex')) === filterFlexibility) {
+                        b.classList.add('active');
+                    }
+                });
+            } else if (filterFlexibleMonths.length > 0) {
+                const mesesNombres = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+                const labels = filterFlexibleMonths.map(m => {
+                    const p = m.split('-');
+                    return mesesNombres[parseInt(p[1]) - 1];
+                });
+                filterDisplay.value = `Flexible: ${labels.join(', ')}`;
+                // Activar pestaña Flexible
+                if (tabFlexible) tabFlexible.click();
+            }
+        })();
     </script>
 @endsection

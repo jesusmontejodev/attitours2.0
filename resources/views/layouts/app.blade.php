@@ -20,7 +20,7 @@
     <!-- Vite Assets -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="flex flex-col min-h-screen bg-slate-50 bg-grid-pattern">
+<body class="flex flex-col min-h-screen bg-slate-50 bg-grid-pattern overflow-x-hidden">
 
     <!-- ====================================================================
          HEADER / NAVBAR
@@ -62,35 +62,44 @@
             <div class="flex items-center gap-3">
 
                 <!-- SELECTOR DE IDIOMA (oculto en móvil) -->
+                @php
+                    $langFlags = [
+                        'es' => '🇲🇽', 'en' => '🇺🇸', 'zh' => '🇨🇳',
+                        'fr' => '🇫🇷', 'de' => '🇩🇪', 'pt' => '🇧🇷',
+                        'ja' => '🇯🇵', 'ko' => '🇰🇷', 'it' => '🇮🇹', 'ru' => '🇷🇺',
+                    ];
+                    $currentFlag = $langFlags[app()->getLocale()] ?? '🌐';
+                @endphp
                 <div class="relative hidden sm:block">
                     <button id="lang-btn"
                             class="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 text-sm font-bold uppercase tracking-wider text-slate-600 transition-all cursor-pointer shadow-xs">
-                        <svg class="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"/>
-                        </svg>
+                        <span class="text-base leading-none">{{ $currentFlag }}</span>
                         <span>{{ strtoupper(app()->getLocale()) }}</span>
                         <svg class="h-3 w-3 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                         </svg>
                     </button>
                     <div id="lang-menu"
-                         class="absolute right-0 mt-2 w-32 origin-top-right rounded-2xl border border-slate-200 bg-white p-1.5 shadow-2xl opacity-0 scale-95 pointer-events-none transition-all duration-200 z-50">
-                        <a href="{{ route('lang.switch', 'es') }}"
-                           class="flex items-center justify-between px-3 py-2 rounded-xl text-sm font-semibold hover:bg-slate-50 text-slate-700
-                                  {{ app()->getLocale() === 'es' ? 'bg-brand-teal/5 text-brand-teal font-bold' : '' }}">
-                            <span>Español</span><span>🇲🇽</span>
-                        </a>
-                        <a href="{{ route('lang.switch', 'en') }}"
-                           class="flex items-center justify-between px-3 py-2 rounded-xl text-sm font-semibold hover:bg-slate-50 text-slate-700
-                                  {{ app()->getLocale() === 'en' ? 'bg-brand-teal/5 text-brand-teal font-bold' : '' }}">
-                            <span>English</span><span>🇺🇸</span>
-                        </a>
-                        <a href="{{ route('lang.switch', 'zh') }}"
-                           class="flex items-center justify-between px-3 py-2 rounded-xl text-sm font-semibold hover:bg-slate-50 text-slate-700
-                                  {{ app()->getLocale() === 'zh' ? 'bg-brand-teal/5 text-brand-teal font-bold' : '' }}">
-                            <span>中文</span><span>🇨🇳</span>
-                        </a>
+                         class="absolute right-0 mt-2 w-48 origin-top-right rounded-2xl border border-slate-200 bg-white p-1.5 shadow-2xl opacity-0 scale-95 pointer-events-none transition-all duration-200 z-50">
+                        @foreach([
+                            ['code'=>'es','label'=>'Español',    'flag'=>'🇲🇽'],
+                            ['code'=>'en','label'=>'English',    'flag'=>'🇺🇸'],
+                            ['code'=>'zh','label'=>'中文',       'flag'=>'🇨🇳'],
+                            ['code'=>'fr','label'=>'Français',   'flag'=>'🇫🇷'],
+                            ['code'=>'de','label'=>'Deutsch',    'flag'=>'🇩🇪'],
+                            ['code'=>'pt','label'=>'Português',  'flag'=>'🇧🇷'],
+                            ['code'=>'ja','label'=>'日本語',     'flag'=>'🇯🇵'],
+                            ['code'=>'ko','label'=>'한국어',     'flag'=>'🇰🇷'],
+                            ['code'=>'it','label'=>'Italiano',   'flag'=>'🇮🇹'],
+                            ['code'=>'ru','label'=>'Русский',    'flag'=>'🇷🇺'],
+                        ] as $lang)
+                            <a href="{{ route('lang.switch', $lang['code']) }}"
+                               class="flex items-center justify-between px-3 py-2 rounded-xl text-sm font-semibold hover:bg-slate-50 text-slate-700 transition-colors
+                                      {{ app()->getLocale() === $lang['code'] ? 'bg-brand-teal/5 text-brand-teal font-bold' : '' }}">
+                                <span>{{ $lang['label'] }}</span>
+                                <span class="text-base">{{ $lang['flag'] }}</span>
+                            </a>
+                        @endforeach
                     </div>
                 </div>
 
@@ -257,20 +266,30 @@
                class="px-3 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-50 text-slate-700 {{ Route::is('catalog') ? 'bg-brand-teal/5 text-brand-teal' : '' }}">
                 {{ __('navTours') }}
             </a>
-            {{-- Selector de idioma en móvil --}}
-            <div class="flex gap-2 border-t border-slate-100 mt-1 py-2">
-                <a href="{{ route('lang.switch', 'es') }}"
-                   class="flex-1 text-center py-1.5 rounded-lg text-xs font-bold {{ app()->getLocale() === 'es' ? 'bg-brand-teal/10 text-brand-teal' : 'bg-slate-50 text-slate-600' }}">
-                    🇲🇽 ES
-                </a>
-                <a href="{{ route('lang.switch', 'en') }}"
-                   class="flex-1 text-center py-1.5 rounded-lg text-xs font-bold {{ app()->getLocale() === 'en' ? 'bg-brand-teal/10 text-brand-teal' : 'bg-slate-50 text-slate-600' }}">
-                    🇺🇸 EN
-                </a>
-                <a href="{{ route('lang.switch', 'zh') }}"
-                   class="flex-1 text-center py-1.5 rounded-lg text-xs font-bold {{ app()->getLocale() === 'zh' ? 'bg-brand-teal/10 text-brand-teal' : 'bg-slate-50 text-slate-600' }}">
-                    🇨🇳 ZH
-                </a>
+            {{-- Selector de idioma en móvil (10 idiomas) --}}
+            <div class="border-t border-slate-100 mt-1 py-2">
+                <p class="text-[9px] font-bold uppercase tracking-wider text-slate-400 px-1 mb-2">Idioma</p>
+                <div class="grid grid-cols-5 gap-1.5">
+                    @foreach([
+                        ['code'=>'es','label'=>'ES','flag'=>'🇲🇽'],
+                        ['code'=>'en','label'=>'EN','flag'=>'🇺🇸'],
+                        ['code'=>'zh','label'=>'ZH','flag'=>'🇨🇳'],
+                        ['code'=>'fr','label'=>'FR','flag'=>'🇫🇷'],
+                        ['code'=>'de','label'=>'DE','flag'=>'🇩🇪'],
+                        ['code'=>'pt','label'=>'PT','flag'=>'🇧🇷'],
+                        ['code'=>'ja','label'=>'JA','flag'=>'🇯🇵'],
+                        ['code'=>'ko','label'=>'KO','flag'=>'🇰🇷'],
+                        ['code'=>'it','label'=>'IT','flag'=>'🇮🇹'],
+                        ['code'=>'ru','label'=>'RU','flag'=>'🇷🇺'],
+                    ] as $lang)
+                        <a href="{{ route('lang.switch', $lang['code']) }}"
+                           class="flex flex-col items-center gap-0.5 py-1.5 rounded-lg text-[10px] font-bold transition-colors
+                                  {{ app()->getLocale() === $lang['code'] ? 'bg-brand-teal/10 text-brand-teal ring-1 ring-brand-teal/30' : 'bg-slate-50 text-slate-600 hover:bg-slate-100' }}">
+                            <span class="text-base leading-none">{{ $lang['flag'] }}</span>
+                            <span>{{ $lang['label'] }}</span>
+                        </a>
+                    @endforeach
+                </div>
             </div>
             @auth
                 @if(Auth::user()->isCliente())

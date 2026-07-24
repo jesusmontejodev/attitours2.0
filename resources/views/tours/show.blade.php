@@ -319,32 +319,32 @@
                         </label>
                         <input type="hidden" name="fecha" id="reserva-fecha">
                         
-                        <!-- Contenedor del Calendario Visual -->
-                        <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50">
+                        <!-- Contenedor del Calendario Visual (Estilo Airbnb Premium) -->
+                        <div class="p-4 rounded-3xl border border-slate-200 bg-white shadow-xs">
                             <!-- Cabecera Mes/Año -->
-                            <div class="flex items-center justify-between mb-3 border-b border-slate-200 pb-2">
-                                <button type="button" id="cal-prev-month" class="p-1 rounded bg-white border border-slate-200 text-slate-650 hover:text-brand-teal hover:bg-slate-50 shadow-xs transition-colors cursor-pointer text-xs font-black">
-                                    &larr;
+                            <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-100">
+                                <button type="button" id="cal-prev-month" class="p-1.5 rounded-full hover:bg-slate-100 text-slate-600 transition-colors cursor-pointer">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
                                 </button>
-                                <span id="cal-month-label" class="text-[10px] font-black uppercase tracking-widest text-slate-800"></span>
-                                <button type="button" id="cal-next-month" class="p-1 rounded bg-white border border-slate-200 text-slate-650 hover:text-brand-teal hover:bg-slate-50 shadow-xs transition-colors cursor-pointer text-xs font-black">
-                                    &rarr;
+                                <span id="cal-month-label" class="text-xs font-black text-slate-800 uppercase tracking-widest"></span>
+                                <button type="button" id="cal-next-month" class="p-1.5 rounded-full hover:bg-slate-100 text-slate-600 transition-colors cursor-pointer">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
                                 </button>
                             </div>
                             
                             <!-- Días de la semana -->
-                            <div class="grid grid-cols-7 gap-1 text-center text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-2">
-                                <div>Lu</div>
-                                <div>Ma</div>
-                                <div>Mi</div>
-                                <div>Ju</div>
-                                <div>Vi</div>
-                                <div>Sá</div>
-                                <div>Do</div>
+                            <div class="grid grid-cols-7 gap-1.5 text-center text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-3">
+                                <div>D</div>
+                                <div>L</div>
+                                <div>M</div>
+                                <div>M</div>
+                                <div>J</div>
+                                <div>V</div>
+                                <div>S</div>
                             </div>
                             
                             <!-- Grid del Mes -->
-                            <div id="cal-days-grid" class="grid grid-cols-7 gap-1">
+                            <div id="cal-days-grid" class="grid grid-cols-7 gap-1.5">
                                 <!-- Generado dinámicamente -->
                             </div>
                         </div>
@@ -586,9 +586,8 @@
             calMonthLabel.textContent = `${monthNames[currentMonth - 1]} ${currentYear}`;
 
             const totalDays = new Date(currentYear, currentMonth, 0).getDate();
-            let startDay = new Date(currentYear, currentMonth - 1, 1).getDay();
-            // Ajustar inicio de semana a Lunes (Lunes = 0, Domingo = 6)
-            let emptySlots = startDay === 0 ? 6 : startDay - 1;
+            const startDay = new Date(currentYear, currentMonth - 1, 1).getDay(); // Domingo = 0
+            const emptySlots = startDay;
 
             // Días vacíos iniciales
             for (let i = 0; i < emptySlots; i++) {
@@ -607,17 +606,21 @@
 
                 const dayBtn = document.createElement('button');
                 dayBtn.type = 'button';
-                dayBtn.className = 'aspect-square rounded-full text-[10px] font-bold flex items-center justify-center transition-all select-none ';
+                dayBtn.className = 'calendar-airbnb-day-btn';
                 dayBtn.textContent = day;
 
                 if (isPast) {
-                    dayBtn.className += 'text-slate-300 opacity-25 cursor-not-allowed';
+                    dayBtn.classList.add('disabled');
                     dayBtn.disabled = true;
                 } else if (isAvailable) {
                     if (isSelected) {
-                        dayBtn.className += 'bg-brand-teal text-white shadow-md scale-105';
+                        dayBtn.classList.add('selected');
                     } else {
-                        dayBtn.className += 'bg-white border border-slate-200 text-brand-teal hover:border-brand-teal hover:bg-brand-teal/5 cursor-pointer';
+                        // Resaltado sutil en verde para fechas con disponibilidad
+                        dayBtn.classList.add('border', 'border-brand-teal/20', 'bg-brand-teal/5', 'text-brand-teal', 'hover:bg-brand-teal', 'hover:text-white');
+                    }
+                    if (cellDate.getTime() === today.getTime()) {
+                        dayBtn.classList.add('today');
                     }
                     
                     dayBtn.addEventListener('click', () => {
@@ -626,7 +629,7 @@
                         verifyAvailability(); // Cargar horarios y disponibilidad
                     });
                 } else {
-                    dayBtn.className += 'text-slate-400 opacity-30 cursor-not-allowed';
+                    dayBtn.classList.add('disabled');
                     dayBtn.disabled = true;
                 }
 
