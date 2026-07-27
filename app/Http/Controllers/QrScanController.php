@@ -136,9 +136,15 @@ class QrScanController extends Controller
     public function verifyQrDirect(string $token): RedirectResponse
     {
         $user = Auth::user();
-        if (!$user || (!$user->isProveedor() && !$user->isAdmin())) {
-            return redirect()->route('login')->with('error', 'Inicia sesión como proveedor para escanear QR.');
+
+        if (!$user) {
+            return redirect()->route('login')->with('error', 'Inicia sesión como proveedor o administrador para escanear el QR.');
         }
+
+        if (!$user->isProveedor() && !$user->isAdmin()) {
+            return redirect()->route('home')->with('error', 'Acceso no autorizado.');
+        }
+
         return redirect()->route('dashboard.qr.scanner')->with('qr_to_verify', $token);
     }
 

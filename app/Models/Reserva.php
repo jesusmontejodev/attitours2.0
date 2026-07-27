@@ -86,13 +86,13 @@ class Reserva extends Model
     }
 
     /**
-     * Devuelve el payload que se codifica en el QR.
-     * Contiene solo el token (no la URL completa) para compatibilidad con QuickChart.
-     * El backend detecta si recibe el token solo o una URL y extrae el token en ambos casos.
+     * Devuelve el payload que se codifica en el QR: la URL de verificación de asistencia.
+     * Al escanearla con la cámara del teléfono (fuera de la app) es un link tocable que lleva
+     * directo a /dashboard/qr/verify/{token}; el propio escáner interno también la reconoce.
      */
     public function getQrPayload(): string
     {
-        return 'ATTITOURS:' . $this->qr_token;
+        return route('dashboard.qr.verify', ['token' => $this->qr_token]);
     }
 
     /**
