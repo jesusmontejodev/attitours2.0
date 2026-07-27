@@ -15,6 +15,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\TourController;
 use App\Http\Controllers\QrScanController;
+use App\Http\Controllers\StripeWebhookController;
 use Illuminate\Support\Facades\Route;
 
 // ==========================================
@@ -46,6 +47,11 @@ Route::prefix('checkout')->group(function () {
     Route::get('/success', [CheckoutController::class, 'success'])->name('checkout.success');
     Route::post('/notify', [CheckoutController::class, 'sendSimulatedNotification'])->name('checkout.notify');
 });
+
+// ==========================================
+// WEBHOOK DE STRIPE (llamado por Stripe, no por el usuario)
+// ==========================================
+Route::post('/webhooks/stripe', [StripeWebhookController::class, 'handle'])->name('checkout.stripe.webhook');
 
 // ==========================================
 // AUTENTICACIÓN (LOGIN / LOGOUT / REGISTRO)

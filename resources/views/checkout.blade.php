@@ -73,42 +73,19 @@
                         </div>
                     </div>
 
-                    <!-- Datos Tarjeta Ficticios -->
+                    <!-- Pago con Stripe -->
                     <div class="p-6 rounded-2xl border border-slate-200 bg-white shadow-md">
                         <h2 class="text-xs font-bold uppercase tracking-widest text-brand-teal mb-4 border-b border-slate-200 pb-2">
-                            2. Detalles de Pago (Simulación Segura)
+                            2. Pago Seguro
                         </h2>
-                        
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <!-- Titular de Tarjeta -->
-                            <div class="flex flex-col gap-1.5 sm:col-span-2">
-                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">{{ __('cardName') }}</label>
-                                <input type="text" name="card_name" required value="{{ old('card_name') }}" placeholder="Nombre del titular" class="w-full h-10 rounded-lg border border-slate-200 bg-slate-55 px-3 text-xs text-slate-800 placeholder-slate-400 focus:border-brand-teal focus:bg-white focus:ring-0 focus:outline-none transition-colors">
-                            </div>
-
-                            <!-- Número de Tarjeta -->
-                            <div class="flex flex-col gap-1.5 sm:col-span-2">
-                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">{{ __('cardNumber') }}</label>
-                                <input type="text" id="card_number_input" name="card_number" required value="{{ old('card_number') }}" placeholder="4111 2222 3333 4444" minlength="16" maxlength="19" class="w-full h-10 rounded-lg border border-slate-200 bg-slate-55 px-3 text-xs text-slate-800 placeholder-slate-400 focus:border-brand-teal focus:bg-white focus:ring-0 focus:outline-none transition-colors">
-                            </div>
-
-                            <!-- Expiración -->
-                            <div class="flex flex-col gap-1.5">
-                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">{{ __('cardExpiry') }}</label>
-                                <input type="text" id="card_expiry_input" name="card_expiry" required value="{{ old('card_expiry') }}" placeholder="MM/AA" maxlength="5" class="w-full h-10 rounded-lg border border-slate-200 bg-slate-55 px-3 text-xs text-slate-800 placeholder-slate-400 focus:border-brand-teal focus:bg-white focus:ring-0 focus:outline-none transition-colors">
-                            </div>
-
-                            <!-- CVV -->
-                            <div class="flex flex-col gap-1.5">
-                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">{{ __('cardCvv') }}</label>
-                                <input type="password" name="card_cvv" required value="{{ old('card_cvv') }}" placeholder="123" minlength="3" maxlength="4" class="w-full h-10 rounded-lg border border-slate-200 bg-slate-55 px-3 text-xs text-slate-800 placeholder-slate-400 focus:border-brand-teal focus:bg-white focus:ring-0 focus:outline-none transition-colors">
-                            </div>
-                        </div>
+                        <p class="text-xs text-slate-500 font-semibold leading-relaxed">
+                            Al continuar serás redirigido a la página de pago segura de Stripe para completar tu compra con tarjeta, Apple Pay o Google Pay. Atti Tours nunca ve ni almacena los datos de tu tarjeta.
+                        </p>
                     </div>
 
                     <!-- Botón Enviar -->
                     <button type="submit" class="w-full h-12 inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-brand-orange to-brand-orange-hover hover:opacity-95 text-xs font-bold uppercase tracking-widest text-white shadow-md shadow-brand-orange/15 cursor-pointer transition-all hover:scale-[1.01]">
-                        {{ __('placeOrder') }}
+                        Pagar con Stripe
                     </button>
                 </form>
             </main>
@@ -156,56 +133,16 @@
         </div>
     </div>
 
-    <!-- SCRIPT PARA SIMULACIÓN DE CARGA Y COMPORTAMIENTO DE TARJETA -->
+    <!-- SCRIPT: overlay de "redirigiendo a Stripe" mientras se crea la Checkout Session -->
     <script>
         const form = document.getElementById('checkout-form');
         const overlay = document.getElementById('payment-overlay');
 
         if (form && overlay) {
-            form.addEventListener('submit', (e) => {
-                e.preventDefault(); // Evitar envío inmediato
-                
-                // Mostrar overlay con fade-in
+            form.addEventListener('submit', () => {
+                // El overlay se queda visible hasta que el navegador salga hacia Stripe
+                // (o vuelva con un error, en cuyo caso la recarga de página lo oculta solo).
                 overlay.classList.remove('hidden');
-                
-                // Retrasar el envío real 2.5 segundos para simular el procesamiento bancario
-                setTimeout(() => {
-                    form.submit();
-                }, 2500);
-            });
-        }
-
-        // Formatear automáticamente el número de tarjeta (4 en 4 dígitos)
-        const cardNumInput = document.getElementById('card_number_input');
-        if (cardNumInput) {
-            cardNumInput.addEventListener('input', (e) => {
-                let v = e.target.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
-                let matches = v.match(/\d{4,16}/g);
-                let match = matches && matches[0] || '';
-                let parts = [];
-
-                for (let i=0, len=match.length; i<len; i+=4) {
-                    parts.push(match.substring(i, i+4));
-                }
-
-                if (parts.length > 0) {
-                    e.target.value = parts.join(' ');
-                } else {
-                    e.target.value = v;
-                }
-            });
-        }
-
-        // Formatear expiración de tarjeta (MM/AA)
-        const cardExpiryInput = document.getElementById('card_expiry_input');
-        if (cardExpiryInput) {
-            cardExpiryInput.addEventListener('input', (e) => {
-                let v = e.target.value.replace(/[^0-9]/gi, '');
-                if (v.length >= 2) {
-                    e.target.value = v.substring(0, 2) + '/' + v.substring(2, 4);
-                } else {
-                    e.target.value = v;
-                }
             });
         }
     </script>

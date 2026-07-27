@@ -35,6 +35,8 @@ class Reserva extends Model
         'asistencia_confirmada',
         'asistencia_confirmada_at',
         'asistencia_confirmada_por',
+        'stripe_session_id',
+        'stripe_payment_intent_id',
     ];
 
     protected $casts = [

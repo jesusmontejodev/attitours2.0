@@ -1,0 +1,23 @@
+Este documento esta creado con el fin de documentar la aplicación y el modelo de negocio de Attitour, comenzaremos con la base de datos.
+
+La aplicación funcionará como un gestor de viajes, debemos considerar el proceso que lleva el negocio al momento de recibir un nuevo apartado.
+1. Módulos Funcionales de la Base de Datos
+A. Gestión de Identidad y Roles (USUARIOS)
+•	Propósito: Controlar el acceso a la plataforma basándose en tres perfiles principales: Administradores, Clientes y Proveedores (PT).
+•	Regla Funcional: Un usuario no está amarrado a un solo rol de por vida; la nota morada indica que "un usuario no necesariamente debe ser proveedor de Tours, puede ser un usuario del tipo cliente". El sistema debe validar el flujo de negocio según el TIPO asignado.
+B. Módulo de Proveedores (PROVEEDORA DE TOURS)
+•	Propósito: Almacenar la información fiscal, operativa y de contacto de las agencias u operadores locales que ofertan los tours.
+•	Reglas de Negocio Críticas (Notas Moradas):
+o	Aislamiento de Datos: Un proveedor solo tiene permisos de lectura sobre sus propias métricas e información ("Solo es una base de datos para ellos"). No pueden editar configuraciones globales del sistema.
+o	Autonomía Limitada: Tienen permitido modificar exclusivamente el calendario asociado a sus propios tours.
+o	Relación Opcional ($1:N$): Un usuario puede dar de alta o estar vinculado a una proveedora de tours, pero no es obligatorio para navegar como cliente.
+C. Catálogo de Experiencias y Disponibilidad (TOUR, GALERÍA_TOUR, CALENDARIO_TOUR)
+•	Propósito: Gestionar la oferta comercial de los viajes, precios base, horarios y el material multimedia.
+•	Reglas Funcional de Integración (API): El campo Nombre de la tour operadora en la tabla TOUR tiene una nota clave: "No salga el nombre de los proveedores / API De calendario". Esto implica una regla de privacidad: de cara al cliente final, la marca del proveedor se abstrae o se procesa mediante una API externa para mantener la consistencia de la plataforma.
+•	Control de Modificaciones: Las galerías y los calendarios globales son gestionados por el rol Administrador, pero el Proveedor tiene un canal habilitado para alterar las fechas/horas del tour asignado.
+D. Ciclo de Vida de Ventas (RESERVACIONES y TICKET)
+•	Propósito: Orquestar la compra, el control de aforo (Asientos) y los estados financieros de cada experiencia.
+•	Estados de la Reserva: El negocio entiende tres fases críticas: Pagado, En progreso y Finalizado
+
+
+
