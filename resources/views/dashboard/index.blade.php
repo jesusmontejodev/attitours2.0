@@ -645,6 +645,7 @@
                                          data-tags="{{ implode(', ', $t->tags ?: []) }}"
                                          data-imagen="{{ $t->imagen_destacada }}"
                                          data-galeria="{{ implode(', ', array_slice($t->galeria ?: [], 1)) }}"
+                                         data-galeria-experiencias="{{ implode(', ', $t->galeria_experiencias ?: []) }}"
                                          data-punto-encuentro="{{ $t->punto_encuentro }}"
                                          data-itinerario="{{ json_encode($t->itinerario ?: []) }}"
                                          data-incluye="{{ implode(', ', $t->incluye ?: []) }}"
@@ -1029,8 +1030,12 @@
 
                         <!-- Tags -->
                         <div class="flex flex-col gap-1.5">
-                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Tags (separados por coma)</label>
-                            <input type="text" name="tags" placeholder="Cultura, Aventura, Arqueología" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Tags (Características para búsqueda)</label>
+                            <div id="create-tags-box" class="tag-input-box flex flex-wrap gap-1.5 items-center w-full min-h-9 rounded-lg border border-slate-200 bg-white px-2 py-1.5 focus-within:border-brand-teal">
+                                <input type="text" placeholder="Ej. Playa, Aventura... (Enter para añadir)" onkeydown="tagInputHandleKeydown(event, 'create-tags-box', 'create-tags-hidden')" class="flex-1 min-w-[140px] h-6 text-xs text-slate-700 outline-none border-0 bg-transparent">
+                            </div>
+                            <input type="hidden" name="tags" id="create-tags-hidden">
+                            <span class="text-[9px] text-slate-400 font-semibold">Escribe una característica y presiona Enter para añadirla (ej. Playa, Aventura, Familiar).</span>
                         </div>
 
                         <!-- Punto de encuentro y fotos -->
@@ -1042,22 +1047,9 @@
                         <!-- Carga de Imagen Destacada (Portada) -->
                         <div class="flex flex-col gap-1.5">
                             <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Subir Imagen de Portada (Destacada)</label>
-                            <input type="file" name="imagen_destacada_file" accept="image/jpeg,image/png,image/webp" class="w-full text-xs text-slate-700 bg-slate-50 border border-slate-200 rounded-lg p-2 focus:border-brand-teal">
-                            <span class="text-[9px] text-slate-400 font-semibold">📷 Formatos: JPG, PNG, WEBP (hasta 15MB). Se optimizará automáticamente para alta velocidad.</span>
-                        </div>
-
-                        <!-- Carga de Galería Adicional de Fotos -->
-                        <div class="flex flex-col gap-1.5">
-                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Subir Fotos a Galería Adicional del Tour</label>
-                            <input type="file" name="galeria_files[]" multiple accept="image/jpeg,image/png,image/webp" class="w-full text-xs text-slate-700 bg-slate-50 border border-slate-200 rounded-lg p-2 focus:border-brand-teal">
-                            <span class="text-[9px] text-slate-400 font-semibold">📸 Selecciona varios archivos JPG, PNG, WEBP (hasta 15MB por foto).</span>
-                        </div>
-
-                        <!-- Carga de Galería de Experiencias de Viajeros -->
-                        <div class="flex flex-col gap-1.5">
-                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Subir Fotos a Galería de Experiencias (Fotos reales de viajeros)</label>
-                            <input type="file" name="galeria_exp_files[]" multiple accept="image/jpeg,image/png,image/webp" class="w-full text-xs text-slate-700 bg-slate-50 border border-slate-200 rounded-lg p-2 focus:border-brand-teal">
-                            <span class="text-[9px] text-slate-400 font-semibold">🌟 Fotos reales tomadas por viajeros para la sección de experiencias al final del tour.</span>
+                            <input type="file" name="imagen_destacada_file" accept="image/jpeg,image/png,image/webp" onchange="previewImageInput(this, 'create-tour-imagen-preview')" class="w-full text-xs text-slate-700 bg-slate-50 border border-slate-200 rounded-lg p-2 focus:border-brand-teal">
+                            <img id="create-tour-imagen-preview" class="hidden w-full h-36 object-cover rounded-lg border border-slate-200">
+                            <span class="text-[9px] text-slate-400 font-semibold">📷 Formatos: JPG, PNG, WEBP (hasta 15MB). Se optimizará automáticamente para alta velocidad. Podrás añadir el resto de las fotos justo después de crear el tour.</span>
                         </div>
 
                         <!-- Inclusiones y Exclusiones -->
@@ -1163,8 +1155,12 @@
 
                         <!-- Tags -->
                         <div class="flex flex-col gap-1.5">
-                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Tags (separados por coma)</label>
-                            <input type="text" name="tags" id="edit-tour-tags" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Tags (Características para búsqueda)</label>
+                            <div id="edit-tags-box" class="tag-input-box flex flex-wrap gap-1.5 items-center w-full min-h-9 rounded-lg border border-slate-200 bg-white px-2 py-1.5 focus-within:border-brand-teal">
+                                <input type="text" placeholder="Ej. Playa, Aventura... (Enter para añadir)" onkeydown="tagInputHandleKeydown(event, 'edit-tags-box', 'edit-tags-hidden')" class="flex-1 min-w-[140px] h-6 text-xs text-slate-700 outline-none border-0 bg-transparent">
+                            </div>
+                            <input type="hidden" name="tags" id="edit-tags-hidden">
+                            <span class="text-[9px] text-slate-400 font-semibold">Escribe una característica y presiona Enter para añadirla (ej. Playa, Aventura, Familiar).</span>
                         </div>
 
                         <!-- Punto de encuentro y fotos -->
@@ -1176,22 +1172,18 @@
                         <!-- Carga de Imagen Destacada (Portada) -->
                         <div class="flex flex-col gap-1.5">
                             <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Cambiar Imagen de Portada (Destacada)</label>
-                            <input type="file" name="imagen_destacada_file" accept="image/jpeg,image/png,image/webp" class="w-full text-xs text-slate-700 bg-slate-50 border border-slate-200 rounded-lg p-2 focus:border-brand-teal">
+                            <img id="edit-tour-imagen-preview" class="hidden w-full h-36 object-cover rounded-lg border border-slate-200">
+                            <input type="file" name="imagen_destacada_file" accept="image/jpeg,image/png,image/webp" onchange="previewImageInput(this, 'edit-tour-imagen-preview')" class="w-full text-xs text-slate-700 bg-slate-50 border border-slate-200 rounded-lg p-2 focus:border-brand-teal">
                             <span class="text-[9px] text-slate-400 font-semibold">📷 Formatos: JPG, PNG, WEBP (hasta 15MB). Se optimizará automáticamente para alta velocidad.</span>
                         </div>
 
-                        <!-- Carga de Galería Adicional de Fotos -->
+                        <!-- Gestión de Galería Adicional y de Experiencias (una foto a la vez) -->
                         <div class="flex flex-col gap-1.5">
-                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Añadir Nuevas Fotos a Galería Adicional</label>
-                            <input type="file" name="galeria_files[]" multiple accept="image/jpeg,image/png,image/webp" class="w-full text-xs text-slate-700 bg-slate-50 border border-slate-200 rounded-lg p-2 focus:border-brand-teal">
-                            <span class="text-[9px] text-slate-400 font-semibold">📸 Selecciona varios archivos JPG, PNG, WEBP (hasta 15MB por foto).</span>
-                        </div>
-
-                        <!-- Carga de Galería de Experiencias de Viajeros -->
-                        <div class="flex flex-col gap-1.5">
-                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Añadir Fotos a Galería de Experiencias (Viajeros)</label>
-                            <input type="file" name="galeria_exp_files[]" multiple accept="image/jpeg,image/png,image/webp" class="w-full text-xs text-slate-700 bg-slate-50 border border-slate-200 rounded-lg p-2 focus:border-brand-teal">
-                            <span class="text-[9px] text-slate-400 font-semibold">🌟 Fotos reales tomadas por viajeros para la sección de experiencias al final del tour.</span>
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Galería de Fotos</label>
+                            <button type="button" onclick="openTourGalleryModal(document.getElementById('edit-tour-modal').dataset.tourId)" class="w-full h-9 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-xs font-bold text-slate-600 transition-colors cursor-pointer">
+                                🖼️ Gestionar Galería y Experiencias
+                            </button>
+                            <span class="text-[9px] text-slate-400 font-semibold">Añade o quita fotos una por una, sin perder los demás cambios del formulario.</span>
                         </div>
 
                         <!-- Inclusiones y Exclusiones -->
@@ -1232,6 +1224,41 @@
                 </div>
             </div>
         @endif
+    </div>
+
+    <!-- Modal de Gestión de Galería (subida de fotos una por una) -->
+    <div id="tour-gallery-modal" class="hidden fixed inset-0 z-[70] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-fade-in overflow-y-auto">
+        <div class="relative w-full max-w-lg rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <button type="button" onclick="closeTourGalleryModal()" class="absolute top-4 right-4 text-slate-500 hover:text-slate-800 text-lg cursor-pointer">
+                &times;
+            </button>
+
+            <h3 class="text-xs font-black uppercase tracking-widest text-brand-teal border-b border-slate-200 pb-3 mb-5">
+                Galería de Fotos del Tour
+            </h3>
+
+            <div class="flex flex-col gap-5">
+                <!-- Galería Adicional -->
+                <div class="flex flex-col gap-2">
+                    <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Galería Adicional</label>
+                    <div id="gallery-thumbs-galeria" class="grid grid-cols-4 gap-2"></div>
+                    <input type="file" id="gallery-upload-galeria" accept="image/jpeg,image/png,image/webp" onchange="uploadGalleryImage('galeria', this)" class="w-full text-xs text-slate-700 bg-slate-50 border border-slate-200 rounded-lg p-2 focus:border-brand-teal">
+                    <span id="gallery-status-galeria" class="text-[9px] text-slate-400 font-semibold">📸 Selecciona una foto a la vez (JPG, PNG, WEBP, hasta 15MB).</span>
+                </div>
+
+                <!-- Galería de Experiencias -->
+                <div class="flex flex-col gap-2 border-t border-slate-200 pt-4">
+                    <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Galería de Experiencias (Viajeros)</label>
+                    <div id="gallery-thumbs-galeria_experiencias" class="grid grid-cols-4 gap-2"></div>
+                    <input type="file" id="gallery-upload-galeria_experiencias" accept="image/jpeg,image/png,image/webp" onchange="uploadGalleryImage('galeria_experiencias', this)" class="w-full text-xs text-slate-700 bg-slate-50 border border-slate-200 rounded-lg p-2 focus:border-brand-teal">
+                    <span id="gallery-status-galeria_experiencias" class="text-[9px] text-slate-400 font-semibold">🌟 Selecciona una foto a la vez (JPG, PNG, WEBP, hasta 15MB).</span>
+                </div>
+
+                <button type="button" onclick="closeTourGalleryModal()" class="w-full h-10 rounded-lg bg-gradient-to-r from-brand-teal to-brand-teal-hover text-xs font-black uppercase text-white shadow-lg cursor-pointer">
+                    Listo
+                </button>
+            </div>
+        </div>
     </div>
 
     <!-- Modal de Disponibilidad en Lote (Múltiples Fechas) -->
@@ -1485,6 +1512,12 @@
                 if (activeBtn) {
                     switchTab(tabToShow);
                 }
+            }
+
+            // Tras crear un tour, abrir automáticamente el modal de Galería para añadir el resto de fotos
+            const newTourId = @json(session('new_tour_id'));
+            if (newTourId) {
+                openTourGalleryModal(newTourId);
             }
 
             // Auto-dismiss flash messages
@@ -2562,9 +2595,18 @@
             document.getElementById('edit-tour-ubicacion').value = ubicacion;
             document.getElementById('edit-tour-pais').value = pais;
             document.getElementById('edit-tour-proveedor').value = proveedorId;
-            document.getElementById('edit-tour-tags').value = tags;
+            tagInputInit('edit-tags-box', 'edit-tags-hidden', tags);
             if (document.getElementById('edit-tour-imagen')) {
                 document.getElementById('edit-tour-imagen').value = imagen;
+            }
+            const editImagenPreview = document.getElementById('edit-tour-imagen-preview');
+            if (editImagenPreview) {
+                if (imagen) {
+                    editImagenPreview.src = imagen;
+                    editImagenPreview.classList.remove('hidden');
+                } else {
+                    editImagenPreview.classList.add('hidden');
+                }
             }
             if (document.getElementById('edit-tour-galeria')) {
                 document.getElementById('edit-tour-galeria').value = galeria;
@@ -2586,11 +2628,190 @@
             }
 
             form.action = `/dashboard/tour/${id}/update`;
+            modal.dataset.tourId = id;
             modal.classList.remove('hidden');
         }
 
         function closeEditTourModal() {
             document.getElementById('edit-tour-modal').classList.add('hidden');
+        }
+
+        // --- ENTRADA DE TAGS ESTILO "CHIPS" (Enter para añadir, como en YouTube) ---
+        function tagInputGetValues(boxId) {
+            return Array.from(document.getElementById(boxId).querySelectorAll('.tag-chip')).map(c => c.dataset.value);
+        }
+
+        function tagInputSync(boxId, hiddenId) {
+            document.getElementById(hiddenId).value = tagInputGetValues(boxId).join(', ');
+        }
+
+        function tagInputRemoveChip(btn, boxId, hiddenId) {
+            btn.closest('.tag-chip').remove();
+            tagInputSync(boxId, hiddenId);
+        }
+
+        function tagInputAdd(boxId, hiddenId, value) {
+            const val = value.trim();
+            if (!val) return;
+            if (tagInputGetValues(boxId).some(t => t.toLowerCase() === val.toLowerCase())) return;
+
+            const box = document.getElementById(boxId);
+            const textInput = box.querySelector('input[type="text"]');
+            const chip = document.createElement('span');
+            chip.className = 'tag-chip inline-flex items-center gap-1 pl-2.5 pr-1.5 py-1 rounded-full bg-brand-teal/10 text-brand-teal text-[10px] font-bold';
+            chip.dataset.value = val;
+            chip.innerHTML = `<span></span><button type="button" class="text-brand-teal hover:text-rose-500 font-black leading-none px-0.5 cursor-pointer">&times;</button>`;
+            chip.querySelector('span').textContent = val;
+            chip.querySelector('button').addEventListener('click', () => tagInputRemoveChip(chip.querySelector('button'), boxId, hiddenId));
+            box.insertBefore(chip, textInput);
+            tagInputSync(boxId, hiddenId);
+        }
+
+        function tagInputInit(boxId, hiddenId, initialCsv) {
+            const box = document.getElementById(boxId);
+            box.querySelectorAll('.tag-chip').forEach(c => c.remove());
+            box.querySelector('input[type="text"]').value = '';
+            (initialCsv || '').split(',').map(t => t.trim()).filter(Boolean).forEach(t => tagInputAdd(boxId, hiddenId, t));
+            tagInputSync(boxId, hiddenId);
+        }
+
+        function tagInputHandleKeydown(e, boxId, hiddenId) {
+            if (e.key === 'Enter' || e.key === ',') {
+                e.preventDefault();
+                tagInputAdd(boxId, hiddenId, e.target.value);
+                e.target.value = '';
+            } else if (e.key === 'Backspace' && e.target.value === '') {
+                const box = document.getElementById(boxId);
+                const chips = box.querySelectorAll('.tag-chip');
+                if (chips.length) {
+                    chips[chips.length - 1].remove();
+                    tagInputSync(boxId, hiddenId);
+                }
+            }
+        }
+
+        // --- VISTA PREVIA DE IMÁGENES ANTES DE SUBIR ---
+        function previewImageInput(inputEl, imgId) {
+            const img = document.getElementById(imgId);
+            const file = inputEl.files[0];
+            if (!img || !file) return;
+
+            img.src = URL.createObjectURL(file);
+            img.classList.remove('hidden');
+        }
+
+        // --- MANEJO DEL MODAL DE GALERÍA (subida de fotos una por una) ---
+        let _galleryTourId = null;
+
+        function renderGalleryThumbs(tipo) {
+            const container = document.getElementById(`gallery-thumbs-${tipo}`);
+            const card = document.getElementById(`tour-card-${_galleryTourId}`);
+            if (!container || !card) return;
+
+            const attr = tipo === 'galeria' ? 'data-galeria' : 'data-galeria-experiencias';
+            const urls = (card.getAttribute(attr) || '').split(',').map(u => u.trim()).filter(Boolean);
+
+            container.innerHTML = urls.map(url => `
+                <div class="relative group">
+                    <img src="${url}" class="w-full h-16 object-cover rounded-lg border border-slate-200">
+                    <button type="button" onclick="deleteGalleryImage('${tipo}', '${url}')" class="absolute -top-1.5 -right-1.5 h-5 w-5 flex items-center justify-center rounded-full bg-rose-500 text-white text-xs font-bold shadow cursor-pointer">
+                        &times;
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function openTourGalleryModal(id) {
+            if (!id) return;
+            _galleryTourId = id;
+            renderGalleryThumbs('galeria');
+            renderGalleryThumbs('galeria_experiencias');
+            document.getElementById('tour-gallery-modal').classList.remove('hidden');
+        }
+
+        function closeTourGalleryModal() {
+            document.getElementById('tour-gallery-modal').classList.add('hidden');
+            _galleryTourId = null;
+        }
+
+        function uploadGalleryImage(tipo, inputEl) {
+            const file = inputEl.files[0];
+            if (!file || !_galleryTourId) return;
+
+            const status = document.getElementById(`gallery-status-${tipo}`);
+            const originalStatus = status ? status.textContent : '';
+            inputEl.disabled = true;
+            if (status) status.textContent = 'Subiendo foto...';
+
+            // Vista previa local mientras se sube
+            const container = document.getElementById(`gallery-thumbs-${tipo}`);
+            const tempThumb = document.createElement('div');
+            tempThumb.className = 'relative';
+            tempThumb.innerHTML = `
+                <img src="${URL.createObjectURL(file)}" class="w-full h-16 object-cover rounded-lg border border-slate-200 opacity-50">
+                <div class="absolute inset-0 flex items-center justify-center text-[8px] font-bold text-slate-600">Subiendo...</div>
+            `;
+            if (container) container.appendChild(tempThumb);
+
+            const formData = new FormData();
+            formData.append('imagen', file);
+            formData.append('tipo', tipo);
+
+            fetch(`/dashboard/tour/${_galleryTourId}/gallery-image`, {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': window.Laravel.csrfToken },
+                body: formData
+            })
+            .then(async r => {
+                const data = await r.json();
+                if (!r.ok || !data.success) {
+                    const mensaje = data.errors?.imagen?.[0] || data.message || 'No se pudo subir la foto.';
+                    throw new Error(mensaje);
+                }
+                return data;
+            })
+            .then(data => {
+                const attr = tipo === 'galeria' ? 'data-galeria' : 'data-galeria-experiencias';
+                const card = document.getElementById(`tour-card-${_galleryTourId}`);
+                if (card) card.setAttribute(attr, (data[tipo] || []).join(', '));
+                renderGalleryThumbs(tipo);
+                showToast('✅ Foto agregada.', 'teal');
+            })
+            .catch(err => {
+                tempThumb.remove();
+                showToast('❌ ' + err.message, 'rose');
+            })
+            .finally(() => {
+                inputEl.disabled = false;
+                inputEl.value = '';
+                if (status) status.textContent = originalStatus;
+            });
+        }
+
+        function deleteGalleryImage(tipo, url) {
+            if (!_galleryTourId) return;
+
+            fetch(`/dashboard/tour/${_galleryTourId}/gallery-image`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': window.Laravel.csrfToken
+                },
+                body: JSON.stringify({ url, tipo })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (!data.success) {
+                    showToast('❌ ' + (data.message || 'No se pudo quitar la foto.'), 'rose');
+                    return;
+                }
+                const attr = tipo === 'galeria' ? 'data-galeria' : 'data-galeria-experiencias';
+                const card = document.getElementById(`tour-card-${_galleryTourId}`);
+                if (card) card.setAttribute(attr, (data[tipo] || []).join(', '));
+                renderGalleryThumbs(tipo);
+                showToast('🗑️ Foto eliminada.', 'orange');
+            })
+            .catch(() => showToast('❌ Error de conexión. Intenta de nuevo.', 'rose'));
         }
 
         // --- MANEJO DEL MODAL DE CREACIÓN DE TOUR ---
@@ -2600,6 +2821,7 @@
                 // Limpiar itinerario
                 document.getElementById('create-itinerary-container').innerHTML = '';
                 addItineraryRow('create'); // Añadir un paso inicial vacío
+                tagInputInit('create-tags-box', 'create-tags-hidden', '');
                 modal.classList.remove('hidden');
             }
         }

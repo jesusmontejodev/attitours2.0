@@ -9,7 +9,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Proveedor;
+use App\Models\QrEscaneo;
 use App\Models\Reserva;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -25,18 +27,18 @@ class QrScanController extends Controller
             return redirect()->route('home')->with('error', __('Acceso no autorizado.'));
         }
 
-        // Cargar asistencias confirmadas de hoy
-        $asistenciasHoy = Reserva::with(['detalles.tour'])
-            ->whereDate('asistencia_confirmada_at', today())
-            ->where('asistencia_confirmada', true)
-            ->when($user->isProveedor(), function($q) use ($user) {
+        // Cargar el historial de escaneos de hoy (exitosos y fallidos)
+        $escaneosHoy = QrEscaneo::with(['reserva', 'usuario'])
+            ->whereDate('created_at', today())
+            ->when($user->isProveedor(), function ($q) use ($user) {
                 $provId = $user->proveedor_id;
-                $q->whereHas('detalles.tour', fn($tq) => $tq->where('proveedor_id', $provId));
+                $q->whereHas('reserva.detalles.tour', fn($tq) => $tq->where('proveedor_id', $provId));
             })
-            ->orderByDesc('asistencia_confirmada_at')
+            ->orderByDesc('created_at')
+            ->limit(100)
             ->get();
 
-        return view('dashboard.qr', compact('asistenciasHoy'));
+        return view('dashboard.qr', compact('escaneosHoy'));
     }
 
     /**
@@ -72,6 +74,8 @@ class QrScanController extends Controller
             ->first();
 
         if (!$reserva) {
+            $this->registrarEscaneo($user, null, $token, 'invalid', 'QR no válido o no encontrado.');
+
             return response()->json([
                 'success' => false,
                 'status'  => 'invalid',
@@ -80,6 +84,9 @@ class QrScanController extends Controller
         }
 
         if ($reserva->estado !== 'Pagada') {
+            $mensaje = 'Reserva no confirmada (estado: ' . $reserva->estado . ').';
+            $this->registrarEscaneo($user, $reserva, $token, 'not_paid', $mensaje);
+
             return response()->json([
                 'success' => false,
                 'status'  => 'not_paid',
@@ -94,6 +101,8 @@ class QrScanController extends Controller
             );
 
             if (!$tourDelProveedor) {
+                $this->registrarEscaneo($user, $reserva, $token, 'wrong_provider', 'QR no corresponde a los tours de este proveedor.');
+
                 return response()->json([
                     'success' => false,
                     'status'  => 'wrong_provider',
@@ -103,6 +112,8 @@ class QrScanController extends Controller
         }
 
         if ($reserva->asistencia_confirmada) {
+            $this->registrarEscaneo($user, $reserva, $token, 'already_confirmed', 'Asistencia ya confirmada anteriormente.');
+
             return response()->json([
                 'success'   => true,
                 'status'    => 'already_confirmed',
@@ -119,11 +130,28 @@ class QrScanController extends Controller
             'asistencia_confirmada_por'=> $proveedorConfirmadorId,
         ]);
 
+        $this->registrarEscaneo($user, $reserva, $token, 'confirmed', '¡Asistencia confirmada exitosamente!');
+
         return response()->json([
             'success' => true,
             'status'  => 'confirmed',
             'message' => '¡Asistencia confirmada exitosamente!',
             'reserva' => $this->formatReservaQr($reserva),
+        ]);
+    }
+
+    /**
+     * Deja constancia en el historial de auditoría de cada intento de escaneo, sin importar el resultado.
+     */
+    private function registrarEscaneo(User $user, ?Reserva $reserva, string $token, string $resultado, ?string $mensaje): void
+    {
+        QrEscaneo::create([
+            'reserva_id'      => $reserva?->id,
+            'user_id'         => $user->id,
+            'resultado'       => $resultado,
+            'mensaje'         => $mensaje,
+            'token_escaneado' => $token,
+            'ip_address'      => request()->ip(),
         ]);
     }
 

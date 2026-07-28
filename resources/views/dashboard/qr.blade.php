@@ -156,23 +156,24 @@
                 <!-- Historial de hoy -->
                 <div class="p-6 rounded-3xl border border-slate-200 bg-white shadow-md overflow-hidden">
                     <h2 class="text-xs font-bold uppercase tracking-widest text-slate-800 border-b border-slate-200 pb-3 mb-4">
-                        Pases Validados Hoy
+                        Historial de Escaneos de Hoy
                     </h2>
 
-                    @if($asistenciasHoy->isEmpty())
-                        <p class="text-xs text-slate-400 text-center py-6" id="empty-history-label">Ninguna asistencia confirmada hoy</p>
+                    @if($escaneosHoy->isEmpty())
+                        <p class="text-xs text-slate-400 text-center py-6" id="empty-history-label">Ningún escaneo registrado hoy</p>
                         <div class="space-y-2 max-h-[250px] overflow-y-auto pr-1" id="history-container"></div>
                     @else
-                        <p class="text-xs text-slate-400 text-center py-6 hidden" id="empty-history-label">Ninguna asistencia confirmada hoy</p>
+                        <p class="text-xs text-slate-400 text-center py-6 hidden" id="empty-history-label">Ningún escaneo registrado hoy</p>
                         <div class="space-y-2 max-h-[250px] overflow-y-auto pr-1" id="history-container">
-                            @foreach($asistenciasHoy as $res)
-                                <div class="flex items-center justify-between px-4 py-3 rounded-xl border border-emerald-100 bg-emerald-50/50 text-xs font-semibold animate-fade-in">
+                            @foreach($escaneosHoy as $escaneo)
+                                @php $esOk = in_array($escaneo->resultado, ['confirmed', 'already_confirmed']); @endphp
+                                <div class="flex items-center justify-between px-4 py-3 rounded-xl border {{ $esOk ? 'border-emerald-100 bg-emerald-50/50' : 'border-rose-100 bg-rose-50/50' }} text-xs font-semibold animate-fade-in">
                                     <div>
-                                        <span class="font-bold text-slate-800 block">{{ $res->nombre_cliente }}</span>
-                                        <span class="text-slate-500 text-[10px]">{{ $res->ticket_codigo }}</span>
+                                        <span class="font-bold text-slate-800 block">{{ $escaneo->reserva->nombre_cliente ?? 'QR no reconocido' }}</span>
+                                        <span class="text-slate-500 text-[10px]">{{ $escaneo->reserva->ticket_codigo ?? $escaneo->mensaje }} &bull; {{ $escaneo->usuario->name ?? '—' }}</span>
                                     </div>
-                                    <span class="text-[10px] text-emerald-700 font-bold font-mono">
-                                        ✓ {{ $res->asistencia_confirmada_at->format('H:i') }}
+                                    <span class="text-[10px] {{ $esOk ? 'text-emerald-700' : 'text-rose-700' }} font-bold font-mono shrink-0 pl-2">
+                                        {{ $esOk ? '✓' : '✕' }} {{ $escaneo->created_at->format('H:i') }}
                                     </span>
                                 </div>
                             @endforeach

@@ -86,6 +86,8 @@ Route::middleware(['auth'])->prefix('dashboard')->group(function () {
     Route::post('/proveedor/{id}/update', [DashboardController::class, 'updateProveedor'])->name('dashboard.proveedor.update');
     Route::post('/tour', [DashboardController::class, 'storeTour'])->name('dashboard.tour');
     Route::post('/tour/{id}/update', [DashboardController::class, 'updateTour'])->name('dashboard.tour.update');
+    Route::post('/tour/{id}/gallery-image', [DashboardController::class, 'addGalleryImage'])->name('dashboard.tour.gallery-image.add');
+    Route::delete('/tour/{id}/gallery-image', [DashboardController::class, 'removeGalleryImage'])->name('dashboard.tour.gallery-image.remove');
     Route::delete('/tour/{id}', [DashboardController::class, 'destroyTour'])->name('dashboard.tour.destroy');
     Route::post('/tour-fechas', [DashboardController::class, 'storeTourFechas'])->name('dashboard.tour-fechas');
     Route::post('/user/{id}/role', [DashboardController::class, 'updateUserRole'])->name('dashboard.user.role');

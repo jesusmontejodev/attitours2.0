@@ -41,4 +41,8 @@ return [
         'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
     ],
 
+    'n8n' => [
+        'confirmacion_webhook_url' => env('N8N_CONFIRMACION_WEBHOOK_URL'),
+    ],
+
 ];

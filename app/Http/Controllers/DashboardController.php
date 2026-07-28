@@ -272,6 +272,26 @@ class DashboardController extends Controller
     }
 
     /**
+     * Limpia una lista de tags separados por coma: recorta espacios, quita vacíos y duplicados
+     * (sin distinguir mayúsculas/minúsculas) para que sirvan de forma confiable al buscar/clasificar tours.
+     *
+     * @param string|null $raw
+     * @param array $default
+     * @return array
+     */
+    private function parseTags(?string $raw, array $default = ['Aventura']): array
+    {
+        $tags = collect(explode(',', $raw ?? ''))
+            ->map(fn($t) => trim($t))
+            ->filter()
+            ->unique(fn($t) => mb_strtolower($t))
+            ->values()
+            ->all();
+
+        return $tags ?: $default;
+    }
+
+    /**
      * Guarda un nuevo tour (Acción de Administrador).
      *
      * @param Request $request
@@ -298,10 +318,6 @@ class DashboardController extends Controller
             'tags' => 'nullable|string',
             'horarios' => 'nullable|string',
             'imagen_destacada_file' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:15360',
-            'galeria_files' => 'nullable|array',
-            'galeria_files.*' => 'image|mimes:jpeg,png,jpg,webp|max:15360',
-            'galeria_exp_files' => 'nullable|array',
-            'galeria_exp_files.*' => 'image|mimes:jpeg,png,jpg,webp|max:15360',
             'itinerario_titulos' => 'nullable|array',
             'itinerario_descripciones' => 'nullable|array',
             'incluye' => 'nullable|string',
@@ -317,7 +333,7 @@ class DashboardController extends Controller
         }
 
         // Parsear tags y horarios
-        $tags = array_map('trim', explode(',', $request->input('tags', 'Aventura')));
+        $tags = $this->parseTags($request->input('tags'));
         $horarios = array_map('trim', explode(',', $request->input('horarios', '09:00')));
 
         // Procesar Imagen de Portada (Destacada)
@@ -326,24 +342,9 @@ class DashboardController extends Controller
             $imagenDefault = \App\Services\ImageOptimizerService::uploadAndOptimize($request->file('imagen_destacada_file'), 'tours');
         }
 
-        // Inicializar Galería
+        // Inicializar Galería (las fotos adicionales se agregan después, una por una)
         $galeria = [$imagenDefault];
-
-        // Procesar archivos de galería subidos
-        if ($request->hasFile('galeria_files')) {
-            foreach ($request->file('galeria_files') as $file) {
-                $galeria[] = \App\Services\ImageOptimizerService::uploadAndOptimize($file, 'tours/galeria');
-            }
-        }
-        $galeria = array_values(array_unique($galeria));
-
-        // Procesar archivos de Galería de Experiencias
         $galeriaExperiencias = [];
-        if ($request->hasFile('galeria_exp_files')) {
-            foreach ($request->file('galeria_exp_files') as $file) {
-                $galeriaExperiencias[] = \App\Services\ImageOptimizerService::uploadAndOptimize($file, 'tours/experiencias');
-            }
-        }
 
         // Procesar itinerario
         $itinerario = [];
@@ -401,7 +402,7 @@ class DashboardController extends Controller
             'no_incluye' => $noIncluye
         ]);
 
-        return redirect()->route('dashboard')->with('success', __('Tour creado exitosamente.'))->with('active_tab', 'tours');
+        return redirect()->route('dashboard')->with('success', __('Tour creado exitosamente.'))->with('active_tab', 'tours')->with('new_tour_id', $id);
     }
 
     /**
@@ -914,10 +915,6 @@ class DashboardController extends Controller
             'proveedor_id' => 'required|exists:proveedores,id',
             'tags' => 'nullable|string',
             'imagen_destacada_file' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:15360',
-            'galeria_files' => 'nullable|array',
-            'galeria_files.*' => 'image|mimes:jpeg,png,jpg,webp|max:15360',
-            'galeria_exp_files' => 'nullable|array',
-            'galeria_exp_files.*' => 'image|mimes:jpeg,png,jpg,webp|max:15360',
             'itinerario_titulos' => 'nullable|array',
             'itinerario_descripciones' => 'nullable|array',
             'incluye' => 'nullable|string',
@@ -925,7 +922,7 @@ class DashboardController extends Controller
         ]);
 
         // Parsear tags
-        $tags = array_map('trim', explode(',', $request->input('tags', 'Aventura')));
+        $tags = $this->parseTags($request->input('tags'));
 
         // Procesar Imagen de Portada (Destacada)
         $imagenDefault = $tour->imagen_destacada ?: 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=800&q=80';
@@ -933,24 +930,8 @@ class DashboardController extends Controller
             $imagenDefault = \App\Services\ImageOptimizerService::uploadAndOptimize($request->file('imagen_destacada_file'), 'tours');
         }
 
-        // Inicializar Galería
-        $galeria = is_array($tour->galeria) ? $tour->galeria : [$imagenDefault];
-
-        // Procesar archivos de galería subidos
-        if ($request->hasFile('galeria_files')) {
-            foreach ($request->file('galeria_files') as $file) {
-                $galeria[] = \App\Services\ImageOptimizerService::uploadAndOptimize($file, 'tours/galeria');
-            }
-        }
-        $galeria = array_values(array_unique($galeria));
-
-        // Procesar archivos de Galería de Experiencias
-        $galeriaExperiencias = is_array($tour->galeria_experiencias) ? $tour->galeria_experiencias : [];
-        if ($request->hasFile('galeria_exp_files')) {
-            foreach ($request->file('galeria_exp_files') as $file) {
-                $galeriaExperiencias[] = \App\Services\ImageOptimizerService::uploadAndOptimize($file, 'tours/experiencias');
-            }
-        }
+        // Nota: la galería adicional y la galería de experiencias ya no se tocan aquí,
+        // se gestionan una foto a la vez desde el modal de Galería (addGalleryImage/removeGalleryImage).
 
         // Procesar itinerario
         $itinerario = [];
@@ -997,8 +978,6 @@ class DashboardController extends Controller
             'precio_base_usd' => (float)$request->input('precio_base_usd'),
             'duracion' => $request->input('duracion'),
             'imagen_destacada' => $imagenDefault,
-            'galeria' => $galeria,
-            'galeria_experiencias' => $galeriaExperiencias,
             'tags' => $tags,
             'itinerario' => $itinerario,
             'incluye' => $incluye,
@@ -1006,6 +985,68 @@ class DashboardController extends Controller
         ]);
 
         return redirect()->route('dashboard')->with('success', __('Tour actualizado exitosamente.'))->with('active_tab', 'tours');
+    }
+
+    /**
+     * Agrega una sola imagen a la galería (o galería de experiencias) de un tour ya existente.
+     */
+    public function addGalleryImage(Request $request, string $id): JsonResponse
+    {
+        $user = Auth::user();
+        if (!$user || !$user->isAdmin()) {
+            return response()->json(['success' => false, 'message' => 'No autorizado.'], 403);
+        }
+
+        $request->validate([
+            'imagen' => 'required|image|mimes:jpeg,png,jpg,webp|max:15360',
+            'tipo' => 'required|in:galeria,galeria_experiencias',
+        ]);
+
+        $tour = Tour::findOrFail($id);
+        $tipo = $request->input('tipo');
+        $carpeta = $tipo === 'galeria' ? 'tours/galeria' : 'tours/experiencias';
+
+        $url = \App\Services\ImageOptimizerService::uploadAndOptimize($request->file('imagen'), $carpeta);
+
+        $lista = is_array($tour->{$tipo}) ? $tour->{$tipo} : [];
+        $lista[] = $url;
+        $lista = array_values(array_unique($lista));
+
+        $tour->update([$tipo => $lista]);
+
+        return response()->json(['success' => true, 'url' => $url, $tipo => $lista]);
+    }
+
+    /**
+     * Quita una imagen de la galería (o galería de experiencias) de un tour existente.
+     */
+    public function removeGalleryImage(Request $request, string $id): JsonResponse
+    {
+        $user = Auth::user();
+        if (!$user || !$user->isAdmin()) {
+            return response()->json(['success' => false, 'message' => 'No autorizado.'], 403);
+        }
+
+        $request->validate([
+            'url' => 'required|string',
+            'tipo' => 'required|in:galeria,galeria_experiencias',
+        ]);
+
+        $tour = Tour::findOrFail($id);
+        $tipo = $request->input('tipo');
+        $urlEliminar = $request->input('url');
+
+        $lista = is_array($tour->{$tipo}) ? $tour->{$tipo} : [];
+        $lista = array_values(array_filter($lista, fn($u) => $u !== $urlEliminar));
+
+        $tour->update([$tipo => $lista]);
+
+        if (str_starts_with($urlEliminar, '/storage/')) {
+            $rutaRelativa = substr($urlEliminar, strlen('/storage/'));
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($rutaRelativa);
+        }
+
+        return response()->json(['success' => true, $tipo => $lista]);
     }
 
     // =========================================================================
