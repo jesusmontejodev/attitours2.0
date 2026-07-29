@@ -46,36 +46,129 @@
             </p>
         </div>
 
-        <!-- SECCIÓN DE GALERÍA -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-10">
+        <!-- SECCIÓN DE GALERÍA + RESERVA (Hero) -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-start mb-10">
             <!-- Imagen Principal -->
             <div class="lg:col-span-2 overflow-hidden rounded-3xl border border-slate-200 shadow-md aspect-[16/10]">
                 <img id="main-gallery-img" src="{{ $tour->imagen_destacada }}" alt="{{ $tour->nombre }}" class="h-full w-full object-cover transition-all duration-300">
             </div>
 
-            <!-- Miniaturas -->
-            <div class="flex lg:flex-col gap-3 overflow-x-auto lg:overflow-y-auto lg:h-[400px] pb-2 lg:pb-0">
-                <!-- Miniatura 1 (Destacada) -->
-                <button onclick="changeGalleryImage('{{ $tour->imagen_destacada }}', this)" class="gallery-thumb-btn shrink-0 w-28 lg:w-full aspect-[16/10] overflow-hidden rounded-2xl border-2 border-brand-teal shadow-xs cursor-pointer">
-                    <img src="{{ $tour->imagen_destacada }}" alt="Gallery 1" class="h-full w-full object-cover">
-                </button>
-                <!-- Galería Restante -->
-                @foreach($tour->galeria as $index => $gImg)
-                    @if($gImg !== $tour->imagen_destacada)
-                        <button onclick="changeGalleryImage('{{ $gImg }}', this)" class="gallery-thumb-btn shrink-0 w-28 lg:w-full aspect-[16/10] overflow-hidden rounded-2xl border-2 border-transparent hover:border-slate-300 shadow-xs transition-all cursor-pointer">
-                            <img src="{{ $gImg }}" alt="Gallery {{ $index + 2 }}" class="h-full w-full object-cover">
-                        </button>
-                    @endif
-                @endforeach
-            </div>
-        </div>
+            <!-- Columna Derecha: Miniaturas + Panel de Reserva (ocupa ambas filas) -->
+            <div class="lg:col-span-1 lg:row-span-2 flex flex-col gap-4">
 
-        <!-- GRID DE INFORMACIÓN Y RESERVA -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-            
-            <!-- CONTENIDO DE DETALLES (Izquierda) -->
+                <!-- Miniaturas -->
+                <div class="flex lg:flex-col gap-3 overflow-x-auto lg:overflow-y-auto lg:h-[400px] pb-2 lg:pb-0">
+                    <!-- Miniatura 1 (Destacada) -->
+                    <button onclick="changeGalleryImage('{{ $tour->imagen_destacada }}', this)" class="gallery-thumb-btn shrink-0 w-28 lg:w-full aspect-[16/10] overflow-hidden rounded-2xl border-2 border-brand-teal shadow-xs cursor-pointer">
+                        <img src="{{ $tour->imagen_destacada }}" alt="Gallery 1" class="h-full w-full object-cover">
+                    </button>
+                    <!-- Galería Restante -->
+                    @foreach($tour->galeria as $index => $gImg)
+                        @if($gImg !== $tour->imagen_destacada)
+                            <button onclick="changeGalleryImage('{{ $gImg }}', this)" class="gallery-thumb-btn shrink-0 w-28 lg:w-full aspect-[16/10] overflow-hidden rounded-2xl border-2 border-transparent hover:border-slate-300 shadow-xs transition-all cursor-pointer">
+                                <img src="{{ $gImg }}" alt="Gallery {{ $index + 2 }}" class="h-full w-full object-cover">
+                            </button>
+                        @endif
+                    @endforeach
+                </div>
+
+                <!-- PANEL DE RESERVA FLOTANTE -->
+                <aside class="h-fit p-6 rounded-2xl border border-slate-200 bg-white shadow-lg lg:sticky lg:top-24">
+                <div class="border-b border-slate-200 pb-4 mb-5 flex justify-between items-baseline">
+                    <span class="text-xs font-bold text-slate-500 uppercase tracking-widest">Precio por Persona</span>
+                    <span class="text-xl font-black text-brand-teal">${{ number_format($tour->precio_base_usd) }} MXN</span>
+                </div>
+
+                <form id="reserva-form" action="{{ route('cart.add') }}" method="POST" class="flex flex-col gap-4">
+                    @csrf
+                    <input type="hidden" name="tour_id" value="{{ $tour->id }}">
+
+                    <!-- Selector de Fecha (Calendario Estilo Airbnb Premium) -->
+                    <div class="flex flex-col gap-2">
+                        <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                            {{ __('availableDates') }}
+                        </label>
+                        <input type="hidden" name="fecha" id="reserva-fecha">
+
+                        <!-- Contenedor del Calendario Visual (Estilo Airbnb Premium) -->
+                        <div class="p-4 rounded-3xl border border-slate-200 bg-white shadow-xs">
+                            <!-- Cabecera Mes/Año -->
+                            <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-100">
+                                <button type="button" id="cal-prev-month" class="p-1.5 rounded-full hover:bg-slate-100 text-slate-600 transition-colors cursor-pointer">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+                                </button>
+                                <span id="cal-month-label" class="text-xs font-black text-slate-800 uppercase tracking-widest"></span>
+                                <button type="button" id="cal-next-month" class="p-1.5 rounded-full hover:bg-slate-100 text-slate-600 transition-colors cursor-pointer">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+                                </button>
+                            </div>
+
+                            <!-- Días de la semana -->
+                            <div class="grid grid-cols-7 gap-1.5 text-center text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-3">
+                                <div>D</div>
+                                <div>L</div>
+                                <div>M</div>
+                                <div>M</div>
+                                <div>J</div>
+                                <div>V</div>
+                                <div>S</div>
+                            </div>
+
+                            <!-- Grid del Mes -->
+                            <div id="cal-days-grid" class="grid grid-cols-7 gap-1.5">
+                                <!-- Generado dinámicamente -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Selector de Horario (Cargado Dinámicamente) -->
+                    <div class="flex flex-col gap-1.5" id="horario-container">
+                        <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                            Horario de Salida
+                        </label>
+                        <select name="horario" id="reserva-horario" required class="w-full h-10 rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs text-slate-700 focus:border-brand-teal focus:ring-0 focus:outline-none cursor-pointer">
+                            <option value="">Selecciona una fecha</option>
+                        </select>
+                    </div>
+
+                    <!-- Selector de Personas -->
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                            {{ __('selectPeople') }}
+                        </label>
+                        <div class="flex h-10 rounded-lg border border-slate-200 bg-slate-50 overflow-hidden">
+                            <button type="button" onclick="adjustQty(-1)" class="w-10 flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-100 border-r border-slate-200 transition-colors cursor-pointer font-bold">-</button>
+                            <input type="number" name="cantidad" id="reserva-qty" value="1" min="1" max="{{ $tour->cupo_maximo }}" class="w-full text-center bg-transparent border-0 text-xs font-bold text-slate-800 focus:ring-0 focus:outline-none">
+                            <button type="button" onclick="adjustQty(1)" class="w-10 flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-100 border-l border-slate-200 transition-colors cursor-pointer font-bold">+</button>
+                        </div>
+                    </div>
+
+                    <!-- AJAX Alerta de Disponibilidad -->
+                    <div id="availability-status" class="hidden text-[10px] p-2.5 rounded-lg border"></div>
+
+                    <!-- Desglose de Precios (Calculador) -->
+                    <div class="mt-2 p-3.5 rounded-xl border border-slate-200 bg-slate-50 text-xs flex flex-col gap-2 font-semibold">
+                        <div class="flex items-center justify-between text-slate-500">
+                            <span>Base:</span>
+                            <span>${{ number_format($tour->precio_base_usd) }} MXN x <span id="summary-qty">1</span></span>
+                        </div>
+                        <div class="flex items-center justify-between border-t border-slate-200 pt-2 font-bold text-slate-700">
+                            <span>Total:</span>
+                            <span class="text-sm text-brand-teal font-black" id="summary-total">${{ number_format($tour->precio_base_usd) }} MXN</span>
+                        </div>
+                    </div>
+
+                    <!-- Botón de Envío -->
+                    <button type="submit" class="w-full h-11 inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-brand-orange to-brand-orange-hover hover:opacity-95 text-xs font-bold uppercase tracking-widest text-white shadow-md shadow-brand-orange/15 cursor-pointer transition-all hover:scale-[1.01]">
+                        {{ __('addToCart') }}
+                    </button>
+                </form>
+                </aside>
+            </div>
+
+            <!-- CONTENIDO DE DETALLES -->
             <div class="lg:col-span-2 flex flex-col gap-8">
-                
+
                 <!-- Pestañas de Info Clave -->
                 <div class="grid grid-cols-2 gap-4 p-2 rounded-2xl border border-slate-200 bg-slate-100/50 backdrop-blur-xs">
                     <div class="text-center py-4 border-r border-slate-200">
@@ -300,99 +393,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- PANEL DE RESERVA FLOTANTE (Derecha) -->
-            <aside class="lg:col-span-1 h-fit p-6 rounded-2xl border border-slate-200 bg-white shadow-lg sticky top-24">
-                <div class="border-b border-slate-200 pb-4 mb-5 flex justify-between items-baseline">
-                    <span class="text-xs font-bold text-slate-500 uppercase tracking-widest">Precio por Persona</span>
-                    <span class="text-xl font-black text-brand-teal">${{ number_format($tour->precio_base_usd) }} MXN</span>
-                </div>
-
-                <form id="reserva-form" action="{{ route('cart.add') }}" method="POST" class="flex flex-col gap-4">
-                    @csrf
-                    <input type="hidden" name="tour_id" value="{{ $tour->id }}">
-
-                    <!-- Selector de Fecha (Calendario Estilo Airbnb Premium) -->
-                    <div class="flex flex-col gap-2">
-                        <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                            {{ __('availableDates') }}
-                        </label>
-                        <input type="hidden" name="fecha" id="reserva-fecha">
-                        
-                        <!-- Contenedor del Calendario Visual (Estilo Airbnb Premium) -->
-                        <div class="p-4 rounded-3xl border border-slate-200 bg-white shadow-xs">
-                            <!-- Cabecera Mes/Año -->
-                            <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-100">
-                                <button type="button" id="cal-prev-month" class="p-1.5 rounded-full hover:bg-slate-100 text-slate-600 transition-colors cursor-pointer">
-                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
-                                </button>
-                                <span id="cal-month-label" class="text-xs font-black text-slate-800 uppercase tracking-widest"></span>
-                                <button type="button" id="cal-next-month" class="p-1.5 rounded-full hover:bg-slate-100 text-slate-600 transition-colors cursor-pointer">
-                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
-                                </button>
-                            </div>
-                            
-                            <!-- Días de la semana -->
-                            <div class="grid grid-cols-7 gap-1.5 text-center text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-3">
-                                <div>D</div>
-                                <div>L</div>
-                                <div>M</div>
-                                <div>M</div>
-                                <div>J</div>
-                                <div>V</div>
-                                <div>S</div>
-                            </div>
-                            
-                            <!-- Grid del Mes -->
-                            <div id="cal-days-grid" class="grid grid-cols-7 gap-1.5">
-                                <!-- Generado dinámicamente -->
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Selector de Horario (Cargado Dinámicamente) -->
-                    <div class="flex flex-col gap-1.5" id="horario-container">
-                        <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                            Horario de Salida
-                        </label>
-                        <select name="horario" id="reserva-horario" required class="w-full h-10 rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs text-slate-700 focus:border-brand-teal focus:ring-0 focus:outline-none cursor-pointer">
-                            <option value="">Selecciona una fecha</option>
-                        </select>
-                    </div>
-
-                    <!-- Selector de Personas -->
-                    <div class="flex flex-col gap-1.5">
-                        <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                            {{ __('selectPeople') }}
-                        </label>
-                        <div class="flex h-10 rounded-lg border border-slate-200 bg-slate-50 overflow-hidden">
-                            <button type="button" onclick="adjustQty(-1)" class="w-10 flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-100 border-r border-slate-200 transition-colors cursor-pointer font-bold">-</button>
-                            <input type="number" name="cantidad" id="reserva-qty" value="1" min="1" max="{{ $tour->cupo_maximo }}" class="w-full text-center bg-transparent border-0 text-xs font-bold text-slate-800 focus:ring-0 focus:outline-none">
-                            <button type="button" onclick="adjustQty(1)" class="w-10 flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-100 border-l border-slate-200 transition-colors cursor-pointer font-bold">+</button>
-                        </div>
-                    </div>
-
-                    <!-- AJAX Alerta de Disponibilidad -->
-                    <div id="availability-status" class="hidden text-[10px] p-2.5 rounded-lg border"></div>
-
-                    <!-- Desglose de Precios (Calculador) -->
-                    <div class="mt-2 p-3.5 rounded-xl border border-slate-200 bg-slate-50 text-xs flex flex-col gap-2 font-semibold">
-                        <div class="flex items-center justify-between text-slate-500">
-                            <span>Base:</span>
-                            <span>${{ number_format($tour->precio_base_usd) }} MXN x <span id="summary-qty">1</span></span>
-                        </div>
-                        <div class="flex items-center justify-between border-t border-slate-200 pt-2 font-bold text-slate-700">
-                            <span>Total:</span>
-                            <span class="text-sm text-brand-teal font-black" id="summary-total">${{ number_format($tour->precio_base_usd) }} MXN</span>
-                        </div>
-                    </div>
-
-                    <!-- Botón de Envío -->
-                    <button type="submit" class="w-full h-11 inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-brand-orange to-brand-orange-hover hover:opacity-95 text-xs font-bold uppercase tracking-widest text-white shadow-md shadow-brand-orange/15 cursor-pointer transition-all hover:scale-[1.01]">
-                        {{ __('addToCart') }}
-                    </button>
-                </form>
-            </aside>
         </div>
     </div>
 
