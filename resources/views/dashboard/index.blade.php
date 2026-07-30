@@ -1293,7 +1293,7 @@
                 <div class="flex flex-col gap-1.5">
                     <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Días Operativos</label>
                     <div class="flex flex-wrap gap-2 text-xs">
-                        @foreach(['lun'=>'L','mar'=>'M','mie'=>'M','jue'=>'J','vie'=>'V','sab'=>'S','dom'=>'D'] as $key => $diaLabel)
+                        @foreach([1=>'L',2=>'M',3=>'M',4=>'J',5=>'V',6=>'S',0=>'D'] as $key => $diaLabel)
                             <label class="inline-flex items-center gap-1 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-lg cursor-pointer hover:bg-slate-100">
                                 <input type="checkbox" name="batch_dias_semana" value="{{ $key }}" checked class="rounded border-slate-300 text-brand-teal focus:ring-brand-teal">
                                 <span class="font-bold text-slate-700">{{ $diaLabel }}</span>
@@ -2471,6 +2471,7 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json',
                     'X-CSRF-TOKEN': window.Laravel.csrfToken
                 },
                 body: JSON.stringify({
