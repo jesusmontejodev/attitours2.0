@@ -1,8 +1,8 @@
 <?php
 /**
  * @file ReservaTour.php
- * @description Modelo Eloquent para el detalle de cada tour reservado dentro de una compra.
- * @date 2026-06-08
+ * @description Modelo Eloquent para el detalle de cada tour reservado dentro de una compra. Incluye soporte para marcar la modalidad privada.
+ * @date 2026-07-31
  * @author Antigravity
  */
 
@@ -24,15 +24,17 @@ class ReservaTour extends Model
         'fecha_seleccionada',
         'horario',
         'cantidad_personas',
+        'es_privado',
         'precio_unitario_usd',
         'comision_usd'
     ];
 
     protected $casts = [
-        'fecha_seleccionada' => 'date:Y-m-d',
-        'cantidad_personas' => 'integer',
+        'fecha_seleccionada'  => 'date:Y-m-d',
+        'cantidad_personas'   => 'integer',
+        'es_privado'          => 'boolean',
         'precio_unitario_usd' => 'float',
-        'comision_usd' => 'float'
+        'comision_usd'        => 'float'
     ];
 
     /**

@@ -2,14 +2,30 @@
 
 <!-- 
  * @file cart.blade.php
- * @description Vista Blade para gestionar el carrito de compras. Muestra los tours seleccionados y el resumen de totales. Adaptado a tema claro con colores corporativos e identidad de la marca.
- * @date 2026-06-29
+ * @description Vista Blade para gestionar el carrito de compras. Muestra los tours seleccionados, diferencias entre compartidos y privados, y el resumen de totales desglosado. Adaptado a tema claro con colores corporativos e identidad de la marca.
+ * @date 2026-07-31
  * @author Antigravity
  -->
 
 @section('title', 'Tu Carrito - Atti Tours')
 
 @section('content')
+    @php
+        $totalGeneral = 0;
+        $totalOnline = 0;
+        $totalDestino = 0;
+        foreach($cart as $item) {
+            $sub = (float) $item['subtotal'];
+            $totalGeneral += $sub;
+            if (!empty($item['es_privado'])) {
+                $pct = (int) ($item['anticipo_porcentaje'] ?? 20);
+                $totalOnline += $sub * ($pct / 100);
+                $totalDestino += $sub * ((100 - $pct) / 100);
+            } else {
+                $totalOnline += $sub;
+            }
+        }
+    @endphp
     <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-10">
         
         <!-- CABECERA -->
@@ -56,9 +72,20 @@
                             <div class="flex-grow flex flex-col justify-between py-1">
                                 <div>
                                     <div class="flex items-start justify-between gap-4">
-                                        <h3 class="text-sm font-bold text-slate-800 line-clamp-1">
-                                            {{ $item['nombre'] }}
-                                        </h3>
+                                        <div>
+                                            <h3 class="text-sm font-bold text-slate-800 line-clamp-1">
+                                                {{ $item['nombre'] }}
+                                            </h3>
+                                            @if(!empty($item['es_privado']))
+                                                <span class="inline-flex items-center gap-1 mt-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-brand-orange/10 text-brand-orange border border-brand-orange/20">
+                                                    🔒 Tour Privado Exclusivo
+                                                </span>
+                                            @else
+                                                <span class="inline-flex items-center gap-1 mt-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-brand-teal/10 text-brand-teal border border-brand-teal/20">
+                                                    👥 Tour Compartido
+                                                </span>
+                                            @endif
+                                        </div>
                                         <!-- Botón Quitar -->
                                         <a href="{{ route('cart.remove', $key) }}" class="text-slate-400 hover:text-rose-600 transition-colors cursor-pointer" title="{{ __('remove') }}">
                                             <svg class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -66,11 +93,14 @@
                                             </svg>
                                         </a>
                                     </div>
-                                    <p class="text-[10px] text-slate-500 font-bold mt-1 flex items-center gap-1">
+                                    <p class="text-[10px] text-slate-500 font-bold mt-1.5 flex items-center gap-1">
                                         <svg class="h-3.5 w-3.5 text-brand-teal" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                         </svg>
                                         {{ \Carbon\Carbon::parse($item['fecha'])->format('d M, Y') }}
+                                        @if(!empty($item['horario']))
+                                            · {{ $item['horario'] }} hrs
+                                        @endif
                                     </p>
                                 </div>
 
@@ -89,8 +119,17 @@
 
                                     <!-- Precios -->
                                     <div class="text-right font-semibold">
-                                        <p class="text-[9px] text-slate-500">${{ number_format($item['precio_unitario']) }} x {{ $item['cantidad'] }}</p>
-                                        <p class="text-sm font-black text-brand-teal">${{ number_format($item['subtotal']) }} MXN</p>
+                                        @if(!empty($item['es_privado']))
+                                            @php
+                                                $pct = (int) ($item['anticipo_porcentaje'] ?? 20);
+                                            @endphp
+                                            <p class="text-[9px] text-slate-500">Monto total del grupo ({{ $item['cantidad'] }} pax)</p>
+                                            <p class="text-sm font-black text-brand-teal">${{ number_format($item['subtotal']) }} MXN</p>
+                                            <p class="text-[9px] text-brand-orange-hover">Anticipo online {{ $pct }}%: ${{ number_format($item['subtotal'] * ($pct / 100)) }} MXN</p>
+                                        @else
+                                            <p class="text-[9px] text-slate-500">${{ number_format($item['precio_unitario']) }} x {{ $item['cantidad'] }}</p>
+                                            <p class="text-sm font-black text-brand-teal">${{ number_format($item['subtotal']) }} MXN</p>
+                                        @endif
                                     </div>
                                 </div>
                             </div>
@@ -116,16 +155,34 @@
 
                     <div class="flex flex-col gap-3 text-xs mb-6 font-semibold">
                         <div class="flex justify-between text-slate-500">
-                            <span>Subtotal:</span>
-                            <span>${{ number_format($total) }} MXN</span>
+                            <span>Monto Total del Viaje:</span>
+                            <span>${{ number_format($totalGeneral) }} MXN</span>
                         </div>
+                        
+                        @if($totalDestino > 0)
+                            <div class="flex justify-between text-brand-orange">
+                                <span>Pagar online hoy (Depósito):</span>
+                                <span>${{ number_format($totalOnline) }} MXN</span>
+                            </div>
+                            <div class="flex justify-between text-slate-600 border-b border-slate-100 pb-2">
+                                <span>Liquidar en persona el día del tour:</span>
+                                <span>${{ number_format($totalDestino) }} MXN</span>
+                            </div>
+                        @else
+                            <div class="flex justify-between text-slate-500 border-b border-slate-100 pb-2">
+                                <span>Cargos online hoy:</span>
+                                <span>100%</span>
+                            </div>
+                        @endif
+
                         <div class="flex justify-between text-slate-500">
                             <span>Impuestos / Cargos:</span>
-                            <span class="text-emerald-605 font-bold">Gratis</span>
+                            <span class="text-emerald-600 font-bold">Gratis</span>
                         </div>
+                        
                         <div class="flex justify-between border-t border-slate-200 pt-3 font-bold text-slate-700 text-sm">
-                            <span>{{ __('cartTotal') }}:</span>
-                            <span class="text-brand-teal font-black">${{ number_format($total) }} MXN</span>
+                            <span>Total a pagar hoy:</span>
+                            <span class="text-brand-teal font-black">${{ number_format($totalOnline) }} MXN</span>
                         </div>
                     </div>
 

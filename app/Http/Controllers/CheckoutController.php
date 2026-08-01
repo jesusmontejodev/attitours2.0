@@ -1,9 +1,8 @@
 <?php
 /**
  * @file CheckoutController.php
- * @description Controlador para el proceso de compra: arma el carrito como una Checkout Session
- *              dinámica de Stripe, confirma transacciones y genera tickets virtuales de viaje.
- * @date 2026-07-27
+ * @description Controlador para el proceso de compra: gestiona el carrito de compras, calcula los montos de anticipos (20%) y saldos en destino (80%) para tours privados, crea transacciones en Stripe Checkout y genera las reservas del cliente.
+ * @date 2026-07-31
  * @author Antigravity
  */
 
@@ -23,8 +22,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
-use Stripe\Checkout\Session as StripeSession;
-use Stripe\Stripe;
 
 class CheckoutController extends Controller
 {
@@ -78,6 +75,8 @@ class CheckoutController extends Controller
             [$reserva, $lineItems] = DB::transaction(function () use ($request, $cart) {
                 $totalVenta = 0;
                 $totalComision = 0;
+                $montoOnlineTotal = 0;
+                $montoDestinoTotal = 0;
 
                 // 1. Validar disponibilidad de cupos de todos los tours antes de insertar nada
                 $itemsAProcesar = [];
@@ -100,33 +99,52 @@ class CheckoutController extends Controller
                     $proveedor = Proveedor::findOrFail($tour->proveedor_id);
                     $itemComision = $item['subtotal'] * ($proveedor->comision_porcentaje / 100);
 
+                    $esPrivado = (bool) ($item['es_privado'] ?? false);
+                    $itemSubtotal = (float) $item['subtotal'];
+
+                    if ($esPrivado) {
+                        $porcentajeAnticipo = (int) ($tour->anticipo_porcentaje ?? 20);
+                        $itemOnline = $itemSubtotal * ($porcentajeAnticipo / 100);
+                        $itemDestino = $itemSubtotal * ((100 - $porcentajeAnticipo) / 100);
+                    } else {
+                        $itemOnline = $itemSubtotal;
+                        $itemDestino = 0.00;
+                    }
+
                     $itemsAProcesar[] = [
                         'tour' => $tour,
                         'tourFecha' => $tourFecha,
                         'cantidad' => $item['cantidad'],
                         'horario' => $item['horario'] ?? null,
                         'precio_unitario' => $item['precio_unitario'],
-                        'subtotal' => $item['subtotal'],
+                        'subtotal' => $itemSubtotal,
+                        'es_privado' => $esPrivado,
+                        'monto_online' => $itemOnline,
+                        'monto_destino' => $itemDestino,
                         'comision' => $itemComision
                     ];
 
-                    $totalVenta += $item['subtotal'];
+                    $totalVenta += $itemSubtotal;
                     $totalComision += $itemComision;
+                    $montoOnlineTotal += $itemOnline;
+                    $montoDestinoTotal += $itemDestino;
                 }
 
                 // 2. Crear cabecera de la Reserva en estado Pendiente (aún no se ha pagado)
                 $ticketCodigo = 'TKT-' . Str::upper(Str::random(8));
                 $reserva = Reserva::create([
-                    'user_id'           => Auth::check() ? Auth::id() : null,
-                    'nombre_cliente'    => $request->input('nombre'),
-                    'correo_cliente'    => $request->input('email'),
-                    'telefono_cliente'  => $request->input('telefono'),
-                    'precio_total_usd'  => $totalVenta,
-                    'comision_total_usd'=> $totalComision,
-                    'estado'            => 'Pendiente',
-                    'fecha_reserva'     => now(),
-                    'ticket_codigo'     => $ticketCodigo,
-                    'qr_token'          => Reserva::generarQrToken(0, $ticketCodigo), // id=0 temporal
+                    'user_id'                     => Auth::check() ? Auth::id() : null,
+                    'nombre_cliente'              => $request->input('nombre'),
+                    'correo_cliente'              => $request->input('email'),
+                    'telefono_cliente'            => $request->input('telefono'),
+                    'precio_total_usd'            => $totalVenta,
+                    'monto_pagado_online_usd'     => $montoOnlineTotal,
+                    'monto_pendiente_destino_usd' => $montoDestinoTotal,
+                    'comision_total_usd'          => $totalComision,
+                    'estado'                      => 'Pendiente',
+                    'fecha_reserva'               => now(),
+                    'ticket_codigo'               => $ticketCodigo,
+                    'qr_token'                    => Reserva::generarQrToken(0, $ticketCodigo), // id=0 temporal
                 ]);
 
                 // Actualizar el qr_token con el ID real ya conocido
@@ -142,18 +160,34 @@ class CheckoutController extends Controller
                         'fecha_seleccionada' => $pItem['tourFecha']->fecha->format('Y-m-d'),
                         'horario' => $pItem['horario'],
                         'cantidad_personas' => $pItem['cantidad'],
+                        'es_privado' => $pItem['es_privado'],
                         'precio_unitario_usd' => $pItem['precio_unitario'],
                         'comision_usd' => $pItem['comision']
                     ]);
 
                     // Bloquear el cupo mientras el usuario paga en Stripe
-                    $pItem['tourFecha']->increment('cupo_reservado', $pItem['cantidad']);
+                    if ($pItem['es_privado']) {
+                        // En tours privados el grupo bloquea el horario completo
+                        $pItem['tourFecha']->update(['cupo_reservado' => $pItem['tourFecha']->cupo_maximo]);
+                    } else {
+                        $pItem['tourFecha']->increment('cupo_reservado', $pItem['cantidad']);
+                    }
+
+                    // En Stripe cobramos el monto online (si es privado es el anticipo_porcentaje, si es compartido es el 100%)
+                    if ($pItem['es_privado']) {
+                        $porcentajeAnticipo = (int) ($pItem['tour']->anticipo_porcentaje ?? 20);
+                        $stripeUnitAmount = $pItem['precio_unitario'] * ($porcentajeAnticipo / 100);
+                        $productName = "[Privado - Anticipo {$porcentajeAnticipo}%] " . $pItem['tour']->nombre;
+                    } else {
+                        $stripeUnitAmount = $pItem['precio_unitario'];
+                        $productName = $pItem['tour']->nombre;
+                    }
 
                     $lineItems[] = [
                         'price_data' => [
                             'currency' => 'usd',
-                            'product_data' => ['name' => $pItem['tour']->nombre],
-                            'unit_amount' => (int) round($pItem['precio_unitario'] * 100),
+                            'product_data' => ['name' => $productName],
+                            'unit_amount' => (int) round($stripeUnitAmount * 100),
                         ],
                         'quantity' => $pItem['cantidad'],
                     ];
@@ -162,21 +196,18 @@ class CheckoutController extends Controller
                 return [$reserva, $lineItems];
             });
 
-            // 4. Crear la Checkout Session dinámica y redirigir al usuario a Stripe
-            Stripe::setApiKey(config('services.stripe.secret'));
+            // Comprobar si el usuario existe o está autenticado para generar la contraseña temporal
+            $tempPassword = null;
+            if (!Auth::check()) {
+                $email = strtolower(trim($reserva->correo_cliente));
+                $userExists = \App\Models\User::where('email', $email)->exists();
+                if (!$userExists) {
+                    $tempPassword = Str::random(10);
+                }
+            }
 
-            $session = StripeSession::create([
-                'mode' => 'payment',
-                'line_items' => $lineItems,
-                'customer_email' => $reserva->correo_cliente,
-                'client_reference_id' => (string) $reserva->id,
-                'metadata' => ['reserva_id' => $reserva->id],
-                'success_url' => route('checkout.success') . '?session_id={CHECKOUT_SESSION_ID}',
-                'cancel_url' => route('checkout.index'),
-                'expires_at' => now()->addMinutes(30)->timestamp,
-            ], [
-                'idempotency_key' => 'reserva_session_' . $reserva->id,
-            ]);
+            // 4. Crear la Checkout Session dinámica y redirigir al usuario a Stripe
+            $session = $this->stripeCheckout->crearCheckoutSession($reserva, $lineItems, $tempPassword);
 
             $reserva->update(['stripe_session_id' => $session->id]);
 
@@ -199,12 +230,33 @@ class CheckoutController extends Controller
     {
         $sessionId = $request->query('session_id');
         $reserva = null;
+        $tempPassword = null;
+        $userCreated = false;
+        $userAssociated = false;
 
         if ($sessionId) {
             try {
-                Stripe::setApiKey(config('services.stripe.secret'));
-                $session = StripeSession::retrieve($sessionId);
+                $session = $this->stripeCheckout->recuperarSession($sessionId);
                 $reserva = $this->stripeCheckout->confirmarPago($session);
+
+                if ($reserva) {
+                    $tempPassword = $session->metadata->temp_password ?? null;
+                    if ($tempPassword) {
+                        $userCreated = true;
+
+                        // Auto-iniciar sesión del nuevo usuario si no está logueado
+                        if (!Auth::check() && $reserva->user_id) {
+                            Auth::loginUsingId($reserva->user_id);
+                            $request->session()->regenerate();
+                        }
+                    } else {
+                        // Si no hay contraseña temporal pero el usuario no estaba logueado y ahora la reserva
+                        // tiene un user_id asociado en la base de datos (usuario ya existía previamente)
+                        if (!Auth::check() && $reserva->user_id) {
+                            $userAssociated = true;
+                        }
+                    }
+                }
             } catch (\Exception $e) {
                 Log::warning('No se pudo verificar la Checkout Session de Stripe: ' . $e->getMessage());
             }
@@ -216,7 +268,7 @@ class CheckoutController extends Controller
 
         $reserva->loadMissing('detalles.tour');
 
-        return view('success', compact('reserva'));
+        return view('success', compact('reserva', 'tempPassword', 'userCreated', 'userAssociated'));
     }
 
     /**

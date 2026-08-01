@@ -75,13 +75,35 @@
                 <!-- PANEL DE RESERVA FLOTANTE -->
                 <aside class="h-fit p-6 rounded-2xl border border-slate-200 bg-white shadow-lg lg:sticky lg:top-24">
                 <div class="border-b border-slate-200 pb-4 mb-5 flex justify-between items-baseline">
-                    <span class="text-xs font-bold text-slate-500 uppercase tracking-widest">Precio por Persona</span>
-                    <span class="text-xl font-black text-brand-teal">${{ number_format($tour->precio_base_usd) }} MXN</span>
+                    <span class="text-xs font-bold text-slate-500 uppercase tracking-widest" id="price-type-label">
+                        {{ $tour->tipo_modalidad === 'privado' ? 'Tour Privado (Desde)' : 'Precio por Persona' }}
+                    </span>
+                    <span class="text-xl font-black text-brand-teal" id="price-value-label">
+                        ${{ number_format($tour->precio_base_usd) }} MXN
+                    </span>
                 </div>
 
                 <form id="reserva-form" action="{{ route('cart.add') }}" method="POST" class="flex flex-col gap-4">
                     @csrf
                     <input type="hidden" name="tour_id" value="{{ $tour->id }}">
+
+                    <!-- Selector de Modalidad (Compartido vs Privado) -->
+                    @if($tour->tipo_modalidad === 'ambos')
+                        <div class="flex flex-col gap-1.5 mb-2">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Modalidad de Experiencia</label>
+                            <div class="grid grid-cols-2 gap-2 bg-slate-100 p-1 rounded-xl">
+                                <button type="button" id="modalidad-compartido-btn" onclick="setModalidad('compartido')" class="py-1.5 rounded-lg text-xs font-bold text-slate-800 bg-white shadow-xs transition-all cursor-pointer">
+                                    Compartido
+                                </button>
+                                <button type="button" id="modalidad-privado-btn" onclick="setModalidad('privado')" class="py-1.5 rounded-lg text-xs font-semibold text-slate-500 hover:text-slate-800 transition-all cursor-pointer">
+                                    Privado 🔒
+                                </button>
+                            </div>
+                        </div>
+                        <input type="hidden" name="es_privado" id="reserva-es-privado" value="0">
+                    @else
+                        <input type="hidden" name="es_privado" id="reserva-es-privado" value="{{ $tour->tipo_modalidad === 'privado' ? '1' : '0' }}">
+                    @endif
 
                     <!-- Selector de Fecha (Calendario Estilo Airbnb Premium) -->
                     <div class="flex flex-col gap-2">
@@ -147,13 +169,34 @@
                     <div id="availability-status" class="hidden text-[10px] p-2.5 rounded-lg border"></div>
 
                     <!-- Desglose de Precios (Calculador) -->
-                    <div class="mt-2 p-3.5 rounded-xl border border-slate-200 bg-slate-50 text-xs flex flex-col gap-2 font-semibold">
-                        <div class="flex items-center justify-between text-slate-500">
-                            <span>Base:</span>
-                            <span>${{ number_format($tour->precio_base_usd) }} MXN x <span id="summary-qty">1</span></span>
+                    <div id="price-summary-container" class="mt-2 p-3.5 rounded-xl border border-slate-200 bg-slate-50 text-xs flex flex-col gap-2 font-semibold">
+                        <!-- Detalles de Compartido -->
+                        <div id="shared-details" class="flex flex-col gap-2">
+                            <div class="flex items-center justify-between text-slate-500">
+                                <span>Base:</span>
+                                <span>${{ number_format($tour->precio_base_usd) }} MXN x <span id="summary-qty">1</span></span>
+                            </div>
                         </div>
+
+                        <!-- Detalles de Privado -->
+                        <div id="private-details" class="hidden flex flex-col gap-2 border-t border-slate-200 pt-2">
+                            <div class="flex items-center justify-between text-slate-500">
+                                <span>Monto total del tour:</span>
+                                <span id="private-total-raw">$0 MXN</span>
+                            </div>
+                            <div class="flex items-center justify-between text-brand-orange font-bold">
+                                <span id="private-deposit-label">Pagar online hoy:</span>
+                                <span id="private-deposit-val">$0 MXN</span>
+                            </div>
+                            <div class="flex items-center justify-between text-slate-600">
+                                <span id="private-balance-label">Liquidar en persona:</span>
+                                <span id="private-balance-val">$0 MXN</span>
+                            </div>
+                        </div>
+
+                        <!-- Total Final (a pagar hoy en checkout) -->
                         <div class="flex items-center justify-between border-t border-slate-200 pt-2 font-bold text-slate-700">
-                            <span>Total:</span>
+                            <span id="total-payment-label">Total a pagar hoy:</span>
                             <span class="text-sm text-brand-teal font-black" id="summary-total">${{ number_format($tour->precio_base_usd) }} MXN</span>
                         </div>
                     </div>
@@ -435,9 +478,66 @@
 
         // Calculador de Precios en tiempo real
         const basePrice = {{ $tour->precio_base_usd }};
+        const tarifasPrivadas = @json($tour->tarifas_privadas ?? []);
+        const tipoModalidad = "{{ $tour->tipo_modalidad }}";
+        const anticipoPorcentaje = {{ $tour->anticipo_porcentaje ?? 20 }};
+        let esPrivadoSelected = {{ $tour->tipo_modalidad === 'privado' ? 'true' : 'false' }};
+
         const qtyInput = document.getElementById('reserva-qty');
         const summaryQty = document.getElementById('summary-qty');
         const summaryTotal = document.getElementById('summary-total');
+
+        function setModalidad(tipo) {
+            const btnCompartido = document.getElementById('modalidad-compartido-btn');
+            const btnPrivado = document.getElementById('modalidad-privado-btn');
+            const esPrivadoInput = document.getElementById('reserva-es-privado');
+            const priceTypeLabel = document.getElementById('price-type-label');
+            const priceValueLabel = document.getElementById('price-value-label');
+
+            if (tipo === 'privado') {
+                esPrivadoSelected = true;
+                esPrivadoInput.value = "1";
+                if (typeof availableDatesPrivate !== 'undefined') {
+                    availableDates = availableDatesPrivate;
+                }
+                if (btnCompartido) {
+                    btnCompartido.classList.remove('bg-white', 'shadow-xs', 'text-slate-800');
+                    btnCompartido.classList.add('text-slate-500', 'font-semibold');
+                }
+                if (btnPrivado) {
+                    btnPrivado.classList.add('bg-white', 'shadow-xs', 'text-slate-800');
+                    btnPrivado.classList.remove('text-slate-500', 'font-semibold');
+                }
+                if (priceTypeLabel) priceTypeLabel.textContent = 'Tour Privado (Desde)';
+            } else {
+                esPrivadoSelected = false;
+                esPrivadoInput.value = "0";
+                if (typeof availableDatesShared !== 'undefined') {
+                    availableDates = availableDatesShared;
+                }
+                if (btnPrivado) {
+                    btnPrivado.classList.remove('bg-white', 'shadow-xs', 'text-slate-800');
+                    btnPrivado.classList.add('text-slate-500', 'font-semibold');
+                }
+                if (btnCompartido) {
+                    btnCompartido.classList.add('bg-white', 'shadow-xs', 'text-slate-800');
+                    btnCompartido.classList.remove('text-slate-500', 'font-semibold');
+                }
+                if (priceTypeLabel) priceTypeLabel.textContent = 'Precio por Persona';
+                if (priceValueLabel) priceValueLabel.textContent = `$${basePrice.toLocaleString()} MXN`;
+            }
+
+            // Limpiar fecha y horario seleccionados ya que los calendarios son independientes
+            if (fechaSelect) fechaSelect.value = '';
+            if (statusBox) statusBox.classList.add('hidden');
+            if (horarioSelect) horarioSelect.innerHTML = '<option value="">Selecciona una fecha</option>';
+            cachedHorarios = [];
+
+            if (typeof renderCalendar === 'function') {
+                renderCalendar();
+            }
+            calculateTotal();
+        }
 
         function adjustQty(amount) {
             let val = parseInt(qtyInput.value) + amount;
@@ -451,8 +551,55 @@
 
         function calculateTotal() {
             const qty = parseInt(qtyInput.value) || 1;
-            summaryQty.textContent = qty;
-            summaryTotal.textContent = `$${(qty * basePrice).toFixed(0)} MXN`;
+            const sharedDetails = document.getElementById('shared-details');
+            const privateDetails = document.getElementById('private-details');
+            const privateTotalRaw = document.getElementById('private-total-raw');
+            const privateDepositLabel = document.getElementById('private-deposit-label');
+            const privateDepositVal = document.getElementById('private-deposit-val');
+            const privateBalanceLabel = document.getElementById('private-balance-label');
+            const privateBalanceVal = document.getElementById('private-balance-val');
+            const totalPaymentLabel = document.getElementById('total-payment-label');
+            const priceValueLabel = document.getElementById('price-value-label');
+
+            if (esPrivadoSelected) {
+                // Calcular precio según tarifas_privadas
+                let total = basePrice * qty; // fallback
+                if (Array.isArray(tarifasPrivadas) && tarifasPrivadas.length > 0) {
+                    const tarifaCoincidente = tarifasPrivadas.find(t => {
+                        const min = parseInt(t.min_pax) || 0;
+                        const max = parseInt(t.max_pax) || 999;
+                        return qty >= min && qty <= max;
+                    });
+                    if (tarifaCoincidente) {
+                        total = parseFloat(tarifaCoincidente.precio_total_usd);
+                    }
+                }
+
+                if (sharedDetails) sharedDetails.classList.add('hidden');
+                if (privateDetails) privateDetails.classList.remove('hidden');
+                
+                const pct = anticipoPorcentaje;
+                if (totalPaymentLabel) totalPaymentLabel.textContent = `Anticipo online hoy (${pct}%):`;
+                if (priceValueLabel) priceValueLabel.textContent = `Desde $${total.toLocaleString()} MXN`;
+
+                const deposit = total * (pct / 100);
+                const balance = total * ((100 - pct) / 100);
+
+                if (privateTotalRaw) privateTotalRaw.textContent = `$${total.toLocaleString()} MXN`;
+                if (privateDepositLabel) privateDepositLabel.textContent = `Pagar online hoy (${pct}%):`;
+                if (privateDepositVal) privateDepositVal.textContent = `$${deposit.toLocaleString()} MXN`;
+                if (privateBalanceLabel) privateBalanceLabel.textContent = `Liquidar en persona (${100 - pct}%):`;
+                if (privateBalanceVal) privateBalanceVal.textContent = `$${balance.toLocaleString()} MXN`;
+                summaryTotal.textContent = `$${deposit.toLocaleString()} MXN`;
+            } else {
+                if (privateDetails) privateDetails.classList.add('hidden');
+                if (sharedDetails) sharedDetails.classList.remove('hidden');
+                if (totalPaymentLabel) totalPaymentLabel.textContent = 'Total a pagar hoy:';
+
+                summaryQty.textContent = qty;
+                const total = qty * basePrice;
+                summaryTotal.textContent = `$${total.toLocaleString()} MXN`;
+            }
         }
 
         qtyInput.addEventListener('input', () => {
@@ -478,7 +625,7 @@
             }
 
             // Consultar disponibilidad vía AJAX
-            fetch(`/tours/{{ $tour->id }}/availability?fecha=${fechaVal}`)
+            fetch(`/tours/{{ $tour->id }}/availability?fecha=${fechaVal}&es_privado=${esPrivadoSelected ? 1 : 0}`)
                 .then(res => {
                     if (!res.ok) throw new Error('Error al consultar disponibilidad');
                     return res.json();
@@ -550,11 +697,18 @@
         horarioSelect.addEventListener('change', updateAvailabilityUI);
 
         // --- LÓGICA DE CALENDARIO VISUAL ESTILO AIRBNB ---
-        const availableDates = {
-            @foreach($fechas as $f)
+        const availableDatesShared = {
+            @foreach($fechas->where('es_privado', false) as $f)
                 "{{ $f->fecha->format('Y-m-d') }}": true,
             @endforeach
         };
+        const availableDatesPrivate = {
+            @foreach($fechas->where('es_privado', true) as $f)
+                "{{ $f->fecha->format('Y-m-d') }}": true,
+            @endforeach
+        };
+        
+        let availableDates = esPrivadoSelected ? availableDatesPrivate : availableDatesShared;
 
         let currentYear = new Date().getFullYear();
         let currentMonth = new Date().getMonth() + 1; // 1-12
@@ -657,6 +811,11 @@
 
         // Inicialización al cargar la página
         renderCalendar();
+        if (tipoModalidad === 'privado') {
+            setModalidad('privado');
+        } else {
+            calculateTotal();
+        }
 
         // Validaciones de formulario personalizadas (evita fallas con inputs ocultos required)
         const reservaForm = document.getElementById('reserva-form');

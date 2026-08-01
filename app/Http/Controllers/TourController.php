@@ -1,8 +1,8 @@
 <?php
 /**
  * @file TourController.php
- * @description Controlador para gestionar la visualización de un tour individual y consultar su disponibilidad de fechas y cupos.
- * @date 2026-06-08
+ * @description Controlador para gestionar la visualización de tours y verificación de disponibilidad, adaptado para soportar calendarios independientes en las modalidades compartida y privada.
+ * @date 2026-07-31
  * @author Antigravity
  */
 
@@ -26,7 +26,7 @@ class TourController extends Controller
     {
         $tour = Tour::with(['proveedor'])->findOrFail($id);
         
-        // Obtener las fechas de salida disponibles con cupo
+        // Obtener todas las fechas de salida disponibles (tanto compartidas como privadas)
         $fechas = TourFecha::where('tour_id', $id)
             ->whereColumn('cupo_reservado', '<', 'cupo_maximo')
             ->orderBy('fecha', 'asc')
@@ -45,13 +45,16 @@ class TourController extends Controller
     public function checkAvailability(Request $request, string $id): JsonResponse
     {
         $request->validate([
-            'fecha' => 'required|date_format:Y-m-d'
+            'fecha' => 'required|date_format:Y-m-d',
+            'es_privado' => 'nullable|boolean'
         ]);
 
         $fechaStr = $request->input('fecha');
+        $esPrivado = (bool) $request->input('es_privado', false);
 
         $salidas = TourFecha::where('tour_id', $id)
             ->where('fecha', $fechaStr)
+            ->where('es_privado', $esPrivado)
             ->get();
 
         if ($salidas->isEmpty()) {

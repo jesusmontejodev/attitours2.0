@@ -321,7 +321,10 @@ class DashboardController extends Controller
             'itinerario_titulos' => 'nullable|array',
             'itinerario_descripciones' => 'nullable|array',
             'incluye' => 'nullable|string',
-            'no_incluye' => 'nullable|string'
+            'no_incluye' => 'nullable|string',
+            'tipo_modalidad' => 'required|in:compartido,privado,ambos',
+            'anticipo_porcentaje' => 'nullable|integer|min:0|max:100',
+            'tarifas_privadas' => 'nullable|string',
         ]);
 
         // Generar ID único
@@ -368,6 +371,12 @@ class DashboardController extends Controller
             ? array_map('trim', explode(',', $request->input('no_incluye')))
             : [];
 
+        // Parsear tarifas privadas JSON
+        $tarifasPrivadas = null;
+        if ($request->filled('tarifas_privadas')) {
+            $tarifasPrivadas = json_decode($request->input('tarifas_privadas'), true);
+        }
+
         Tour::create([
             'id' => $id,
             'proveedor_id' => $request->input('proveedor_id'),
@@ -399,7 +408,10 @@ class DashboardController extends Controller
             'horarios' => $horarios,
             'itinerario' => $itinerario,
             'incluye' => $incluye,
-            'no_incluye' => $noIncluye
+            'no_incluye' => $noIncluye,
+            'tipo_modalidad' => $request->input('tipo_modalidad'),
+            'anticipo_porcentaje' => $request->filled('anticipo_porcentaje') ? (int)$request->input('anticipo_porcentaje') : null,
+            'tarifas_privadas' => $tarifasPrivadas
         ]);
 
         return redirect()->route('dashboard')->with('success', __('Tour creado exitosamente.'))->with('active_tab', 'tours')->with('new_tour_id', $id);
@@ -918,7 +930,10 @@ class DashboardController extends Controller
             'itinerario_titulos' => 'nullable|array',
             'itinerario_descripciones' => 'nullable|array',
             'incluye' => 'nullable|string',
-            'no_incluye' => 'nullable|string'
+            'no_incluye' => 'nullable|string',
+            'tipo_modalidad' => 'required|in:compartido,privado,ambos',
+            'anticipo_porcentaje' => 'nullable|integer|min:0|max:100',
+            'tarifas_privadas' => 'nullable|string',
         ]);
 
         // Parsear tags
@@ -955,6 +970,12 @@ class DashboardController extends Controller
             ? array_map('trim', explode(',', $request->input('no_incluye')))
             : [];
 
+        // Parsear tarifas privadas JSON
+        $tarifasPrivadas = null;
+        if ($request->filled('tarifas_privadas')) {
+            $tarifasPrivadas = json_decode($request->input('tarifas_privadas'), true);
+        }
+
         $tour->update([
             'proveedor_id' => $request->input('proveedor_id'),
             'titulo' => [
@@ -981,7 +1002,10 @@ class DashboardController extends Controller
             'tags' => $tags,
             'itinerario' => $itinerario,
             'incluye' => $incluye,
-            'no_incluye' => $noIncluye
+            'no_incluye' => $noIncluye,
+            'tipo_modalidad' => $request->input('tipo_modalidad'),
+            'anticipo_porcentaje' => $request->filled('anticipo_porcentaje') ? (int)$request->input('anticipo_porcentaje') : null,
+            'tarifas_privadas' => $tarifasPrivadas
         ]);
 
         return redirect()->route('dashboard')->with('success', __('Tour actualizado exitosamente.'))->with('active_tab', 'tours');

@@ -1,8 +1,8 @@
 <?php
 /**
  * @file TourFecha.php
- * @description Modelo Eloquent para controlar las fechas de salida y la disponibilidad de cupos de los tours.
- * @date 2026-06-08
+ * @description Modelo Eloquent para controlar las fechas de salida y la disponibilidad de cupos de los tours. Adaptado para bloquear la disponibilidad si hay reservas privadas.
+ * @date 2026-07-31
  * @author Antigravity
  */
 
@@ -22,12 +22,14 @@ class TourFecha extends Model
         'tour_id',
         'fecha',
         'horario',
+        'es_privado',
         'cupo_maximo',
         'cupo_reservado'
     ];
 
     protected $casts = [
         'fecha' => 'date:Y-m-d',
+        'es_privado' => 'boolean',
         'cupo_maximo' => 'integer',
         'cupo_reservado' => 'integer'
     ];
@@ -41,10 +43,21 @@ class TourFecha extends Model
     }
 
     /**
+     * Determina si esta fecha/horario de salida ya está bloqueado por una reserva privada activa.
+     */
+    public function estaBloqueadoPorReservaPrivada(): bool
+    {
+        return $this->es_privado && $this->cupo_reservado > 0;
+    }
+
+    /**
      * Accesor para calcular los cupos disponibles restantes.
      */
     public function getCupoDisponibleAttribute(): int
     {
+        if ($this->estaBloqueadoPorReservaPrivada()) {
+            return 0;
+        }
         return max(0, $this->cupo_maximo - $this->cupo_reservado);
     }
 }

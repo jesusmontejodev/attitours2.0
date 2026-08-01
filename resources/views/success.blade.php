@@ -2,8 +2,8 @@
 
 <!-- 
  * @file success.blade.php
- * @description Vista Blade para la confirmación exitosa de reservas. Muestra el ticket virtual e interacciones simuladas de envío. Adaptado a tema claro con colores corporativos e identidad de la marca.
- * @date 2026-06-29
+ * @description Vista Blade para la confirmación exitosa de reservas. Muestra el ticket virtual, la información del usuario creado o asociado, y botones de notificaciones.
+ * @date 2026-07-31
  * @author Antigravity
  -->
 
@@ -105,6 +105,60 @@
                     </div>
                 </div>
             </div>
+        </div>
+
+        <!-- BLOQUE INFORMATIVO DE USUARIO / MI CUENTA -->
+        <div class="w-full max-w-md mt-6 p-6 rounded-3xl border {{ $userCreated ? 'border-cyan-200 bg-cyan-50/40' : ($userAssociated ? 'border-amber-200 bg-amber-50/40' : 'border-slate-200 bg-slate-50/50') }} shadow-sm font-semibold">
+            @if($userCreated)
+                <div class="flex items-start gap-3.5 text-left">
+                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-cyan-500 text-white shadow-md text-lg">🔑</span>
+                    <div class="min-w-0 flex-grow">
+                        <h3 class="text-sm font-bold text-slate-800">¡Tu cuenta ha sido creada exitosamente!</h3>
+                        <p class="text-xs text-slate-650 mt-1 font-semibold leading-relaxed">
+                            Para tu comodidad, te hemos iniciado sesión automáticamente. Ya puedes entrar a tu panel en cualquier momento para ver tus reservas, boletos con códigos QR o cambiar tus datos.
+                        </p>
+                        <div class="mt-3.5 p-3.5 rounded-2xl bg-white border border-cyan-100 shadow-xs flex flex-col gap-1.5 font-mono text-[11px] text-slate-700">
+                            <p><strong>Usuario (Correo):</strong> <span class="text-brand-teal font-bold select-all">{{ $reserva->correo_cliente }}</span></p>
+                            <p><strong>Contraseña temporal:</strong> <span class="text-indigo-600 font-bold select-all">{{ $tempPassword }}</span></p>
+                        </div>
+                        <p class="text-[10px] text-slate-450 mt-2 font-medium italic">
+                            * Te sugerimos cambiar tu contraseña temporal en tu perfil para mayor seguridad.
+                        </p>
+                        <a href="{{ route('cliente.dashboard') }}" class="mt-4 w-full h-10 inline-flex items-center justify-center rounded-xl bg-cyan-600 hover:bg-cyan-700 text-xs font-bold text-white transition-all shadow-md shadow-cyan-600/10 cursor-pointer">
+                            Ir a Mi Cuenta y Ver Reservas →
+                        </a>
+                    </div>
+                </div>
+            @elseif($userAssociated)
+                <div class="flex items-start gap-3.5 text-left">
+                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-amber-500 text-white shadow-md text-lg">💼</span>
+                    <div class="min-w-0 flex-grow">
+                        <h3 class="text-sm font-bold text-slate-800">Vinculado a tu cuenta existente</h3>
+                        <p class="text-xs text-slate-650 mt-1 font-semibold leading-relaxed">
+                            Hemos detectado que ya tienes una cuenta registrada con el correo <strong class="text-slate-800">{{ $reserva->correo_cliente }}</strong>. Esta reserva ha sido guardada en tu historial.
+                        </p>
+                        <p class="text-xs text-slate-500 mt-2 font-semibold">
+                            Inicia sesión para gestionar esta reserva y descargar tus tickets QR.
+                        </p>
+                        <a href="{{ route('login') }}" class="mt-4 w-full h-10 inline-flex items-center justify-center rounded-xl bg-amber-600 hover:bg-amber-700 text-xs font-bold text-white transition-all shadow-md shadow-amber-600/10 cursor-pointer">
+                            Iniciar Sesión en Mi Cuenta →
+                        </a>
+                    </div>
+                </div>
+            @else
+                <div class="flex items-start gap-3.5 text-left">
+                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-brand-teal text-white shadow-md text-lg">⛵</span>
+                    <div class="min-w-0 flex-grow">
+                        <h3 class="text-sm font-bold text-slate-800">Reserva guardada en tu panel</h3>
+                        <p class="text-xs text-slate-650 mt-1 font-semibold leading-relaxed">
+                            Tu reserva ya está guardada de forma segura en tu historial de cliente. Puedes verla desde tu panel en cualquier momento.
+                        </p>
+                        <a href="{{ route('cliente.dashboard') }}" class="mt-4 w-full h-10 inline-flex items-center justify-center rounded-xl bg-brand-teal hover:opacity-95 text-xs font-bold text-white transition-all shadow-md shadow-brand-teal/15 cursor-pointer">
+                            Ir a Mi Panel de Reservas →
+                        </a>
+                    </div>
+                </div>
+            @endif
         </div>
 
         <!-- ACCIONES NOTIFICACIONES -->

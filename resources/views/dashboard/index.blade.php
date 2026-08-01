@@ -329,12 +329,25 @@
                                                     <td class="py-3.5 px-2 max-w-[200px]">
                                                         <span class="font-bold text-slate-800 block">{{ $res->nombre_cliente }}</span>
                                                         <span class="text-[10px] text-slate-500 block truncate mt-0.5" title="{{ $toursNombres }}">{{ $toursNombres }}</span>
+                                                        @if($res->monto_pendiente_destino_usd > 0)
+                                                            <span class="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded bg-brand-orange/10 text-brand-orange border border-brand-orange/20 text-[9px] font-bold uppercase tracking-wider">
+                                                                🔒 Privado (Depósito)
+                                                            </span>
+                                                        @endif
                                                     </td>
                                                     <td class="py-3.5 px-2 max-w-[200px]">
                                                         <span class="block text-slate-700">{{ $res->fecha_reserva->format('Y-m-d H:i') }}</span>
                                                         <span class="text-[10px] text-slate-500 block truncate mt-0.5" title="{{ $proveedoresNombres }}">{{ $proveedoresNombres }}</span>
                                                     </td>
-                                                    <td class="py-3.5 px-2 text-right font-bold text-slate-800">${{ number_format($res->precio_total_usd) }}</td>
+                                                    <td class="py-3.5 px-2 text-right">
+                                                        <span class="font-bold text-slate-800 block">${{ number_format($res->precio_total_usd) }}</span>
+                                                        @if($res->monto_pendiente_destino_usd > 0)
+                                                            <span class="text-[9px] text-slate-500 block mt-0.5">
+                                                                Online: ${{ number_format($res->monto_pagado_online_usd) }} | 
+                                                                Local: ${{ number_format($res->monto_pendiente_destino_usd) }}
+                                                            </span>
+                                                        @endif
+                                                    </td>
                                                     <td class="py-3.5 px-2 text-right text-rose-600 font-bold">${{ number_format($res->comision_total_usd, 2) }}</td>
                                                 </tr>
                                             @endforeach
@@ -361,10 +374,20 @@
                                             @foreach($reservaDetalles as $det)
                                                 <tr class="hover:bg-slate-50 transition-colors text-slate-700">
                                                     <td class="py-3.5 px-2 font-black text-brand-teal">{{ $det->reserva->ticket_codigo }}</td>
-                                                    <td class="py-3.5 px-2 truncate max-w-[150px]" title="{{ $det->tour->nombre }}">{{ $det->tour->nombre }}</td>
+                                                    <td class="py-3.5 px-2 truncate max-w-[150px]" title="{{ $det->tour->nombre }}">
+                                                        {{ $det->tour->nombre }}
+                                                        @if($det->es_privado)
+                                                            <span class="block text-[8px] font-black uppercase text-brand-orange mt-0.5">🔒 Privado</span>
+                                                        @endif
+                                                    </td>
                                                     <td class="py-3.5 px-2 text-[10px]">{{ $det->fecha_seleccionada->format('Y-m-d') }}</td>
                                                     <td class="py-3.5 px-2 text-center font-bold text-slate-800">{{ $det->cantidad_personas }}</td>
-                                                    <td class="py-3.5 px-2 text-right text-emerald-600">${{ number_format(($det->precio_unitario_usd * $det->cantidad_personas) - $det->comision_usd, 2) }}</td>
+                                                    <td class="py-3.5 px-2 text-right">
+                                                        <span class="text-emerald-600 font-bold block">${{ number_format(($det->precio_unitario_usd * $det->cantidad_personas) - $det->comision_usd, 2) }}</span>
+                                                        @if($det->es_privado && $det->reserva->monto_pendiente_destino_usd > 0)
+                                                            <span class="text-[9px] text-slate-500 block font-semibold">Cobrar local: ${{ number_format($det->reserva->monto_pendiente_destino_usd) }}</span>
+                                                        @endif
+                                                    </td>
                                                 </tr>
                                             @endforeach
                                         </tbody>
@@ -631,9 +654,19 @@
                             <!-- Lista de Tours Vertical Interactiva -->
                             <div class="flex flex-col gap-3 max-h-[600px] overflow-y-auto pr-1" id="admin-tours-list">
                                 @foreach($tours as $t)
+                                    @php
+                                        $esTourPrivado = $t->tipo_modalidad === 'privado';
+                                        $esTourMixto = $t->tipo_modalidad === 'ambos';
+                                        $cardClasses = 'tour-list-card p-3 rounded-2xl border transition-all duration-250 cursor-pointer flex gap-3 group relative animate-fade-in ';
+                                        if ($esTourPrivado) {
+                                            $cardClasses .= 'border-brand-orange/40 bg-brand-orange/[0.01] hover:bg-brand-orange/[0.04] hover:border-brand-orange';
+                                        } else {
+                                            $cardClasses .= 'border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-350';
+                                        }
+                                    @endphp
                                     <div id="tour-card-{{ $t->id }}" 
                                          onclick="selectTourForCalendar('{{ $t->id }}')" 
-                                         class="tour-list-card p-3 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-350 transition-all duration-250 cursor-pointer flex gap-3 group relative animate-fade-in"
+                                         class="{{ $cardClasses }}"
                                          data-titulo="{{ $t->nombre }}"
                                          data-resumen="{{ $t->resumen }}"
                                          data-detalle="{{ $t->detalle }}"
@@ -649,7 +682,10 @@
                                          data-punto-encuentro="{{ $t->punto_encuentro }}"
                                          data-itinerario="{{ json_encode($t->itinerario ?: []) }}"
                                          data-incluye="{{ implode(', ', $t->incluye ?: []) }}"
-                                         data-no-incluye="{{ implode(', ', $t->no_incluye ?: []) }}">
+                                         data-no-incluye="{{ implode(', ', $t->no_incluye ?: []) }}"
+                                         data-tipo-modalidad="{{ $t->tipo_modalidad }}"
+                                         data-anticipo-porcentaje="{{ $t->anticipo_porcentaje }}"
+                                         data-tarifas-privadas="{{ json_encode($t->tarifas_privadas ?? []) }}">
                                         
                                         <!-- Foto miniatura -->
                                         <div class="h-16 w-16 rounded-xl bg-slate-100 overflow-hidden flex-shrink-0">
@@ -662,7 +698,16 @@
                                                 <h4 class="font-bold text-slate-800 text-xs truncate tour-card-name" title="{{ $t->nombre }}">
                                                     {{ $t->nombre }}
                                                 </h4>
-                                                <span class="text-[9px] text-slate-500 block truncate mt-0.5">Operador: {{ $t->proveedor->nombre_empresa }}</span>
+                                                <div class="flex flex-wrap items-center gap-1 mt-0.5">
+                                                    <span class="text-[8px] text-slate-400 font-semibold truncate">Op: {{ $t->proveedor->nombre_empresa }}</span>
+                                                    @if($t->tipo_modalidad === 'privado')
+                                                        <span class="inline-flex items-center px-1 rounded bg-brand-orange/10 text-brand-orange text-[7px] font-black uppercase tracking-wider">🔒 Privado</span>
+                                                    @elseif($t->tipo_modalidad === 'ambos')
+                                                        <span class="inline-flex items-center px-1 rounded bg-indigo-50 text-indigo-750 text-[7px] font-black uppercase tracking-wider">👥🔒 Mixto</span>
+                                                    @else
+                                                        <span class="inline-flex items-center px-1 rounded bg-brand-teal/10 text-brand-teal text-[7px] font-black uppercase tracking-wider">👥 Compartido</span>
+                                                    @endif
+                                                </div>
                                             </div>
                                             <div class="flex items-center justify-between mt-1">
                                                 <span class="text-[10px] font-black text-brand-teal">${{ number_format($t->precio_base_usd) }} MXN</span>
@@ -1064,6 +1109,40 @@
                             </div>
                         </div>
 
+                        <!-- Configuración de Modalidad y Precios (Tours Privados) -->
+                        <div class="border-t border-slate-200 pt-4 flex flex-col gap-4">
+                            <h4 class="text-[10px] font-black uppercase tracking-wider text-slate-500">Configuración de Modalidad y Precios</h4>
+                            
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div class="flex flex-col gap-1.5">
+                                    <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Tipo de Modalidad</label>
+                                    <select name="tipo_modalidad" id="create-tour-modalidad" onchange="toggleModalidadFields('create')" required class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal cursor-pointer">
+                                        <option value="compartido">👥 Sólo Compartido</option>
+                                        <option value="privado">🔒 Sólo Privado</option>
+                                        <option value="ambos">👥🔒 Compartido y Privado (Mixto)</option>
+                                    </select>
+                                </div>
+                                <div class="flex flex-col gap-1.5" id="create-anticipo-box" style="display: none;">
+                                    <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Porcentaje de Anticipo Online (%)</label>
+                                    <input type="number" name="anticipo_porcentaje" id="create-tour-anticipo" min="0" max="100" value="20" placeholder="Ej. 20" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal">
+                                </div>
+                            </div>
+
+                            <!-- Panel de Tarifas Privadas -->
+                            <div id="create-tarifas-privadas-panel" style="display: none;" class="flex flex-col gap-3 p-4 rounded-2xl border border-brand-orange/20 bg-brand-orange/[0.01]">
+                                <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                                    <span class="text-[10px] font-black uppercase tracking-wider text-brand-orange">💰 Tarifas por Escala (Tour Privado)</span>
+                                    <button type="button" onclick="addTarifaPrivadaRow('create')" class="px-2 py-1 rounded bg-brand-orange/10 hover:bg-brand-orange hover:text-white border border-brand-orange/20 text-[9px] font-bold text-brand-orange transition-colors cursor-pointer">
+                                        + Añadir Escala
+                                    </button>
+                                </div>
+                                <div id="create-tarifas-privadas-container" class="flex flex-col gap-2">
+                                    <!-- Filas de escalas dinámicas -->
+                                </div>
+                                <input type="hidden" name="tarifas_privadas" id="create-tarifas-privadas-hidden">
+                            </div>
+                        </div>
+
                         <!-- Itinerario de Viaje -->
                         <div class="flex flex-col gap-3 border-t border-slate-200 pt-4">
                             <div class="flex items-center justify-between">
@@ -1195,6 +1274,40 @@
                             <div class="flex flex-col gap-1.5">
                                 <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">No Incluye (separados por coma)</label>
                                 <textarea name="no_incluye" id="edit-tour-no-incluye" rows="2" class="w-full rounded-lg border border-slate-200 bg-white p-2.5 text-xs text-slate-700 placeholder-slate-400 focus:border-brand-teal focus:ring-0 focus:outline-none"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Configuración de Modalidad y Precios (Tours Privados) -->
+                        <div class="border-t border-slate-200 pt-4 flex flex-col gap-4">
+                            <h4 class="text-[10px] font-black uppercase tracking-wider text-slate-500">Configuración de Modalidad y Precios</h4>
+                            
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div class="flex flex-col gap-1.5">
+                                    <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Tipo de Modalidad</label>
+                                    <select name="tipo_modalidad" id="edit-tour-modalidad" onchange="toggleModalidadFields('edit')" required class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal cursor-pointer">
+                                        <option value="compartido">👥 Sólo Compartido</option>
+                                        <option value="privado">🔒 Sólo Privado</option>
+                                        <option value="ambos">👥🔒 Compartido y Privado (Mixto)</option>
+                                    </select>
+                                </div>
+                                <div class="flex flex-col gap-1.5" id="edit-anticipo-box" style="display: none;">
+                                    <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Porcentaje de Anticipo Online (%)</label>
+                                    <input type="number" name="anticipo_porcentaje" id="edit-tour-anticipo" min="0" max="100" placeholder="Ej. 20" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal">
+                                </div>
+                            </div>
+
+                            <!-- Panel de Tarifas Privadas -->
+                            <div id="edit-tarifas-privadas-panel" style="display: none;" class="flex flex-col gap-3 p-4 rounded-2xl border border-brand-orange/20 bg-brand-orange/[0.01]">
+                                <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                                    <span class="text-[10px] font-black uppercase tracking-wider text-brand-orange">💰 Tarifas por Escala (Tour Privado)</span>
+                                    <button type="button" onclick="addTarifaPrivadaRow('edit')" class="px-2 py-1 rounded bg-brand-orange/10 hover:bg-brand-orange hover:text-white border border-brand-orange/20 text-[9px] font-bold text-brand-orange transition-colors cursor-pointer">
+                                        + Añadir Escala
+                                    </button>
+                                </div>
+                                <div id="edit-tarifas-privadas-container" class="flex flex-col gap-2">
+                                    <!-- Filas de escalas dinámicas -->
+                                </div>
+                                <input type="hidden" name="tarifas_privadas" id="edit-tarifas-privadas-hidden">
                             </div>
                         </div>
 
@@ -2579,6 +2692,15 @@
             const puntoEncuentro = card.getAttribute('data-punto-encuentro') || '';
             const incluye = card.getAttribute('data-incluye') || '';
             const noIncluye = card.getAttribute('data-no-incluye') || '';
+            const tipoModalidad = card.getAttribute('data-tipo-modalidad') || 'compartido';
+            const anticipoPorcentaje = card.getAttribute('data-anticipo-porcentaje') || '';
+            
+            let tarifasPrivadas = [];
+            try {
+                tarifasPrivadas = JSON.parse(card.getAttribute('data-tarifas-privadas') || '[]');
+            } catch(e) {
+                console.error("Error al parsear tarifas privadas", e);
+            }
             
             let itinerario = [];
             try {
@@ -2616,6 +2738,21 @@
             document.getElementById('edit-tour-incluye').value = incluye;
             document.getElementById('edit-tour-no-incluye').value = noIncluye;
 
+            // Población de modalidad y tarifas
+            document.getElementById('edit-tour-modalidad').value = tipoModalidad;
+            document.getElementById('edit-tour-anticipo').value = anticipoPorcentaje;
+            
+            const tarifasContainer = document.getElementById('edit-tarifas-privadas-container');
+            tarifasContainer.innerHTML = '';
+            
+            if (Array.isArray(tarifasPrivadas) && tarifasPrivadas.length > 0) {
+                tarifasPrivadas.forEach(tarifa => {
+                    addTarifaPrivadaRow('edit', tarifa.min_pax, tarifa.max_pax, tarifa.precio_total_usd);
+                });
+            }
+            serializeTarifas('edit');
+            toggleModalidadFields('edit');
+
             // Poblar itinerario
             const container = document.getElementById('edit-itinerary-container');
             container.innerHTML = '';
@@ -2636,6 +2773,99 @@
         function closeEditTourModal() {
             document.getElementById('edit-tour-modal').classList.add('hidden');
         }
+
+        // --- GESTIÓN DE CONFIGURACIÓN DE MODALIDADES Y TARIFAS PRIVADAS ---
+        function toggleModalidadFields(context) {
+            const modalidad = document.getElementById(`${context}-tour-modalidad`).value;
+            const anticipoBox = document.getElementById(`${context}-anticipo-box`);
+            const panelTarifas = document.getElementById(`${context}-tarifas-privadas-panel`);
+            
+            if (modalidad === 'privado' || modalidad === 'ambos') {
+                if (anticipoBox) anticipoBox.style.display = 'flex';
+                if (panelTarifas) panelTarifas.style.display = 'flex';
+                const container = document.getElementById(`${context}-tarifas-privadas-container`);
+                if (container && container.children.length === 0) {
+                    addTarifaPrivadaRow(context);
+                }
+            } else {
+                if (anticipoBox) anticipoBox.style.display = 'none';
+                if (panelTarifas) panelTarifas.style.display = 'none';
+            }
+        }
+
+        function addTarifaPrivadaRow(context, min = '', max = '', precio = '') {
+            const container = document.getElementById(`${context}-tarifas-privadas-container`);
+            if (!container) return;
+            const rowId = `tarifa-row-${context}-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+            
+            const html = `
+                <div id="${rowId}" class="tarifa-privada-row grid grid-cols-3 gap-2 items-center">
+                    <div>
+                        <input type="number" placeholder="Min Pax" value="${min}" class="tarifa-min w-full h-8 rounded border border-slate-200 bg-white px-2 text-xs text-slate-700" required>
+                    </div>
+                    <div>
+                        <input type="number" placeholder="Max Pax" value="${max}" class="tarifa-max w-full h-8 rounded border border-slate-200 bg-white px-2 text-xs text-slate-700" required>
+                    </div>
+                    <div class="flex gap-2 items-center">
+                        <input type="number" placeholder="Precio MXN" value="${precio}" class="tarifa-precio w-full h-8 rounded border border-slate-200 bg-white px-2 text-xs text-slate-700" required>
+                        <button type="button" onclick="document.getElementById('${rowId}').remove(); serializeTarifas('${context}');" class="text-rose-650 hover:text-rose-800 text-base font-bold px-1.5 cursor-pointer">×</button>
+                    </div>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', html);
+        }
+
+        function serializeTarifas(context) {
+            const container = document.getElementById(`${context}-tarifas-privadas-container`);
+            if (!container) return;
+            const rows = container.querySelectorAll('.tarifa-privada-row');
+            const data = [];
+            
+            rows.forEach(row => {
+                const min = row.querySelector('.tarifa-min').value;
+                const max = row.querySelector('.tarifa-max').value;
+                const precio = row.querySelector('.tarifa-precio').value;
+                
+                if (min && max && precio) {
+                    data.push({
+                        min_pax: parseInt(min),
+                        max_pax: parseInt(max),
+                        precio_total_usd: parseFloat(precio)
+                    });
+                }
+            });
+            
+            const hiddenInput = document.getElementById(`${context}-tarifas-privadas-hidden`);
+            if (hiddenInput) hiddenInput.value = JSON.stringify(data);
+        }
+
+        // Registrar observadores de entradas para serializar de forma reactiva
+        document.addEventListener('DOMContentLoaded', () => {
+            const createContainer = document.getElementById('create-tarifas-privadas-container');
+            const editContainer = document.getElementById('edit-tarifas-privadas-container');
+            
+            if (createContainer) {
+                createContainer.addEventListener('input', () => serializeTarifas('create'));
+            }
+            if (editContainer) {
+                editContainer.addEventListener('input', () => serializeTarifas('edit'));
+            }
+
+            // Registrar serialización en el submit del formulario
+            const forms = document.querySelectorAll('form');
+            forms.forEach(form => {
+                const action = form.getAttribute('action') || '';
+                if (action.includes('/dashboard/tour')) {
+                    form.addEventListener('submit', () => {
+                        if (action.includes('/update')) {
+                            serializeTarifas('edit');
+                        } else {
+                            serializeTarifas('create');
+                        }
+                    });
+                }
+            });
+        });
 
         // --- ENTRADA DE TAGS ESTILO "CHIPS" (Enter para añadir, como en YouTube) ---
         function tagInputGetValues(boxId) {

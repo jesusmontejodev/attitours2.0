@@ -1,8 +1,8 @@
 <?php
 /**
  * @file CartController.php
- * @description Controlador para gestionar el carrito de compras alojado en la sesión de Laravel, incluyendo validaciones de cupos.
- * @date 2026-06-08
+ * @description Controlador para gestionar el carrito de compras alojado en la sesión de Laravel, adaptado para soportar tours privados con desglose de tarifas por escalas.
+ * @date 2026-07-31
  * @author Antigravity
  */
 
@@ -45,21 +45,24 @@ class CartController extends Controller
             'tour_id' => 'required|exists:tours,id',
             'fecha' => 'required|date_format:Y-m-d',
             'cantidad' => 'required|integer|min:1',
-            'horario' => 'nullable|string'
+            'horario' => 'nullable|string',
+            'es_privado' => 'nullable|boolean'
         ]);
 
         $tourId = $request->input('tour_id');
         $fechaStr = $request->input('fecha');
         $cantidad = (int) $request->input('cantidad');
         $horario = $request->input('horario');
+        $esPrivado = (bool) $request->input('es_privado', false);
 
         $tour = Tour::findOrFail($tourId);
         $tourFecha = TourFecha::where('tour_id', $tourId)
             ->where('fecha', $fechaStr)
+            ->where('horario', $horario ?: '09:00')
             ->first();
 
         if (!$tourFecha) {
-            return redirect()->back()->with('error', __('La fecha seleccionada no está disponible.'));
+            return redirect()->back()->with('error', __('La fecha o el horario seleccionado no está disponible.'));
         }
 
         // Validar cupos
@@ -67,8 +70,22 @@ class CartController extends Controller
             return redirect()->back()->with('error', __('No hay suficientes cupos disponibles. Solo quedan :cupos cupos.', ['cupos' => $tourFecha->cupo_disponible]));
         }
 
+        // Si ya hay una reserva privada activa para este tour/fecha/hora, no se puede reservar compartida
+        if ($tourFecha->estaBloqueadoPorReservaPrivada()) {
+            return redirect()->back()->with('error', __('Esta salida ya está reservada de forma privada.'));
+        }
+
         $cart = session()->get('cart', []);
-        $key = $tourId . '_' . $fechaStr . '_' . \Illuminate\Support\Str::slug($horario ?: 'default');
+        $key = $tourId . '_' . $fechaStr . '_' . \Illuminate\Support\Str::slug($horario ?: 'default') . '_' . ($esPrivado ? 'private' : 'shared');
+
+        // Calcular precio de acuerdo a la modalidad
+        if ($esPrivado) {
+            $subtotal = $tour->obtenerPrecioPrivado($cantidad);
+            $precioUnitario = $subtotal / $cantidad;
+        } else {
+            $precioUnitario = $tour->precio_base_usd;
+            $subtotal = $cantidad * $precioUnitario;
+        }
 
         if (isset($cart[$key])) {
             // Si ya existe en el carrito, sumamos y validamos el total acumulado
@@ -76,8 +93,18 @@ class CartController extends Controller
             if ($tourFecha->cupo_disponible < $nuevaCantidad) {
                 return redirect()->back()->with('error', __('No puedes añadir más personas. Supera el cupo disponible.'));
             }
+            
             $cart[$key]['cantidad'] = $nuevaCantidad;
-            $cart[$key]['subtotal'] = $nuevaCantidad * $cart[$key]['precio_unitario'];
+            
+            if ($esPrivado) {
+                $subtotal = $tour->obtenerPrecioPrivado($nuevaCantidad);
+                $precioUnitario = $subtotal / $nuevaCantidad;
+            } else {
+                $subtotal = $nuevaCantidad * $precioUnitario;
+            }
+            
+            $cart[$key]['precio_unitario'] = $precioUnitario;
+            $cart[$key]['subtotal'] = $subtotal;
         } else {
             // Añadir nuevo item
             $cart[$key] = [
@@ -87,8 +114,10 @@ class CartController extends Controller
                 'fecha' => $fechaStr,
                 'horario' => $horario,
                 'cantidad' => $cantidad,
-                'precio_unitario' => $tour->precio_base_usd,
-                'subtotal' => $cantidad * $tour->precio_base_usd
+                'es_privado' => $esPrivado,
+                'anticipo_porcentaje' => $tour->anticipo_porcentaje ?? 20,
+                'precio_unitario' => $precioUnitario,
+                'subtotal' => $subtotal
             ];
         }
 
@@ -121,9 +150,13 @@ class CartController extends Controller
 
         $tourId = $cart[$key]['tour_id'];
         $fechaStr = $cart[$key]['fecha'];
+        $horario = $cart[$key]['horario'];
+        $esPrivado = (bool) ($cart[$key]['es_privado'] ?? false);
 
+        $tour = Tour::findOrFail($tourId);
         $tourFecha = TourFecha::where('tour_id', $tourId)
             ->where('fecha', $fechaStr)
+            ->where('horario', $horario ?: '09:00')
             ->first();
 
         if ($tourFecha && $tourFecha->cupo_disponible < $cantidad) {
@@ -131,7 +164,15 @@ class CartController extends Controller
         }
 
         $cart[$key]['cantidad'] = $cantidad;
-        $cart[$key]['subtotal'] = $cantidad * $cart[$key]['precio_unitario'];
+        
+        if ($esPrivado) {
+            $subtotal = $tour->obtenerPrecioPrivado($cantidad);
+            $precioUnitario = $subtotal / $cantidad;
+            $cart[$key]['precio_unitario'] = $precioUnitario;
+            $cart[$key]['subtotal'] = $subtotal;
+        } else {
+            $cart[$key]['subtotal'] = $cantidad * $cart[$key]['precio_unitario'];
+        }
 
         session()->put('cart', $cart);
 

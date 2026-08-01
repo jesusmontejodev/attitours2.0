@@ -1,9 +1,8 @@
 <?php
 /**
  * @file Reserva.php
- * @description Modelo Eloquent para la cabecera de las reservas. Incluye soporte para
- *              QR único de asistencia: generación de token HMAC, URL del QR y URL de validación.
- * @date 2026-06-10
+ * @description Modelo Eloquent para la cabecera de las reservas. Incluye soporte para saldos pendientes por pago fraccionado (tours privados) y QR único de asistencia.
+ * @date 2026-07-31
  * @author Antigravity
  */
 
@@ -27,6 +26,8 @@ class Reserva extends Model
         'correo_cliente',
         'telefono_cliente',
         'precio_total_usd',
+        'monto_pagado_online_usd',
+        'monto_pendiente_destino_usd',
         'comision_total_usd',
         'estado',
         'fecha_reserva',
@@ -40,11 +41,13 @@ class Reserva extends Model
     ];
 
     protected $casts = [
-        'precio_total_usd'         => 'float',
-        'comision_total_usd'       => 'float',
-        'fecha_reserva'            => 'datetime',
-        'asistencia_confirmada'    => 'boolean',
-        'asistencia_confirmada_at' => 'datetime',
+        'precio_total_usd'            => 'float',
+        'monto_pagado_online_usd'     => 'float',
+        'monto_pendiente_destino_usd' => 'float',
+        'comision_total_usd'          => 'float',
+        'fecha_reserva'               => 'datetime',
+        'asistencia_confirmada'       => 'boolean',
+        'asistencia_confirmada_at'    => 'datetime',
     ];
 
     // ─── Relaciones ──────────────────────────────────────────────────────────

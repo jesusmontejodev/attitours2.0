@@ -2,8 +2,9 @@
 <!--
  * @file reserva_confirmada.blade.php
  * @description Plantilla HTML del correo de confirmación de reserva. Incluye el ticket
- *              virtual con todos los detalles del tour y el QR único de asistencia.
- * @date 2026-06-10
+ *              virtual con todos los detalles del tour, el QR único de asistencia y la
+ *              sección de credenciales si se le ha creado una cuenta.
+ * @date 2026-07-31
  * @author Antigravity
 -->
 <html lang="es">
@@ -154,7 +155,11 @@
                 <div class="ticket-label">Código de Reserva</div>
                 <div class="ticket-code">{{ $reserva->ticket_codigo }}</div>
             </div>
-            <span class="badge-pagada">✓ Pagada</span>
+            @if($reserva->monto_pendiente_destino_usd > 0)
+                <span class="badge-pagada" style="background: rgba(249,115,22,0.15); color: #f97316; border: 1px solid rgba(249,115,22,0.3);">✓ Anticipo Pagado</span>
+            @else
+                <span class="badge-pagada">✓ Pagada</span>
+            @endif
         </div>
 
         {{-- Cuerpo --}}
@@ -199,10 +204,43 @@
             @endforeach
 
             {{-- Total --}}
-            <div class="total-row">
-                <div class="total-label">Total Pagado</div>
-                <div class="total-amount">${{ number_format($reserva->precio_total_usd, 2) }} <span style="font-size:12px;color:#64748b;font-weight:500;">USD</span></div>
+            @if($reserva->monto_pendiente_destino_usd > 0)
+                <div class="total-row" style="padding-bottom: 8px; border-bottom: 1px solid #1e293b; display: flex; justify-content: space-between; align-items: center;">
+                    <div class="total-label" style="font-size: 11px;">Monto total del viaje</div>
+                    <div class="total-amount" style="font-size: 16px; color: #fff;">${{ number_format($reserva->precio_total_usd, 2) }} <span style="font-size:10px;color:#64748b;">USD</span></div>
+                </div>
+                <div class="total-row" style="padding-top: 8px; padding-bottom: 8px; border-bottom: 1px solid #1e293b; display: flex; justify-content: space-between; align-items: center;">
+                    <div class="total-label" style="font-size: 11px; color: #f97316;">Anticipo pagado online</div>
+                    <div class="total-amount" style="font-size: 18px; color: #22d3ee;">${{ number_format($reserva->monto_pagado_online_usd, 2) }} <span style="font-size:10px;color:#64748b;">USD</span></div>
+                </div>
+                <div class="total-row" style="padding-top: 8px; display: flex; justify-content: space-between; align-items: center;">
+                    <div class="total-label" style="font-size: 11px; color: #a5b4fc;">Restante a pagar en destino</div>
+                    <div class="total-amount" style="font-size: 16px; color: #818cf8;">${{ number_format($reserva->monto_pendiente_destino_usd, 2) }} <span style="font-size:10px;color:#64748b;">USD</span></div>
+                </div>
+            @else
+                <div class="total-row" style="display: flex; justify-content: space-between; align-items: center; padding: 16px 0 0;">
+                    <div class="total-label">Total Pagado</div>
+                    <div class="total-amount">${{ number_format($reserva->precio_total_usd, 2) }} <span style="font-size:12px;color:#64748b;font-weight:500;">USD</span></div>
+                </div>
+            @endif
+
+            @if(isset($tempPassword) && $tempPassword)
+            <div style="background: rgba(34,211,238,0.08); border: 1px solid rgba(34,211,238,0.25); border-radius: 16px; padding: 20px; margin-top: 24px; text-align: left;">
+                <h3 style="font-size: 13px; font-weight: 800; color: #fff; margin-bottom: 8px;">
+                    🔑 ¡Hemos creado tu cuenta de usuario!
+                </h3>
+                <p style="font-size: 11px; color: #94a3b8; line-height: 1.6; margin-bottom: 12px;">
+                    Para que puedas consultar tus tickets virtuales y gestionar esta y futuras reservas de forma rápida, te hemos creado un perfil automáticamente con los siguientes datos de acceso:
+                </p>
+                <div style="background: #1e293b; border-radius: 10px; padding: 12px 16px; border: 1px solid #334155;">
+                    <p style="font-size: 11px; color: #94a3b8; margin: 0 0 6px 0;"><strong>Usuario:</strong> <span style="color: #22d3ee; font-family: monospace;">{{ $reserva->correo_cliente }}</span></p>
+                    <p style="font-size: 11px; color: #94a3b8; margin: 0;"><strong>Contraseña Temporal:</strong> <span style="color: #818cf8; font-family: monospace; font-weight: bold; letter-spacing: 1px;">{{ $tempPassword }}</span></p>
+                </div>
+                <p style="font-size: 9px; color: #64748b; margin-top: 10px; line-height: 1.4;">
+                    * Te sugerimos iniciar sesión y cambiar esta contraseña en tu panel de control para mayor seguridad.
+                </p>
             </div>
+            @endif
 
             {{-- Divisor decorativo --}}
             <div class="divider">

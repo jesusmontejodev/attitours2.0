@@ -209,13 +209,27 @@
                             <div class="flex-1 flex flex-col justify-between gap-3 min-w-0">
                                 <div>
                                     <div class="flex items-start justify-between gap-2">
-                                        <h3 class="text-sm font-black text-slate-800 leading-snug">
-                                            @if($tourModel)
-                                                {{ is_array($tourModel->nombre) ? ($tourModel->nombre['es'] ?? reset($tourModel->nombre)) : $tourModel->nombre }}
+                                        <div>
+                                            <h3 class="text-sm font-black text-slate-800 leading-snug">
+                                                @if($tourModel)
+                                                    {{ is_array($tourModel->nombre) ? ($tourModel->nombre['es'] ?? reset($tourModel->nombre)) : $tourModel->nombre }}
+                                                @else
+                                                    Reserva #{{ $reserva->id }}
+                                                @endif
+                                            </h3>
+                                            @php
+                                                $contienePrivado = $reserva->detalles->contains('es_privado', true);
+                                            @endphp
+                                            @if($contienePrivado)
+                                                <span class="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded bg-brand-orange/10 text-brand-orange border border-brand-orange/20 text-[9px] font-black uppercase tracking-wider">
+                                                    🔒 Tour Privado Exclusivo
+                                                </span>
                                             @else
-                                                Reserva #{{ $reserva->id }}
+                                                <span class="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded bg-brand-teal/10 text-brand-teal border border-brand-teal/20 text-[9px] font-black uppercase tracking-wider">
+                                                    👥 Tour Compartido
+                                                </span>
                                             @endif
-                                        </h3>
+                                        </div>
                                         <span class="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
                                             ✓ {{ $reserva->estado }}
                                         </span>
@@ -227,18 +241,33 @@
                                             📅 {{ \Carbon\Carbon::parse($primerDetalle->fecha_seleccionada)->locale('es')->translatedFormat('d M, Y') }}
                                         </span>
                                         @if($primerDetalle->horario)
-                                        <span>⏰ {{ $primerDetalle->horario }}</span>
+                                        <span>⏰ {{ $primerDetalle->horario }} hrs</span>
                                         @endif
                                         <span>👤 {{ $primerDetalle->cantidad_personas }} {{ $primerDetalle->cantidad_personas == 1 ? 'persona' : 'personas' }}</span>
                                     </div>
                                     @endif
                                 </div>
 
-                                <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
-                                    <div>
-                                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Total pagado</span>
-                                        <span class="text-sm font-black text-brand-teal">${{ number_format($reserva->precio_total_usd, 2) }} USD</span>
-                                    </div>
+                                <div class="pt-3 border-t border-slate-100 flex flex-wrap gap-4 items-center justify-between">
+                                    @if($contienePrivado && $reserva->monto_pendiente_destino_usd > 0)
+                                        <div>
+                                            <span class="text-[9px] font-bold uppercase tracking-wider text-slate-400 block">Total del viaje</span>
+                                            <span class="text-xs font-bold text-slate-700">${{ number_format($reserva->precio_total_usd, 2) }} USD</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-[9px] font-bold uppercase tracking-wider text-brand-orange block">Pagado online hoy</span>
+                                            <span class="text-xs font-black text-brand-teal">${{ number_format($reserva->monto_pagado_online_usd, 2) }} USD</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-[9px] font-black uppercase tracking-wider text-slate-500 block">Restante en destino</span>
+                                            <span class="text-sm font-black text-slate-800 bg-slate-100 px-2 py-0.5 rounded">${{ number_format($reserva->monto_pendiente_destino_usd, 2) }} USD</span>
+                                        </div>
+                                    @else
+                                        <div>
+                                            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Total pagado</span>
+                                            <span class="text-sm font-black text-brand-teal">${{ number_format($reserva->precio_total_usd, 2) }} USD</span>
+                                        </div>
+                                    @endif
                                 </div>
                             </div>
 

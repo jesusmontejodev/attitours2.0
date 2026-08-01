@@ -1,8 +1,8 @@
 <?php
 /**
  * @file Tour.php
- * @description Modelo Eloquent para la tabla de tours, con soporte para atributos localizados en formato JSON, itinerarios dinámicos e inclusiones/exclusiones.
- * @date 2026-06-09
+ * @description Modelo Eloquent para la tabla de tours, con soporte para atributos localizados en formato JSON, itinerarios dinámicos, inclusiones/exclusiones y tarifas de tours privados.
+ * @date 2026-07-31
  * @author Antigravity
  */
 
@@ -33,6 +33,9 @@ class Tour extends Model
         'punto_encuentro',
         'pais',
         'precio_base_usd',
+        'tipo_modalidad',
+        'tarifas_privadas',
+        'anticipo_porcentaje',
         'duracion',
         'imagen_destacada',
         'galeria',
@@ -53,6 +56,8 @@ class Tour extends Model
         'galeria_experiencias' => 'array',
         'tags' => 'array',
         'precio_base_usd' => 'float',
+        'tarifas_privadas' => 'array',
+        'anticipo_porcentaje' => 'integer',
         'cupo_maximo' => 'integer',
         'horarios' => 'array',
         'itinerario' => 'array',
@@ -143,5 +148,41 @@ class Tour extends Model
 
         // Retornar en el locale actual, o fallback al español, o el primer idioma disponible
         return $arrayData[$locale] ?? $arrayData['es'] ?? reset($arrayData) ?? '';
+    }
+
+    /**
+     * Calcula el precio total de un tour privado según el número de personas.
+     */
+    public function obtenerPrecioPrivado(int $pax): float
+    {
+        if (is_array($this->tarifas_privadas)) {
+            foreach ($this->tarifas_privadas as $tarifa) {
+                $min = (int) ($tarifa['min_pax'] ?? 0);
+                $max = (int) ($tarifa['max_pax'] ?? 999);
+                if ($pax >= $min && $pax <= $max) {
+                    return (float) ($tarifa['precio_total_usd'] ?? $this->precio_base_usd);
+                }
+            }
+        }
+
+        // Fallback: si no hay tarifas privadas o no coincide con ninguna escala,
+        // cobramos el precio base por pasajero.
+        return (float) ($this->precio_base_usd * $pax);
+    }
+
+    /**
+     * Determina si el tour admite la modalidad compartida.
+     */
+    public function esModalidadCompartida(): bool
+    {
+        return in_array($this->tipo_modalidad, ['compartido', 'ambos']);
+    }
+
+    /**
+     * Determina si el tour admite la modalidad privada.
+     */
+    public function esModalidadPrivada(): bool
+    {
+        return in_array($this->tipo_modalidad, ['privado', 'ambos']);
     }
 }
