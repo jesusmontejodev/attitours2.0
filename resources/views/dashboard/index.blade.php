@@ -76,9 +76,11 @@
             // Si hay errores de validación, inferir la pestaña según el campo
             if (!$initialTab && $errors->any()) {
                 $allFields = $errors->keys();
+                $apiFields = ['base_url','uniqid_empresa','modo'];
                 $provFields = ['nombre_empresa','descripcion','rfc','correo','representante_nombre','representante_telefono','comision_porcentaje','password','foto_url'];
                 $tourFields = ['titulo','descripcion_tour','duracion','precio_adulto','precio_nino','destino','proveedor_id'];
-                if (array_intersect($allFields, $provFields)) $initialTab = 'proveedores';
+                if (array_intersect($allFields, $apiFields)) $initialTab = 'apis';
+                elseif (array_intersect($allFields, $provFields)) $initialTab = 'proveedores';
                 elseif (array_intersect($allFields, $tourFields)) $initialTab = 'tours';
             }
         @endphp
@@ -97,6 +99,12 @@
                 </button>
                 <button onclick="switchTab('usuarios')" id="tab-btn-usuarios" class="tab-btn px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-900 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer">
                     👥 Usuarios
+                </button>
+                <button onclick="switchTab('apis')" id="tab-btn-apis" class="tab-btn px-6 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-900 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer">
+                    🔌 APIs
+                    @if($cambiosPrecioPendientes->count() > 0)
+                        <span class="ml-1 inline-flex items-center justify-center h-4 min-w-4 px-1 rounded-full bg-rose-500 text-white text-[9px] font-black">{{ $cambiosPrecioPendientes->count() }}</span>
+                    @endif
                 </button>
             </div>
         @endif
@@ -888,6 +896,346 @@
                 </div>
             </div>
 
+            <!-- PESTAÑA: CONEXIONES API (Solo Administrador) -->
+            <div id="tab-content-apis" class="tab-pane hidden animate-fade-in">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+                    <!-- Formulario de creación de Conexión API -->
+                    <div class="lg:col-span-1 p-6 rounded-3xl border border-slate-200 bg-white shadow-md">
+                        <h2 class="text-xs font-black uppercase tracking-widest text-brand-teal border-b border-slate-200 pb-3 mb-4">
+                            Nueva Conexión API
+                        </h2>
+
+                        <form action="{{ route('dashboard.api.store') }}" method="POST" class="flex flex-col gap-4">
+                            @csrf
+
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Nombre de la Conexión</label>
+                                <input type="text" name="nombre" required placeholder="Ej. Unique Reservaciones — Sandbox" class="w-full h-9 rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs text-slate-700 placeholder-slate-400 focus:border-brand-teal focus:bg-white focus:ring-0 focus:outline-none">
+                            </div>
+
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">URL Base</label>
+                                <input type="url" name="base_url" required placeholder="https://apiv1.uniqcloud.com/rsrv" class="w-full h-9 rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs text-slate-700 placeholder-slate-400 focus:border-brand-teal focus:bg-white">
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="flex flex-col gap-1.5">
+                                    <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Usuario</label>
+                                    <input type="text" name="usuario" required class="w-full h-9 rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                                </div>
+                                <div class="flex flex-col gap-1.5">
+                                    <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Contraseña</label>
+                                    <input type="password" name="password" required class="w-full h-9 rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">ID de Empresa (uniqid_empresa)</label>
+                                <input type="text" name="uniqid_empresa" required class="w-full h-9 rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="flex flex-col gap-1.5">
+                                    <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Proveedor Asociado</label>
+                                    <select name="proveedor_id" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal cursor-pointer">
+                                        <option value="">-- Ninguno --</option>
+                                        @foreach($proveedores as $prov)
+                                            <option value="{{ $prov->id }}">{{ $prov->nombre_empresa }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="flex flex-col gap-1.5">
+                                    <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Modo</label>
+                                    <select name="modo" required class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal cursor-pointer">
+                                        <option value="sandbox">Sandbox</option>
+                                        <option value="produccion" @if(config('services.tours_api.forzar_sandbox', true)) disabled @endif>Producción</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            @if(config('services.tours_api.forzar_sandbox', true))
+                                <p class="text-[9px] text-amber-600 font-semibold leading-relaxed">🔒 El modo Producción está bloqueado a nivel de sistema (<code>TOURS_API_FORZAR_SANDBOX</code>). Solo se pueden crear conexiones en Sandbox por ahora.</p>
+                            @endif
+
+                            <label class="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-slate-500 cursor-pointer">
+                                <input type="checkbox" name="activa" value="1" checked class="rounded border-slate-300 text-brand-teal focus:ring-brand-teal">
+                                Conexión activa
+                            </label>
+
+                            <button type="submit" class="w-full h-10 inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-brand-teal to-brand-teal-hover text-xs font-bold uppercase text-white shadow-lg cursor-pointer">
+                                Guardar Conexión
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Lista de Conexiones API Configuradas -->
+                    <div class="lg:col-span-2 p-6 rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                        <h2 class="text-xs font-black uppercase tracking-widest text-slate-800 border-b border-slate-200 pb-3 mb-5">
+                            Conexiones Configuradas
+                        </h2>
+
+                        @if($apiConexiones->isEmpty())
+                            <p class="text-xs text-slate-400 italic py-10 text-center">Todavía no hay conexiones API configuradas.</p>
+                        @else
+                            <div class="flex flex-col gap-3">
+                                @foreach($apiConexiones as $conexion)
+                                    <div class="p-4 rounded-2xl border border-slate-200 bg-slate-50/60 flex items-center justify-between gap-4">
+                                        <div class="min-w-0">
+                                            <div class="flex items-center gap-2 flex-wrap">
+                                                <h4 class="font-bold text-slate-800 text-xs truncate">{{ $conexion->nombre }}</h4>
+                                                @if($conexion->modo === 'sandbox')
+                                                    <span class="px-1.5 py-0.5 rounded bg-cyan-50 text-brand-teal text-[8px] font-black uppercase tracking-wider border border-brand-teal/20">SANDBOX</span>
+                                                @else
+                                                    <span class="px-1.5 py-0.5 rounded bg-rose-50 text-rose-600 text-[8px] font-black uppercase tracking-wider border border-rose-200">PRODUCCIÓN</span>
+                                                @endif
+                                                @if(!$conexion->activa)
+                                                    <span class="px-1.5 py-0.5 rounded bg-slate-200 text-slate-500 text-[8px] font-black uppercase tracking-wider">INACTIVA</span>
+                                                @endif
+                                            </div>
+                                            <p class="text-[10px] text-slate-500 mt-0.5 truncate">{{ $conexion->base_url }}</p>
+                                            <p class="text-[9px] text-slate-400 mt-0.5">
+                                                Proveedor: {{ $conexion->proveedor->nombre_empresa ?? '— Sin asignar —' }} ·
+                                                {{ $conexion->tours_count }} tour(s) publicado(s) ·
+                                                Último sync: {{ $conexion->ultimo_sync_at ? $conexion->ultimo_sync_at->diffForHumans() : 'Nunca' }}
+                                            </p>
+                                        </div>
+                                        <div class="flex items-center gap-2 flex-shrink-0">
+                                            <form action="{{ route('dashboard.api.sync', $conexion->id) }}" method="POST" onsubmit="this.querySelector('button').disabled = true; this.querySelector('button').textContent = 'Sincronizando…';">
+                                                @csrf
+                                                <button type="submit" class="px-2.5 py-1 rounded-md bg-brand-orange/10 hover:bg-brand-orange border border-brand-orange/30 text-[10px] font-bold uppercase text-brand-orange hover:text-white transition-colors cursor-pointer whitespace-nowrap">
+                                                    🔄 Actualizar Catálogo
+                                                </button>
+                                            </form>
+                                            <button type="button"
+                                                    onclick="openEditApiConexionModal({{ $conexion->id }}, '{{ addslashes($conexion->nombre) }}', '{{ $conexion->proveedor_id }}', '{{ addslashes($conexion->base_url) }}', '{{ addslashes($conexion->usuario) }}', '{{ addslashes($conexion->uniqid_empresa) }}', '{{ $conexion->modo }}', {{ $conexion->activa ? 'true' : 'false' }})"
+                                                    class="px-2.5 py-1 rounded-md bg-brand-teal/10 hover:bg-brand-teal border border-brand-teal/30 text-[10px] font-bold uppercase text-brand-teal hover:text-white transition-colors cursor-pointer">
+                                                Editar
+                                            </button>
+                                            <button type="button"
+                                                    onclick="confirmDeleteApiConexion({{ $conexion->id }}, '{{ addslashes($conexion->nombre) }}')"
+                                                    class="px-2.5 py-1 rounded-md bg-rose-50 hover:bg-rose-500 border border-rose-200 text-[10px] font-bold uppercase text-rose-600 hover:text-white transition-colors cursor-pointer">
+                                                Eliminar
+                                            </button>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
+                    </div>
+                </div>
+
+                <!-- Cambios de Precio Pendientes de Aprobación -->
+                @if($cambiosPrecioPendientes->count() > 0)
+                    <div class="mt-8 p-6 rounded-3xl border border-amber-200 bg-amber-50/50 shadow-sm">
+                        <h2 class="text-xs font-black uppercase tracking-widest text-amber-700 border-b border-amber-200 pb-3 mb-5">
+                            💰 Cambios de Precio Pendientes de Aprobación
+                        </h2>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            @foreach($cambiosPrecioPendientes as $cambio)
+                                <div class="p-4 rounded-2xl border border-amber-200 bg-white flex flex-col gap-2">
+                                    <h4 class="font-bold text-slate-800 text-xs truncate">{{ $cambio->tour->nombre ?? $cambio->tour_id }}</h4>
+                                    <p class="text-[9px] text-slate-500">{{ $cambio->apiConexion->nombre }}</p>
+                                    <div class="text-[10px] text-slate-600 leading-relaxed">
+                                        <div>Precio de venta actual: <strong>${{ number_format($cambio->precio_venta_actual, 2) }}</strong></div>
+                                        <div>Referencia anterior: ${{ $cambio->precio_referencia_anterior !== null ? number_format($cambio->precio_referencia_anterior, 2) : '—' }}</div>
+                                        <div class="text-amber-700 font-bold">Nuevo precio detectado: ${{ number_format($cambio->precio_referencia_nuevo, 2) }}</div>
+                                    </div>
+                                    <div class="flex gap-2 mt-1">
+                                        <button type="button" onclick="resolverCambioPrecio({{ $cambio->id }}, 'aprobar')" class="flex-1 h-8 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-[10px] font-black uppercase text-white transition-colors cursor-pointer">
+                                            Aprobar
+                                        </button>
+                                        <button type="button" onclick="resolverCambioPrecio({{ $cambio->id }}, 'rechazar')" class="flex-1 h-8 rounded-lg border border-slate-200 hover:bg-slate-100 text-[10px] font-black uppercase text-slate-500 transition-colors cursor-pointer">
+                                            Rechazar
+                                        </button>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+
+                <!-- Tours Importados / Pendientes de Revisión -->
+                <div class="mt-8 p-6 rounded-3xl border border-slate-200 bg-white shadow-sm">
+                    <h2 class="text-xs font-black uppercase tracking-widest text-slate-800 border-b border-slate-200 pb-3 mb-5">
+                        📥 Tours Importados / Pendientes de Revisión
+                    </h2>
+
+                    @if($toursImportadosPendientes->isEmpty())
+                        <p class="text-xs text-slate-400 italic py-10 text-center">No hay tours pendientes de revisión. Usa "Actualizar Catálogo" en una conexión para importar su catálogo.</p>
+                    @else
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            @foreach($toursImportadosPendientes as $importado)
+                                <div class="rounded-2xl border border-slate-200 overflow-hidden bg-slate-50/40 flex flex-col">
+                                    <div class="h-28 bg-slate-100 overflow-hidden">
+                                        <img src="{{ $importado->imagen_preview }}" alt="{{ $importado->titulo_preview }}" class="w-full h-full object-cover" onerror="this.style.display='none'">
+                                    </div>
+                                    <div class="p-3 flex flex-col gap-1.5 flex-grow">
+                                        <h4 class="font-bold text-slate-800 text-xs truncate" title="{{ $importado->titulo_preview }}">{{ $importado->titulo_preview ?: $importado->external_id }}</h4>
+                                        <p class="text-[9px] text-slate-500 truncate">{{ $importado->apiConexion->nombre }} · {{ $importado->locacion_externa_id }}</p>
+                                        @if($importado->precio_preview !== null)
+                                            <p class="text-[10px] font-black text-brand-teal">${{ number_format($importado->precio_preview, 2) }}</p>
+                                        @endif
+                                        <div class="flex gap-2 mt-auto pt-2">
+                                            <button type="button" onclick="descartarImportado({{ $importado->id }}, '{{ addslashes($importado->titulo_preview ?: $importado->external_id) }}')" class="flex-1 h-7 rounded-lg bg-rose-50 hover:bg-rose-500 border border-rose-200 text-[9px] font-bold uppercase text-rose-600 hover:text-white transition-colors cursor-pointer">
+                                                Descartar
+                                            </button>
+                                            <button type="button" onclick="openCreateTourModalFromImport({{ $importado->id }})" class="flex-1 h-7 rounded-lg bg-brand-teal/10 hover:bg-brand-teal border border-brand-teal/30 text-[9px] font-bold uppercase text-brand-teal hover:text-white transition-colors cursor-pointer">
+                                                Completar y Publicar
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+
+                <!-- Historial de Notificaciones a la API -->
+                <div class="mt-8 p-6 rounded-3xl border border-slate-200 bg-white shadow-sm">
+                    <div class="flex items-center justify-between gap-4 border-b border-slate-200 pb-3 mb-5 flex-wrap">
+                        <h2 class="text-xs font-black uppercase tracking-widest text-slate-800">
+                            📨 Historial de Notificaciones a la API
+                        </h2>
+                        <div class="flex items-center gap-2">
+                            <input type="text" id="notif-api-search" oninput="filtrarNotificacionesApi()" placeholder="Buscar por tour o ticket…" class="h-8 w-48 rounded-lg border border-slate-200 bg-slate-50 px-2.5 text-[10px] text-slate-700 placeholder-slate-400 focus:border-brand-teal focus:outline-none">
+                            <select id="notif-api-estado-filtro" onchange="filtrarNotificacionesApi()" class="h-8 rounded-lg border border-slate-200 bg-slate-50 px-2 text-[10px] text-slate-700 focus:border-brand-teal cursor-pointer">
+                                <option value="">Todos los estados</option>
+                                <option value="enviado">Enviado</option>
+                                <option value="fallido">Fallido</option>
+                                <option value="pendiente">Pendiente</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    @if($notificacionesApi->isEmpty())
+                        <p class="text-xs text-slate-400 italic py-10 text-center">Todavía no se ha notificado ninguna reserva a una API externa. Esto ocurre automáticamente cuando se paga una reserva de un tour de origen "api_externa".</p>
+                    @else
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-[11px] border-collapse">
+                                <thead>
+                                    <tr class="border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider bg-slate-50/80">
+                                        <th class="py-2.5 px-2">Tour</th>
+                                        <th class="py-2.5 px-2">Ticket / Cliente</th>
+                                        <th class="py-2.5 px-2">Conexión</th>
+                                        <th class="py-2.5 px-2 text-center">Estado</th>
+                                        <th class="py-2.5 px-2 text-center">Intentos</th>
+                                        <th class="py-2.5 px-2">Folio Unique / Error</th>
+                                        <th class="py-2.5 px-2">Fecha</th>
+                                        <th class="py-2.5 px-2 text-center">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100" id="notif-api-tbody">
+                                    @foreach($notificacionesApi as $notif)
+                                        <tr class="hover:bg-slate-50 transition-colors text-slate-700 notif-api-row" data-estado="{{ $notif->estado }}" data-busqueda="{{ strtolower(($notif->tour->nombre ?? $notif->tour_id) . ' ' . ($notif->reserva->ticket_codigo ?? '')) }}">
+                                            <td class="py-2.5 px-2 font-bold text-slate-800">{{ $notif->tour->nombre ?? $notif->tour_id }}</td>
+                                            <td class="py-2.5 px-2">
+                                                <div class="font-mono text-[10px]">{{ $notif->reserva->ticket_codigo ?? '—' }}</div>
+                                                <div class="text-[9px] text-slate-500">{{ $notif->reserva->nombre_cliente ?? '' }}</div>
+                                            </td>
+                                            <td class="py-2.5 px-2 text-[10px] text-slate-500">{{ $notif->apiConexion->nombre ?? '—' }}</td>
+                                            <td class="py-2.5 px-2 text-center">
+                                                @if($notif->estado === 'enviado')
+                                                    <span class="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-600 text-[8px] font-black uppercase tracking-wider border border-emerald-200">ENVIADO</span>
+                                                @elseif($notif->estado === 'fallido')
+                                                    <span class="px-1.5 py-0.5 rounded bg-rose-50 text-rose-600 text-[8px] font-black uppercase tracking-wider border border-rose-200">FALLIDO</span>
+                                                @else
+                                                    <span class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 text-[8px] font-black uppercase tracking-wider border border-slate-200">PENDIENTE</span>
+                                                @endif
+                                            </td>
+                                            <td class="py-2.5 px-2 text-center font-bold">{{ $notif->intentos }}</td>
+                                            <td class="py-2.5 px-2 max-w-[220px]">
+                                                @if($notif->estado === 'enviado')
+                                                    <span class="font-mono text-[10px] text-emerald-700">{{ $notif->unique_confirma ?? '—' }}</span>
+                                                @else
+                                                    <span class="text-[10px] text-rose-600 truncate block" title="{{ $notif->respuesta_body }}">{{ \Illuminate\Support\Str::limit($notif->respuesta_body, 60) ?: '—' }}</span>
+                                                @endif
+                                            </td>
+                                            <td class="py-2.5 px-2 text-[10px] text-slate-500">{{ $notif->updated_at->format('d M Y, H:i') }}</td>
+                                            <td class="py-2.5 px-2 text-center">
+                                                @if($notif->estado === 'fallido')
+                                                    <button type="button" onclick="reintentarNotificacionApi({{ $notif->id }})" class="px-2 py-1 rounded bg-brand-orange/10 hover:bg-brand-orange border border-brand-orange/20 text-[9px] font-bold uppercase text-brand-orange hover:text-white transition-colors cursor-pointer">
+                                                        🔄 Reintentar
+                                                    </button>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                            <p id="notif-api-sin-resultados" class="hidden text-xs text-slate-400 italic py-8 text-center">No hay notificaciones que coincidan con el filtro.</p>
+                        </div>
+                    @endif
+                </div>
+            </div>
+
+            <!-- MODAL: EDITAR CONEXIÓN API -->
+            <div id="edit-api-conexion-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-white/60 backdrop-blur-xs transition-all duration-200">
+                <div class="w-full max-w-lg p-6 rounded-3xl border border-slate-200 bg-white shadow-xl relative max-h-[90vh] overflow-y-auto">
+                    <button onclick="closeEditApiConexionModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-800 transition-colors cursor-pointer">✕</button>
+
+                    <h3 class="text-xs font-black uppercase tracking-widest text-brand-teal mb-4 border-b border-slate-200 pb-2">Editar Conexión API</h3>
+
+                    <form id="edit-api-conexion-form" method="POST" class="flex flex-col gap-4">
+                        @csrf
+
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Nombre de la Conexión</label>
+                            <input type="text" name="nombre" id="edit-api-nombre" required class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                        </div>
+
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">URL Base</label>
+                            <input type="url" name="base_url" id="edit-api-base-url" required class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Usuario</label>
+                                <input type="text" name="usuario" id="edit-api-usuario" required class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                            </div>
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Nueva Contraseña</label>
+                                <input type="password" name="password" id="edit-api-password" placeholder="Dejar vacío para no cambiarla" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 placeholder-slate-400 focus:border-brand-teal focus:bg-white">
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">ID de Empresa (uniqid_empresa)</label>
+                            <input type="text" name="uniqid_empresa" id="edit-api-uniqid" required class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Proveedor Asociado</label>
+                                <select name="proveedor_id" id="edit-api-proveedor" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal cursor-pointer">
+                                    <option value="">-- Ninguno --</option>
+                                    @foreach($proveedores as $prov)
+                                        <option value="{{ $prov->id }}">{{ $prov->nombre_empresa }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Modo</label>
+                                <select name="modo" id="edit-api-modo" required class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal cursor-pointer">
+                                    <option value="sandbox">Sandbox</option>
+                                    <option value="produccion" @if(config('services.tours_api.forzar_sandbox', true)) disabled @endif>Producción</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <label class="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-slate-500 cursor-pointer">
+                            <input type="checkbox" name="activa" id="edit-api-activa" value="1" class="rounded border-slate-300 text-brand-teal focus:ring-brand-teal">
+                            Conexión activa
+                        </label>
+
+                        <button type="submit" class="w-full h-10 inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-brand-teal to-brand-teal-hover text-xs font-bold uppercase text-white shadow-lg cursor-pointer transition-all mt-2">
+                            Guardar Cambios
+                        </button>
+                    </form>
+                </div>
+            </div>
+
             <!-- MODAL: CAMBIAR ROL DE USUARIO -->
             <div id="role-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-white/60 backdrop-blur-xs transition-all duration-200">
                 <div class="w-full max-w-sm p-6 rounded-3xl border border-slate-200 bg-white shadow-xl relative max-h-[90vh] overflow-y-auto">
@@ -1021,9 +1369,18 @@
                         Crear Nuevo Tour
                     </h3>
 
-                    <form action="{{ route('dashboard.tour') }}" method="POST" enctype="multipart/form-data" class="flex flex-col gap-5">
+                    <form id="create-tour-form" action="{{ route('dashboard.tour') }}" method="POST" enctype="multipart/form-data" class="flex flex-col gap-5">
                         @csrf
-                        
+                        <input type="hidden" name="tour_importado_id" id="create-tour-importado-id">
+                        <input type="hidden" name="imagen_destacada_url" id="create-tour-imagen-url">
+
+                        <!-- Banner: publicando desde una API externa -->
+                        <div id="create-tour-import-banner" class="hidden p-3 rounded-xl border border-brand-teal/30 bg-brand-teal/5 text-[10px] text-slate-700">
+                            📥 Completando tour importado de <strong id="create-tour-import-source"></strong> —
+                            <span id="create-tour-import-price"></span>.
+                            Los campos que la API no trajo quedan vacíos: complétalos antes de guardar.
+                        </div>
+
                         <!-- Proveedor Asignado -->
                         <div class="flex flex-col gap-1.5">
                             <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Asignar Operador (Proveedor)</label>
@@ -2075,6 +2432,108 @@
         }
 
         // ========================================================
+        // MODAL: EDITAR CONEXIÓN API
+        // ========================================================
+        function openEditApiConexionModal(id, nombre, proveedorId, baseUrl, usuario, uniqidEmpresa, modo, activa) {
+            const modal = document.getElementById('edit-api-conexion-modal');
+            const form = document.getElementById('edit-api-conexion-form');
+
+            document.getElementById('edit-api-nombre').value = nombre;
+            document.getElementById('edit-api-base-url').value = baseUrl;
+            document.getElementById('edit-api-usuario').value = usuario;
+            document.getElementById('edit-api-password').value = '';
+            document.getElementById('edit-api-uniqid').value = uniqidEmpresa;
+            document.getElementById('edit-api-proveedor').value = proveedorId || '';
+            document.getElementById('edit-api-modo').value = modo;
+            document.getElementById('edit-api-activa').checked = !!activa;
+
+            form.action = `/dashboard/api-conexiones/${id}/update`;
+            modal.classList.remove('hidden');
+        }
+
+        function closeEditApiConexionModal() {
+            document.getElementById('edit-api-conexion-modal').classList.add('hidden');
+        }
+
+        // ========================================================
+        // BANDEJA DE TOURS IMPORTADOS Y CAMBIOS DE PRECIO
+        // ========================================================
+        function descartarImportado(id, nombre) {
+            if (!confirm(`¿Descartar el tour importado "${nombre}"? No volverá a aparecer en esta bandeja.`)) return;
+
+            fetch(`/dashboard/api-conexiones/importados/${id}/descartar`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': window.Laravel.csrfToken }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('✅ ' + data.message, 'teal');
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
+                    showToast('❌ ' + data.message, 'rose');
+                }
+            })
+            .catch(() => showToast('❌ Error de conexión. Intenta de nuevo.', 'rose'));
+        }
+
+        function resolverCambioPrecio(id, accion) {
+            const verbo = accion === 'aprobar' ? 'aprobar' : 'rechazar';
+            if (!confirm(`¿Seguro que quieres ${verbo} este cambio de precio?`)) return;
+
+            fetch(`/dashboard/api-conexiones/cambios-precio/${id}/${accion}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': window.Laravel.csrfToken }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('✅ ' + data.message, 'teal');
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
+                    showToast('❌ ' + data.message, 'rose');
+                }
+            })
+            .catch(() => showToast('❌ Error de conexión. Intenta de nuevo.', 'rose'));
+        }
+
+        function reintentarNotificacionApi(id) {
+            if (!confirm('¿Reintentar esta notificación a la API externa? Se encolará de nuevo.')) return;
+
+            fetch(`/dashboard/api-conexiones/notificaciones/${id}/reintentar`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': window.Laravel.csrfToken }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('✅ ' + data.message, 'teal');
+                } else {
+                    showToast('❌ ' + data.message, 'rose');
+                }
+            })
+            .catch(() => showToast('❌ Error de conexión. Intenta de nuevo.', 'rose'));
+        }
+
+        function filtrarNotificacionesApi() {
+            const query = document.getElementById('notif-api-search').value.toLowerCase().trim();
+            const estadoFiltro = document.getElementById('notif-api-estado-filtro').value;
+            const filas = document.querySelectorAll('.notif-api-row');
+            let visibles = 0;
+
+            filas.forEach(fila => {
+                const coincideTexto = !query || fila.dataset.busqueda.includes(query);
+                const coincideEstado = !estadoFiltro || fila.dataset.estado === estadoFiltro;
+                const mostrar = coincideTexto && coincideEstado;
+                fila.classList.toggle('hidden', !mostrar);
+                if (mostrar) visibles++;
+            });
+
+            const sinResultados = document.getElementById('notif-api-sin-resultados');
+            if (sinResultados) sinResultados.classList.toggle('hidden', visibles > 0);
+        }
+
+        // ========================================================
         // LÓGICA DE CALENDARIO DE DISPONIBILIDAD ESTILO AIRBNB
         // ========================================================
         
@@ -3049,12 +3508,60 @@
         function openCreateTourModal() {
             const modal = document.getElementById('create-tour-modal');
             if (modal) {
+                const form = document.getElementById('create-tour-form');
+                form.reset();
+
+                // Limpiar estado de "Completar y Publicar" de un uso anterior del modal
+                document.getElementById('create-tour-importado-id').value = '';
+                document.getElementById('create-tour-imagen-url').value = '';
+                document.getElementById('create-tour-import-banner').classList.add('hidden');
+
                 // Limpiar itinerario
                 document.getElementById('create-itinerary-container').innerHTML = '';
                 addItineraryRow('create'); // Añadir un paso inicial vacío
                 tagInputInit('create-tags-box', 'create-tags-hidden', '');
                 modal.classList.remove('hidden');
             }
+        }
+
+        function openCreateTourModalFromImport(id) {
+            fetch(`/dashboard/api-conexiones/importados/${id}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.success) {
+                        showToast('❌ ' + data.message, 'rose');
+                        return;
+                    }
+
+                    const imp = data.importado;
+                    if (imp.estado !== 'pendiente') {
+                        showToast('❌ Ese tour importado ya no está pendiente (ya se publicó o descartó).', 'rose');
+                        return;
+                    }
+
+                    openCreateTourModal();
+                    const form = document.getElementById('create-tour-form');
+
+                    form.querySelector('[name="titulo"]').value = imp.titulo_preview || '';
+                    form.querySelector('[name="descripcion_corta"]').value = imp.descripcion_corta_preview || '';
+                    form.querySelector('[name="descripcion_larga"]').value = imp.descripcion_larga_preview || '';
+                    if (imp.precio_preview) {
+                        form.querySelector('[name="precio_base_usd"]').value = imp.precio_preview;
+                    }
+                    if (imp.proveedor_id) {
+                        form.querySelector('[name="proveedor_id"]').value = imp.proveedor_id;
+                    }
+
+                    document.getElementById('create-tour-importado-id').value = imp.id;
+                    document.getElementById('create-tour-imagen-url').value = imp.imagen_preview || '';
+
+                    document.getElementById('create-tour-import-source').textContent = imp.conexion_nombre + ' · ' + imp.locacion_externa_id;
+                    document.getElementById('create-tour-import-price').textContent = (imp.precio_preview !== null && imp.precio_preview !== undefined)
+                        ? ('Precio de referencia de la API: $' + Number(imp.precio_preview).toFixed(2) + ' USD')
+                        : 'Sin precio de referencia disponible';
+                    document.getElementById('create-tour-import-banner').classList.remove('hidden');
+                })
+                .catch(() => showToast('❌ Error al cargar el tour importado.', 'rose'));
         }
 
         function closeCreateTourModal() {
@@ -3182,6 +3689,34 @@
         </div>
     </div>
 
+    <!-- MODAL: CONFIRMAR ELIMINACIÓN DE CONEXIÓN API -->
+    <div id="delete-api-conexion-modal" class="hidden fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in">
+        <div class="w-full max-w-sm mx-4 p-6 rounded-3xl border border-rose-200 bg-white shadow-2xl relative">
+            <div class="flex flex-col items-center text-center gap-4">
+                <div class="h-16 w-16 rounded-2xl bg-rose-50 border border-rose-100 flex items-center justify-center text-3xl">
+                    🔌
+                </div>
+                <div>
+                    <h3 class="text-sm font-black text-slate-800 uppercase tracking-wide">Eliminar Conexión API</h3>
+                    <p class="text-xs text-slate-500 mt-1.5 leading-relaxed">
+                        ¿Eliminar la conexión<br>
+                        <strong id="delete-api-conexion-name" class="text-slate-700 font-bold"></strong>?<br>
+                        <span class="text-rose-600 font-semibold">Esta acción no se puede deshacer.</span>
+                    </p>
+                </div>
+                <div id="delete-api-conexion-error" class="hidden w-full text-[11px] text-rose-700 bg-rose-50 border border-rose-200 rounded-xl px-3 py-2 font-semibold"></div>
+                <div class="flex gap-3 w-full mt-2">
+                    <button onclick="closeDeleteApiConexionModal()" class="flex-1 h-10 rounded-xl border border-slate-200 hover:bg-slate-100 text-xs font-bold text-slate-500 transition-colors cursor-pointer">
+                        Cancelar
+                    </button>
+                    <button id="delete-api-conexion-btn" onclick="executeDeleteApiConexion()" class="flex-1 h-10 rounded-xl bg-rose-500 hover:bg-rose-600 text-xs font-black uppercase text-white shadow transition-colors cursor-pointer">
+                        Sí, eliminar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
     // =========================================================================
     // JS: ELIMINAR TOUR
@@ -3292,6 +3827,60 @@
             btn.textContent = 'Sí, eliminar';
             document.getElementById('delete-proveedor-error').classList.remove('hidden');
             document.getElementById('delete-proveedor-error').textContent = 'Error de conexión. Intenta de nuevo.';
+        });
+    }
+
+    // =========================================================================
+    // JS: ELIMINAR CONEXIÓN API
+    // =========================================================================
+    let _deleteApiConexionId = null;
+
+    function confirmDeleteApiConexion(id, nombre) {
+        _deleteApiConexionId = id;
+        document.getElementById('delete-api-conexion-name').textContent = nombre;
+        document.getElementById('delete-api-conexion-error').classList.add('hidden');
+        document.getElementById('delete-api-conexion-error').textContent = '';
+        document.getElementById('delete-api-conexion-btn').disabled = false;
+        document.getElementById('delete-api-conexion-btn').textContent = 'Sí, eliminar';
+        document.getElementById('delete-api-conexion-modal').classList.remove('hidden');
+    }
+
+    function closeDeleteApiConexionModal() {
+        document.getElementById('delete-api-conexion-modal').classList.add('hidden');
+        _deleteApiConexionId = null;
+    }
+
+    function executeDeleteApiConexion() {
+        if (!_deleteApiConexionId) return;
+        const btn = document.getElementById('delete-api-conexion-btn');
+        btn.disabled = true;
+        btn.textContent = 'Eliminando...';
+
+        fetch(`/dashboard/api-conexiones/${_deleteApiConexionId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': window.Laravel.csrfToken
+            }
+        })
+        .then(r => r.json())
+        .then(data => {
+            btn.disabled = false;
+            btn.textContent = 'Sí, eliminar';
+            if (data.success) {
+                closeDeleteApiConexionModal();
+                showToast('✅ ' + data.message, 'teal');
+                setTimeout(() => window.location.reload(), 1500);
+            } else {
+                document.getElementById('delete-api-conexion-error').classList.remove('hidden');
+                document.getElementById('delete-api-conexion-error').textContent = data.message;
+            }
+        })
+        .catch(() => {
+            btn.disabled = false;
+            btn.textContent = 'Sí, eliminar';
+            document.getElementById('delete-api-conexion-error').classList.remove('hidden');
+            document.getElementById('delete-api-conexion-error').textContent = 'Error de conexión. Intenta de nuevo.';
         });
     }
 

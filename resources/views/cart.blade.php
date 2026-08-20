@@ -102,20 +102,36 @@
                                             · {{ $item['horario'] }} hrs
                                         @endif
                                     </p>
+                                    @if(isset($item['cantidad_adultos']))
+                                        <p class="text-[9px] text-slate-500 font-semibold mt-1">
+                                            🏨 {{ $item['hotel_nombre'] ?? '—' }}
+                                            @if(!empty($item['pickup_horario'])) · Pickup {{ $item['pickup_horario'] }} @endif
+                                            @if(!empty($item['idioma_seleccionado'])) · Idioma: {{ $item['idioma_seleccionado'] }} @endif
+                                        </p>
+                                    @endif
                                 </div>
 
                                 <!-- Controles Cantidad y Subtotal -->
                                 <div class="flex flex-wrap items-end justify-between gap-4 mt-4">
-                                    
-                                    <!-- Formulario actualización de personas -->
-                                    <form action="{{ route('cart.update') }}" method="POST" class="flex items-center gap-1.5 h-8 rounded-lg border border-slate-200 bg-slate-50 px-2">
-                                        @csrf
-                                        <input type="hidden" name="key" value="{{ $key }}">
-                                        <label class="text-[9px] font-bold uppercase text-slate-500 tracking-wider pr-1">
-                                            Pasajeros:
-                                        </label>
-                                        <input type="number" name="cantidad" value="{{ $item['cantidad'] }}" min="1" onchange="this.form.submit()" class="w-10 text-center bg-transparent border-0 p-0 text-xs font-bold text-slate-800 focus:ring-0 focus:outline-none">
-                                    </form>
+
+                                    @if(isset($item['cantidad_adultos']))
+                                        <!-- Desglose de pasajeros (no editable aquí; quitar y volver a agregar para cambiar) -->
+                                        <div class="flex items-center gap-1.5 h-8 rounded-lg border border-slate-200 bg-slate-50 px-2.5 text-[9px] font-bold text-slate-600">
+                                            👤 {{ $item['cantidad_adultos'] }} adulto(s)
+                                            @if(($item['cantidad_menores'] ?? 0) > 0) · {{ $item['cantidad_menores'] }} menor(es) @endif
+                                            @if(($item['cantidad_infantes'] ?? 0) > 0) · {{ $item['cantidad_infantes'] }} infante(s) @endif
+                                        </div>
+                                    @else
+                                        <!-- Formulario actualización de personas -->
+                                        <form action="{{ route('cart.update') }}" method="POST" class="flex items-center gap-1.5 h-8 rounded-lg border border-slate-200 bg-slate-50 px-2">
+                                            @csrf
+                                            <input type="hidden" name="key" value="{{ $key }}">
+                                            <label class="text-[9px] font-bold uppercase text-slate-500 tracking-wider pr-1">
+                                                Pasajeros:
+                                            </label>
+                                            <input type="number" name="cantidad" value="{{ $item['cantidad'] }}" min="1" onchange="this.form.submit()" class="w-10 text-center bg-transparent border-0 p-0 text-xs font-bold text-slate-800 focus:ring-0 focus:outline-none">
+                                        </form>
+                                    @endif
 
                                     <!-- Precios -->
                                     <div class="text-right font-semibold">

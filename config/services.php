@@ -45,4 +45,8 @@ return [
         'confirmacion_webhook_url' => env('N8N_CONFIRMACION_WEBHOOK_URL'),
     ],
 
+    'tours_api' => [
+        'forzar_sandbox' => env('TOURS_API_FORZAR_SANDBOX', true),
+    ],
+
 ];

@@ -6,6 +6,7 @@
  * @author Antigravity
  */
 
+use App\Http\Controllers\ApiConexionController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
@@ -16,6 +17,7 @@ use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\TourController;
 use App\Http\Controllers\QrScanController;
 use App\Http\Controllers\StripeWebhookController;
+use App\Http\Controllers\TourApiProxyController;
 use Illuminate\Support\Facades\Route;
 
 // ==========================================
@@ -36,6 +38,14 @@ Route::prefix('cart')->group(function () {
     Route::post('/update', [CartController::class, 'update'])->name('cart.update');
     Route::get('/remove/{key}', [CartController::class, 'remove'])->name('cart.remove');
     Route::get('/clear', [CartController::class, 'clear'])->name('cart.clear');
+
+    // Proxy hacia la API externa (Unique) para tours con origen = api_externa.
+    // El navegador nunca llama a Unique directamente ni ve sus credenciales.
+    Route::prefix('tour-api')->group(function () {
+        Route::get('/idiomas', [TourApiProxyController::class, 'idiomas'])->name('cart.tour-api.idiomas');
+        Route::get('/hoteles', [TourApiProxyController::class, 'hoteles'])->name('cart.tour-api.hoteles');
+        Route::post('/pickup', [TourApiProxyController::class, 'pickup'])->name('cart.tour-api.pickup');
+    });
 });
 
 // ==========================================
@@ -98,4 +108,20 @@ Route::middleware(['auth'])->prefix('dashboard')->group(function () {
     Route::get('/qr', [QrScanController::class, 'showScanner'])->name('dashboard.qr.scanner');
     Route::post('/qr/scan', [QrScanController::class, 'scanQr'])->name('dashboard.qr.scan');
     Route::get('/qr/verify/{token}', [QrScanController::class, 'verifyQrDirect'])->name('dashboard.qr.verify');
+
+    // ── Conexiones a APIs externas y sincronización de catálogo ────────────────
+    Route::prefix('api-conexiones')->group(function () {
+        Route::post('/', [ApiConexionController::class, 'store'])->name('dashboard.api.store');
+        Route::post('/{id}/update', [ApiConexionController::class, 'update'])->name('dashboard.api.update');
+        Route::delete('/{id}', [ApiConexionController::class, 'destroy'])->name('dashboard.api.destroy');
+        Route::post('/{id}/sync', [ApiConexionController::class, 'sync'])->name('dashboard.api.sync');
+
+        Route::get('/importados/{id}', [ApiConexionController::class, 'showImportado'])->name('dashboard.api.importados.show');
+        Route::post('/importados/{id}/descartar', [ApiConexionController::class, 'descartarImportado'])->name('dashboard.api.importados.discard');
+
+        Route::post('/cambios-precio/{id}/aprobar', [ApiConexionController::class, 'aprobarCambioPrecio'])->name('dashboard.api.cambios-precio.approve');
+        Route::post('/cambios-precio/{id}/rechazar', [ApiConexionController::class, 'rechazarCambioPrecio'])->name('dashboard.api.cambios-precio.reject');
+
+        Route::post('/notificaciones/{id}/reintentar', [ApiConexionController::class, 'reintentarNotificacion'])->name('dashboard.api.notificaciones.retry');
+    });
 });

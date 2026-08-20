@@ -153,17 +153,61 @@
                         </select>
                     </div>
 
-                    <!-- Selector de Personas -->
-                    <div class="flex flex-col gap-1.5">
-                        <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                            {{ __('selectPeople') }}
-                        </label>
-                        <div class="flex h-10 rounded-lg border border-slate-200 bg-slate-50 overflow-hidden">
-                            <button type="button" onclick="adjustQty(-1)" class="w-10 flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-100 border-r border-slate-200 transition-colors cursor-pointer font-bold">-</button>
-                            <input type="number" name="cantidad" id="reserva-qty" value="1" min="1" max="{{ $tour->cupo_maximo }}" class="w-full text-center bg-transparent border-0 text-xs font-bold text-slate-800 focus:ring-0 focus:outline-none">
-                            <button type="button" onclick="adjustQty(1)" class="w-10 flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-100 border-l border-slate-200 transition-colors cursor-pointer font-bold">+</button>
+                    @if($tour->origen === 'api_externa')
+                        <!-- Selector de Personas por categoría (tours de API externa: Unique pide adultos/menores/infantes por separado) -->
+                        <input type="hidden" name="cantidad" id="reserva-qty" value="1" min="1" max="{{ $tour->cupo_maximo }}">
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Pasajeros</label>
+                            <div class="grid grid-cols-3 gap-2">
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-[9px] text-slate-500 font-semibold text-center">Adultos</span>
+                                    <input type="number" name="cantidad_adultos" id="reserva-adultos" value="1" min="1" max="{{ $tour->cupo_maximo }}" oninput="syncPaxTotal()" class="w-full h-9 rounded-lg border border-slate-200 bg-slate-50 text-center text-xs font-bold text-slate-800 focus:border-brand-teal focus:ring-0 focus:outline-none">
+                                </div>
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-[9px] text-slate-500 font-semibold text-center">Menores</span>
+                                    <input type="number" name="cantidad_menores" id="reserva-menores" value="0" min="0" max="{{ $tour->cupo_maximo }}" oninput="syncPaxTotal()" class="w-full h-9 rounded-lg border border-slate-200 bg-slate-50 text-center text-xs font-bold text-slate-800 focus:border-brand-teal focus:ring-0 focus:outline-none">
+                                </div>
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-[9px] text-slate-500 font-semibold text-center">Infantes</span>
+                                    <input type="number" name="cantidad_infantes" id="reserva-infantes" value="0" min="0" max="{{ $tour->cupo_maximo }}" oninput="syncPaxTotal()" class="w-full h-9 rounded-lg border border-slate-200 bg-slate-50 text-center text-xs font-bold text-slate-800 focus:border-brand-teal focus:ring-0 focus:outline-none">
+                                </div>
+                            </div>
                         </div>
-                    </div>
+
+                        <!-- Idioma del tour -->
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Idioma del Tour</label>
+                            <select name="idioma_seleccionado" id="reserva-idioma" required class="w-full h-10 rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs text-slate-700 focus:border-brand-teal focus:ring-0 focus:outline-none cursor-pointer">
+                                <option value="">Cargando idiomas…</option>
+                            </select>
+                        </div>
+
+                        <!-- Hotel y hora de recogida -->
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Hotel (para tu recogida)</label>
+                            <input type="text" id="reserva-hotel-filtro" placeholder="Escribe para buscar tu hotel…" oninput="filtrarHoteles()" class="w-full h-9 rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs text-slate-700 focus:border-brand-teal focus:ring-0 focus:outline-none">
+                            <select name="hotel_nombre" id="reserva-hotel" required onchange="onHotelSeleccionado()" class="w-full h-10 rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs text-slate-700 focus:border-brand-teal focus:ring-0 focus:outline-none cursor-pointer">
+                                <option value="">Cargando hoteles…</option>
+                            </select>
+                            <select name="hotel_lobby" id="reserva-hotel-lobby" class="hidden w-full h-10 rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs text-slate-700 focus:border-brand-teal focus:ring-0 focus:outline-none cursor-pointer">
+                                <option value="">Selecciona el lobby</option>
+                            </select>
+                            <input type="hidden" name="pickup_horario" id="reserva-pickup-horario">
+                            <p id="reserva-pickup-info" class="hidden text-[10px] text-brand-teal font-bold"></p>
+                        </div>
+                    @else
+                        <!-- Selector de Personas -->
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                                {{ __('selectPeople') }}
+                            </label>
+                            <div class="flex h-10 rounded-lg border border-slate-200 bg-slate-50 overflow-hidden">
+                                <button type="button" onclick="adjustQty(-1)" class="w-10 flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-100 border-r border-slate-200 transition-colors cursor-pointer font-bold">-</button>
+                                <input type="number" name="cantidad" id="reserva-qty" value="1" min="1" max="{{ $tour->cupo_maximo }}" class="w-full text-center bg-transparent border-0 text-xs font-bold text-slate-800 focus:ring-0 focus:outline-none">
+                                <button type="button" onclick="adjustQty(1)" class="w-10 flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-100 border-l border-slate-200 transition-colors cursor-pointer font-bold">+</button>
+                            </div>
+                        </div>
+                    @endif
 
                     <!-- AJAX Alerta de Disponibilidad -->
                     <div id="availability-status" class="hidden text-[10px] p-2.5 rounded-lg border"></div>
@@ -846,7 +890,160 @@
                     horarioSelect.focus();
                     return;
                 }
+
+                if (esApiExterna) {
+                    const idiomaSel = document.getElementById('reserva-idioma');
+                    const hotelSel = document.getElementById('reserva-hotel');
+
+                    if (!idiomaSel.value) {
+                        e.preventDefault();
+                        statusBox.classList.remove('hidden');
+                        statusBox.className = 'text-[10px] p-2.5 rounded-lg border border-rose-250 bg-rose-50 text-rose-700 font-bold animate-pulse';
+                        statusBox.textContent = 'Por favor, selecciona el idioma del tour.';
+                        idiomaSel.focus();
+                        return;
+                    }
+
+                    if (!hotelSel.value) {
+                        e.preventDefault();
+                        statusBox.classList.remove('hidden');
+                        statusBox.className = 'text-[10px] p-2.5 rounded-lg border border-rose-250 bg-rose-50 text-rose-700 font-bold animate-pulse';
+                        statusBox.textContent = 'Por favor, selecciona tu hotel para la recogida.';
+                        hotelSel.focus();
+                        return;
+                    }
+                }
             });
+        }
+
+        // ========================================================
+        // TOURS DE API EXTERNA: pax por categoría, idioma y hotel/pickup
+        // ========================================================
+        const esApiExterna = {{ $tour->origen === 'api_externa' ? 'true' : 'false' }};
+
+        function syncPaxTotal() {
+            const adultos = parseInt(document.getElementById('reserva-adultos').value) || 0;
+            const menores = parseInt(document.getElementById('reserva-menores').value) || 0;
+            const infantes = parseInt(document.getElementById('reserva-infantes').value) || 0;
+            const total = Math.max(1, adultos + menores + infantes);
+
+            qtyInput.value = total;
+            calculateTotal();
+            verifyAvailability();
+        }
+
+        if (esApiExterna) {
+            let hotelesDisponibles = [];
+
+            // Idiomas
+            fetch(`/cart/tour-api/idiomas?tour_id={{ $tour->id }}`)
+                .then(r => r.json())
+                .then(data => {
+                    const select = document.getElementById('reserva-idioma');
+                    select.innerHTML = '<option value="">Selecciona un idioma</option>';
+                    (data.idiomas || []).forEach(idioma => {
+                        const option = document.createElement('option');
+                        option.value = idioma.Id;
+                        option.textContent = idioma.Idioma;
+                        if (idioma.Id === 'ESP') option.selected = true;
+                        select.appendChild(option);
+                    });
+                })
+                .catch(() => {
+                    document.getElementById('reserva-idioma').innerHTML = '<option value="">No se pudo cargar</option>';
+                });
+
+            // Hoteles
+            fetch(`/cart/tour-api/hoteles?tour_id={{ $tour->id }}`)
+                .then(r => r.json())
+                .then(data => {
+                    hotelesDisponibles = data.hoteles || [];
+                    renderHotelOptions(hotelesDisponibles);
+                })
+                .catch(() => {
+                    document.getElementById('reserva-hotel').innerHTML = '<option value="">No se pudo cargar</option>';
+                });
+
+            function renderHotelOptions(lista) {
+                const select = document.getElementById('reserva-hotel');
+                select.innerHTML = '<option value="">Selecciona tu hotel</option>';
+                lista.forEach(hotel => {
+                    const option = document.createElement('option');
+                    option.value = hotel.Hotel;
+                    option.dataset.hotelId = hotel.Id;
+                    option.textContent = `${hotel.Hotel}${hotel.Zona ? ' — ' + hotel.Zona : ''}`;
+                    select.appendChild(option);
+                });
+            }
+
+            window.filtrarHoteles = function () {
+                const query = document.getElementById('reserva-hotel-filtro').value.toLowerCase().trim();
+                if (!query) {
+                    renderHotelOptions(hotelesDisponibles);
+                    return;
+                }
+                renderHotelOptions(hotelesDisponibles.filter(h => h.Hotel.toLowerCase().includes(query)));
+            };
+
+            window.onHotelSeleccionado = function () {
+                const select = document.getElementById('reserva-hotel');
+                const hotel = hotelesDisponibles.find(h => h.Hotel === select.value);
+                const lobbySelect = document.getElementById('reserva-hotel-lobby');
+
+                if (hotel && Array.isArray(hotel.lobbys) && hotel.lobbys.length > 0) {
+                    lobbySelect.innerHTML = '<option value="">Selecciona el lobby</option>';
+                    hotel.lobbys.forEach(l => {
+                        const option = document.createElement('option');
+                        option.value = l.lobby || l.Id_lobby || '';
+                        option.textContent = l.lobby || l.Id_lobby || '';
+                        lobbySelect.appendChild(option);
+                    });
+                    lobbySelect.classList.remove('hidden');
+                } else {
+                    lobbySelect.classList.add('hidden');
+                    lobbySelect.value = '';
+                }
+
+                actualizarPickup();
+            };
+
+            function actualizarPickup() {
+                const hotel = document.getElementById('reserva-hotel').value;
+                const horario = horarioSelect.value;
+                const lobby = document.getElementById('reserva-hotel-lobby').value;
+                const infoBox = document.getElementById('reserva-pickup-info');
+                const pickupInput = document.getElementById('reserva-pickup-horario');
+
+                if (!hotel || !horario || horario.includes('Selecciona')) {
+                    infoBox.classList.add('hidden');
+                    pickupInput.value = '';
+                    return;
+                }
+
+                fetch(`/cart/tour-api/pickup`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                    body: JSON.stringify({ tour_id: '{{ $tour->id }}', hotel, horario, lobby })
+                })
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.pickup && data.pickup.hora) {
+                            pickupInput.value = data.pickup.hora;
+                            infoBox.textContent = `🕐 Hora estimada de recogida: ${data.pickup.hora}`;
+                            infoBox.classList.remove('hidden');
+                        } else {
+                            pickupInput.value = '';
+                            infoBox.classList.add('hidden');
+                        }
+                    })
+                    .catch(() => {
+                        pickupInput.value = '';
+                        infoBox.classList.add('hidden');
+                    });
+            }
+
+            // Recalcular la hora de recogida si el cliente cambia el horario de salida
+            horarioSelect.addEventListener('change', actualizarPickup);
         }
 
         // --- MODAL LIGHTBOX: GALERÍA DE EXPERIENCIAS DE VIAJEROS ---

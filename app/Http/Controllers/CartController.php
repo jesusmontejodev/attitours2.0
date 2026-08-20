@@ -46,16 +46,38 @@ class CartController extends Controller
             'fecha' => 'required|date_format:Y-m-d',
             'cantidad' => 'required|integer|min:1',
             'horario' => 'nullable|string',
-            'es_privado' => 'nullable|boolean'
+            'es_privado' => 'nullable|boolean',
+            // Solo aplican a tours de origen api_externa (Unique); se ignoran para el resto.
+            'cantidad_adultos' => 'nullable|integer|min:0',
+            'cantidad_menores' => 'nullable|integer|min:0',
+            'cantidad_infantes' => 'nullable|integer|min:0',
+            'idioma_seleccionado' => 'nullable|string|max:10',
+            'hotel_nombre' => 'nullable|string|max:255',
+            'hotel_lobby' => 'nullable|string|max:255',
+            'pickup_horario' => 'nullable|string|max:10',
         ]);
 
         $tourId = $request->input('tour_id');
         $fechaStr = $request->input('fecha');
-        $cantidad = (int) $request->input('cantidad');
         $horario = $request->input('horario');
         $esPrivado = (bool) $request->input('es_privado', false);
 
         $tour = Tour::findOrFail($tourId);
+
+        // Para tours de API externa, el total de personas se recalcula del lado del servidor
+        // a partir del desglose por categoría (nunca se confía en el "cantidad" enviado directo).
+        $desglosePax = null;
+        if ($tour->esApiExterna()) {
+            $desglosePax = [
+                'cantidad_adultos' => (int) $request->input('cantidad_adultos', 0),
+                'cantidad_menores' => (int) $request->input('cantidad_menores', 0),
+                'cantidad_infantes' => (int) $request->input('cantidad_infantes', 0),
+            ];
+            $cantidad = max(1, array_sum($desglosePax));
+        } else {
+            $cantidad = (int) $request->input('cantidad');
+        }
+
         $tourFecha = TourFecha::where('tour_id', $tourId)
             ->where('fecha', $fechaStr)
             ->where('horario', $horario ?: '09:00')
@@ -93,16 +115,27 @@ class CartController extends Controller
             if ($tourFecha->cupo_disponible < $nuevaCantidad) {
                 return redirect()->back()->with('error', __('No puedes añadir más personas. Supera el cupo disponible.'));
             }
-            
+
             $cart[$key]['cantidad'] = $nuevaCantidad;
-            
+
+            if ($desglosePax) {
+                $cart[$key]['cantidad_adultos'] = ($cart[$key]['cantidad_adultos'] ?? 0) + $desglosePax['cantidad_adultos'];
+                $cart[$key]['cantidad_menores'] = ($cart[$key]['cantidad_menores'] ?? 0) + $desglosePax['cantidad_menores'];
+                $cart[$key]['cantidad_infantes'] = ($cart[$key]['cantidad_infantes'] ?? 0) + $desglosePax['cantidad_infantes'];
+                // El idioma y el hotel del pickup se quedan con la última selección del cliente.
+                $cart[$key]['idioma_seleccionado'] = $request->input('idioma_seleccionado');
+                $cart[$key]['hotel_nombre'] = $request->input('hotel_nombre');
+                $cart[$key]['hotel_lobby'] = $request->input('hotel_lobby');
+                $cart[$key]['pickup_horario'] = $request->input('pickup_horario');
+            }
+
             if ($esPrivado) {
                 $subtotal = $tour->obtenerPrecioPrivado($nuevaCantidad);
                 $precioUnitario = $subtotal / $nuevaCantidad;
             } else {
                 $subtotal = $nuevaCantidad * $precioUnitario;
             }
-            
+
             $cart[$key]['precio_unitario'] = $precioUnitario;
             $cart[$key]['subtotal'] = $subtotal;
         } else {
@@ -119,6 +152,15 @@ class CartController extends Controller
                 'precio_unitario' => $precioUnitario,
                 'subtotal' => $subtotal
             ];
+
+            if ($desglosePax) {
+                $cart[$key] = array_merge($cart[$key], $desglosePax, [
+                    'idioma_seleccionado' => $request->input('idioma_seleccionado'),
+                    'hotel_nombre' => $request->input('hotel_nombre'),
+                    'hotel_lobby' => $request->input('hotel_lobby'),
+                    'pickup_horario' => $request->input('pickup_horario'),
+                ]);
+            }
         }
 
         session()->put('cart', $cart);
@@ -146,6 +188,12 @@ class CartController extends Controller
 
         if (!isset($cart[$key])) {
             return redirect()->route('cart.index')->with('error', __('El tour no está en el carrito.'));
+        }
+
+        // Los items con desglose de pasajeros por categoría (tours de API externa) no se editan
+        // por cantidad total desde aquí — hay que quitarlos y volver a agregarlos con el desglose correcto.
+        if (isset($cart[$key]['cantidad_adultos'])) {
+            return redirect()->route('cart.index')->with('error', __('Este tour tiene pasajeros por categoría; elimínalo y agrégalo de nuevo para cambiar la cantidad.'));
         }
 
         $tourId = $cart[$key]['tour_id'];

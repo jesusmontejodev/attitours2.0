@@ -44,4 +44,12 @@ class Proveedor extends Model
     {
         return $this->hasMany(User::class, 'proveedor_id');
     }
+
+    /**
+     * Obtiene las conexiones a APIs externas que agrupan sus tours importados bajo este proveedor.
+     */
+    public function apiConexiones(): HasMany
+    {
+        return $this->hasMany(ApiConexion::class, 'proveedor_id');
+    }
 }

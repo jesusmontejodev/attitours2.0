@@ -9,11 +9,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ApiConexion;
 use App\Models\Proveedor;
 use App\Models\Reserva;
 use App\Models\ReservaTour;
 use App\Models\Tour;
+use App\Models\TourApiNotificacion;
+use App\Models\TourCambioPrecioApi;
 use App\Models\TourFecha;
+use App\Models\TourImportado;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -79,6 +83,19 @@ class DashboardController extends Controller
         $proveedores = Proveedor::withCount('tours')->get();
         $tours = Tour::with(['proveedor', 'fechas'])->get();
         $usuarios = User::with(['proveedor'])->get();
+        $apiConexiones = ApiConexion::with('proveedor')->withCount('tours')->latest()->get();
+        $toursImportadosPendientes = TourImportado::where('estado', 'pendiente')
+            ->with('apiConexion')
+            ->latest('fecha_importado')
+            ->get();
+        $cambiosPrecioPendientes = TourCambioPrecioApi::where('estado', 'pendiente')
+            ->with(['tour', 'apiConexion'])
+            ->latest('detectado_at')
+            ->get();
+        $notificacionesApi = TourApiNotificacion::with(['tour', 'reserva', 'apiConexion'])
+            ->latest()
+            ->limit(100)
+            ->get();
 
         return view('dashboard.index', compact(
             'totalSales',
@@ -88,7 +105,11 @@ class DashboardController extends Controller
             'reservas',
             'proveedores',
             'tours',
-            'usuarios'
+            'usuarios',
+            'apiConexiones',
+            'toursImportadosPendientes',
+            'cambiosPrecioPendientes',
+            'notificacionesApi'
         ));
     }
 
@@ -318,6 +339,7 @@ class DashboardController extends Controller
             'tags' => 'nullable|string',
             'horarios' => 'nullable|string',
             'imagen_destacada_file' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:15360',
+            'imagen_destacada_url' => 'nullable|url',
             'itinerario_titulos' => 'nullable|array',
             'itinerario_descripciones' => 'nullable|array',
             'incluye' => 'nullable|string',
@@ -325,7 +347,20 @@ class DashboardController extends Controller
             'tipo_modalidad' => 'required|in:compartido,privado,ambos',
             'anticipo_porcentaje' => 'nullable|integer|min:0|max:100',
             'tarifas_privadas' => 'nullable|string',
+            'tour_importado_id' => 'nullable|exists:tours_importados,id',
         ]);
+
+        // Si viene de la bandeja de "Completar y Publicar", validar que siga pendiente
+        // (evita publicar dos veces el mismo importado por una doble-carga del formulario).
+        $importado = null;
+        if ($request->filled('tour_importado_id')) {
+            $importado = TourImportado::find($request->input('tour_importado_id'));
+            if (!$importado || $importado->estado !== 'pendiente') {
+                return redirect()->route('dashboard')
+                    ->with('error', __('Ese tour importado ya no está pendiente de publicación (puede que ya se haya publicado o descartado).'))
+                    ->with('active_tab', 'apis');
+            }
+        }
 
         // Generar ID único
         $slug = \Illuminate\Support\Str::slug($request->input('titulo'), '_');
@@ -339,10 +374,12 @@ class DashboardController extends Controller
         $tags = $this->parseTags($request->input('tags'));
         $horarios = array_map('trim', explode(',', $request->input('horarios', '09:00')));
 
-        // Procesar Imagen de Portada (Destacada)
+        // Procesar Imagen de Portada (Destacada): archivo subido > URL de la API externa > placeholder
         $imagenDefault = 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=800&q=80';
         if ($request->hasFile('imagen_destacada_file')) {
             $imagenDefault = \App\Services\ImageOptimizerService::uploadAndOptimize($request->file('imagen_destacada_file'), 'tours');
+        } elseif ($request->filled('imagen_destacada_url')) {
+            $imagenDefault = $request->input('imagen_destacada_url');
         }
 
         // Inicializar Galería (las fotos adicionales se agregan después, una por una)
@@ -377,7 +414,7 @@ class DashboardController extends Controller
             $tarifasPrivadas = json_decode($request->input('tarifas_privadas'), true);
         }
 
-        Tour::create([
+        $datosTour = [
             'id' => $id,
             'proveedor_id' => $request->input('proveedor_id'),
             'titulo' => [
@@ -412,7 +449,24 @@ class DashboardController extends Controller
             'tipo_modalidad' => $request->input('tipo_modalidad'),
             'anticipo_porcentaje' => $request->filled('anticipo_porcentaje') ? (int)$request->input('anticipo_porcentaje') : null,
             'tarifas_privadas' => $tarifasPrivadas
-        ]);
+        ];
+
+        // Si el tour proviene de una API externa, se marca su origen y se conserva la
+        // referencia necesaria para poder notificar disponibilidad al reservar (fases siguientes).
+        if ($importado) {
+            $datosTour['origen'] = 'api_externa';
+            $datosTour['api_conexion_id'] = $importado->api_conexion_id;
+            $datosTour['api_tour_id_externo'] = $importado->payload_raw['Id'] ?? null;
+            $datosTour['api_locacion_id'] = $importado->locacion_externa_id;
+            $datosTour['precio_api_referencia_usd'] = $importado->precio_preview;
+            $datosTour['precio_api_actualizado_at'] = $importado->precio_preview !== null ? now() : null;
+        }
+
+        Tour::create($datosTour);
+
+        if ($importado) {
+            $importado->update(['estado' => 'publicado', 'tour_id' => $id]);
+        }
 
         return redirect()->route('dashboard')->with('success', __('Tour creado exitosamente.'))->with('active_tab', 'tours')->with('new_tour_id', $id);
     }

@@ -121,7 +121,15 @@ class CheckoutController extends Controller
                         'es_privado' => $esPrivado,
                         'monto_online' => $itemOnline,
                         'monto_destino' => $itemDestino,
-                        'comision' => $itemComision
+                        'comision' => $itemComision,
+                        // Solo presentes en items de tours con origen = api_externa (ver CartController::add).
+                        'cantidad_adultos' => $item['cantidad_adultos'] ?? null,
+                        'cantidad_menores' => $item['cantidad_menores'] ?? null,
+                        'cantidad_infantes' => $item['cantidad_infantes'] ?? null,
+                        'idioma_seleccionado' => $item['idioma_seleccionado'] ?? null,
+                        'hotel_nombre' => $item['hotel_nombre'] ?? null,
+                        'hotel_lobby' => $item['hotel_lobby'] ?? null,
+                        'pickup_horario' => $item['pickup_horario'] ?? null,
                     ];
 
                     $totalVenta += $itemSubtotal;
@@ -160,9 +168,16 @@ class CheckoutController extends Controller
                         'fecha_seleccionada' => $pItem['tourFecha']->fecha->format('Y-m-d'),
                         'horario' => $pItem['horario'],
                         'cantidad_personas' => $pItem['cantidad'],
+                        'cantidad_adultos' => $pItem['cantidad_adultos'],
+                        'cantidad_menores' => $pItem['cantidad_menores'],
+                        'cantidad_infantes' => $pItem['cantidad_infantes'],
                         'es_privado' => $pItem['es_privado'],
                         'precio_unitario_usd' => $pItem['precio_unitario'],
-                        'comision_usd' => $pItem['comision']
+                        'comision_usd' => $pItem['comision'],
+                        'idioma_seleccionado' => $pItem['idioma_seleccionado'],
+                        'hotel_nombre' => $pItem['hotel_nombre'],
+                        'hotel_lobby' => $pItem['hotel_lobby'],
+                        'pickup_horario' => $pItem['pickup_horario'],
                     ]);
 
                     // Bloquear el cupo mientras el usuario paga en Stripe

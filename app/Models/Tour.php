@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Tour extends Model
 {
@@ -45,7 +46,14 @@ class Tour extends Model
         'horarios',
         'itinerario',
         'incluye',
-        'no_incluye'
+        'no_incluye',
+        'origen',
+        'api_conexion_id',
+        'api_tour_id_externo',
+        'api_locacion_id',
+        'precio_api_referencia_usd',
+        'precio_api_actualizado_at',
+        'api_metadata'
     ];
 
     protected $casts = [
@@ -62,7 +70,10 @@ class Tour extends Model
         'horarios' => 'array',
         'itinerario' => 'array',
         'incluye' => 'array',
-        'no_incluye' => 'array'
+        'no_incluye' => 'array',
+        'precio_api_referencia_usd' => 'float',
+        'precio_api_actualizado_at' => 'datetime',
+        'api_metadata' => 'array'
     ];
 
     /**
@@ -108,6 +119,46 @@ class Tour extends Model
     public function reservaTours(): HasMany
     {
         return $this->hasMany(ReservaTour::class, 'tour_id');
+    }
+
+    /**
+     * Relación: Conexión API de la que proviene este tour (si origen = api_externa).
+     */
+    public function apiConexion(): BelongsTo
+    {
+        return $this->belongsTo(ApiConexion::class, 'api_conexion_id');
+    }
+
+    /**
+     * Relación: Registro de importación en la bandeja de tours importados que dio origen a este tour.
+     */
+    public function tourImportado(): HasOne
+    {
+        return $this->hasOne(TourImportado::class, 'tour_id');
+    }
+
+    /**
+     * Relación: Cambios de precio detectados en syncs posteriores para este tour.
+     */
+    public function cambiosPrecioApi(): HasMany
+    {
+        return $this->hasMany(TourCambioPrecioApi::class, 'tour_id');
+    }
+
+    /**
+     * Relación: Notificaciones de reserva enviadas a la API externa por reservas de este tour.
+     */
+    public function apiNotificaciones(): HasMany
+    {
+        return $this->hasMany(TourApiNotificacion::class, 'tour_id');
+    }
+
+    /**
+     * Determina si el tour proviene de una API externa (vs. creado manualmente en la plataforma).
+     */
+    public function esApiExterna(): bool
+    {
+        return $this->origen === 'api_externa';
     }
 
     /**

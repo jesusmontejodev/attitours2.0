@@ -8,6 +8,7 @@
 
 namespace App\Services;
 
+use App\Jobs\NotificarReservaApiExternaJob;
 use App\Mail\ReservaConfirmada;
 use App\Models\Reserva;
 use App\Models\TourFecha;
@@ -81,8 +82,28 @@ class StripeCheckoutService
         }
 
         $this->notificarWebhookConfirmacion($reserva);
+        $this->despacharNotificacionesApiExterna($reserva);
 
         return $reserva->fresh(['detalles.tour']);
+    }
+
+    /**
+     * Encola una notificación a la API externa por cada tour de la reserva cuyo origen sea
+     * api_externa (Unique). Los tours creados manualmente en la plataforma (origen = interno,
+     * la mayoría) nunca disparan esto. No lanza excepciones: si falla el despacho a la cola,
+     * no debe romper la confirmación del pago (el Job en sí ya tiene sus propios reintentos).
+     */
+    private function despacharNotificacionesApiExterna(Reserva $reserva): void
+    {
+        foreach ($reserva->detalles as $detalle) {
+            if ($detalle->tour && $detalle->tour->esApiExterna()) {
+                try {
+                    NotificarReservaApiExternaJob::dispatch($detalle->id);
+                } catch (\Throwable $dispatchEx) {
+                    Log::warning("Error encolando notificación a API externa para el detalle {$detalle->id}: " . $dispatchEx->getMessage());
+                }
+            }
+        }
     }
 
     /**

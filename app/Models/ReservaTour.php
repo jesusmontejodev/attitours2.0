@@ -24,14 +24,25 @@ class ReservaTour extends Model
         'fecha_seleccionada',
         'horario',
         'cantidad_personas',
+        'cantidad_adultos',
+        'cantidad_menores',
+        'cantidad_infantes',
         'es_privado',
         'precio_unitario_usd',
-        'comision_usd'
+        'comision_usd',
+        'folio_proveedor_externo',
+        'idioma_seleccionado',
+        'hotel_nombre',
+        'hotel_lobby',
+        'pickup_horario'
     ];
 
     protected $casts = [
         'fecha_seleccionada'  => 'date:Y-m-d',
         'cantidad_personas'   => 'integer',
+        'cantidad_adultos'    => 'integer',
+        'cantidad_menores'    => 'integer',
+        'cantidad_infantes'   => 'integer',
         'es_privado'          => 'boolean',
         'precio_unitario_usd' => 'float',
         'comision_usd'        => 'float'
