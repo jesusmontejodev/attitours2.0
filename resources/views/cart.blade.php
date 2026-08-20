@@ -140,11 +140,13 @@
                                                 $pct = (int) ($item['anticipo_porcentaje'] ?? 20);
                                             @endphp
                                             <p class="text-[9px] text-slate-500">Monto total del grupo ({{ $item['cantidad'] }} pax)</p>
-                                            <p class="text-sm font-black text-brand-teal">${{ number_format($item['subtotal']) }} MXN</p>
-                                            <p class="text-[9px] text-brand-orange-hover">Anticipo online {{ $pct }}%: ${{ number_format($item['subtotal'] * ($pct / 100)) }} MXN</p>
+                                            <p class="text-sm font-black text-brand-teal">${{ number_format($item['subtotal']) }} USD</p>
+                                            <p class="text-[9px] text-brand-orange-hover">Anticipo online {{ $pct }}%: ${{ number_format($item['subtotal'] * ($pct / 100)) }} USD</p>
+                                            <x-currency-note :usd="$item['subtotal'] * ($pct / 100)" />
                                         @else
                                             <p class="text-[9px] text-slate-500">${{ number_format($item['precio_unitario']) }} x {{ $item['cantidad'] }}</p>
-                                            <p class="text-sm font-black text-brand-teal">${{ number_format($item['subtotal']) }} MXN</p>
+                                            <p class="text-sm font-black text-brand-teal">${{ number_format($item['subtotal']) }} USD</p>
+                                            <x-currency-note :usd="$item['subtotal']" />
                                         @endif
                                     </div>
                                 </div>
@@ -172,17 +174,17 @@
                     <div class="flex flex-col gap-3 text-xs mb-6 font-semibold">
                         <div class="flex justify-between text-slate-500">
                             <span>Monto Total del Viaje:</span>
-                            <span>${{ number_format($totalGeneral) }} MXN</span>
+                            <span>${{ number_format($totalGeneral) }} USD</span>
                         </div>
                         
                         @if($totalDestino > 0)
                             <div class="flex justify-between text-brand-orange">
                                 <span>Pagar online hoy (Depósito):</span>
-                                <span>${{ number_format($totalOnline) }} MXN</span>
+                                <span>${{ number_format($totalOnline) }} USD</span>
                             </div>
                             <div class="flex justify-between text-slate-600 border-b border-slate-100 pb-2">
                                 <span>Liquidar en persona el día del tour:</span>
-                                <span>${{ number_format($totalDestino) }} MXN</span>
+                                <span>${{ number_format($totalDestino) }} USD</span>
                             </div>
                         @else
                             <div class="flex justify-between text-slate-500 border-b border-slate-100 pb-2">
@@ -198,7 +200,10 @@
                         
                         <div class="flex justify-between border-t border-slate-200 pt-3 font-bold text-slate-700 text-sm">
                             <span>Total a pagar hoy:</span>
-                            <span class="text-brand-teal font-black">${{ number_format($totalOnline) }} MXN</span>
+                            <span class="text-right">
+                                <span class="text-brand-teal font-black">${{ number_format($totalOnline) }} USD</span>
+                                <x-currency-note :usd="$totalOnline" />
+                            </span>
                         </div>
                     </div>
 

@@ -148,9 +148,9 @@
                         </label>
                         <select name="price" class="w-full bg-transparent border-0 p-0 text-sm font-semibold text-slate-700 focus:ring-0 focus:outline-none cursor-pointer">
                             <option value="">Cualquier precio</option>
-                            <option value="1000">Hasta $1,000 MXN</option>
-                            <option value="2000">Hasta $2,000 MXN</option>
-                            <option value="3000">Hasta $3,000 MXN</option>
+                            <option value="1000">Hasta $1,000 USD</option>
+                            <option value="2000">Hasta $2,000 USD</option>
+                            <option value="3000">Hasta $3,000 USD</option>
                         </select>
                     </div>
 
@@ -166,6 +166,7 @@
     </section>
 
     <!-- SECCIÓN DESTINOS POPULARES -->
+    @if($destinosDestacados->isNotEmpty())
     <section class="py-16 bg-slate-100/50 border-y border-slate-200/60">
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-12">
@@ -174,48 +175,20 @@
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                <!-- Tarjeta Cancún -->
-                <a href="{{ route('catalog', ['location' => 'CANCUN']) }}" class="group relative overflow-hidden rounded-2xl aspect-[4/5] border border-slate-200 shadow-md transition-all hover:border-slate-350 hover:shadow-lg">
-                    <img src="https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=600&q=80" alt="Cancún" class="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105">
-                    <div class="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-slate-900/20 to-transparent"></div>
-                    <div class="absolute bottom-5 left-5 right-5">
-                        <p class="text-[10px] font-bold tracking-widest text-brand-teal uppercase">México</p>
-                        <h3 class="text-lg font-bold text-white mt-1">Cancún</h3>
-                    </div>
-                </a>
-
-                <!-- Tarjeta Riviera Maya -->
-                <a href="{{ route('catalog', ['location' => 'RIVERA MAYA']) }}" class="group relative overflow-hidden rounded-2xl aspect-[4/5] border border-slate-200 shadow-md transition-all hover:border-slate-350 hover:shadow-lg">
-                    <img src="https://images.unsplash.com/photo-1504198453319-5ce911bafcde?auto=format&fit=crop&w=600&q=80" alt="Riviera Maya" class="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105">
-                    <div class="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-slate-900/20 to-transparent"></div>
-                    <div class="absolute bottom-5 left-5 right-5">
-                        <p class="text-[10px] font-bold tracking-widest text-brand-teal uppercase">México</p>
-                        <h3 class="text-lg font-bold text-white mt-1">Riviera Maya</h3>
-                    </div>
-                </a>
-
-                <!-- Tarjeta Isla Mujeres -->
-                <a href="{{ route('catalog', ['location' => 'ISLA MUJERES']) }}" class="group relative overflow-hidden rounded-2xl aspect-[4/5] border border-slate-200 shadow-md transition-all hover:border-slate-350 hover:shadow-lg">
-                    <img src="https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?auto=format&fit=crop&w=600&q=80" alt="Isla Mujeres" class="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105">
-                    <div class="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-slate-900/20 to-transparent"></div>
-                    <div class="absolute bottom-5 left-5 right-5">
-                        <p class="text-[10px] font-bold tracking-widest text-brand-teal uppercase">México</p>
-                        <h3 class="text-lg font-bold text-white mt-1">Isla Mujeres</h3>
-                    </div>
-                </a>
-
-                <!-- Tarjeta Contoy -->
-                <a href="{{ route('catalog', ['location' => 'CONTOY']) }}" class="group relative overflow-hidden rounded-2xl aspect-[4/5] border border-slate-200 shadow-md transition-all hover:border-slate-350 hover:shadow-lg">
-                    <img src="https://images.unsplash.com/photo-1526392060635-9d6019884377?auto=format&fit=crop&w=600&q=80" alt="Contoy" class="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105">
-                    <div class="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-slate-900/20 to-transparent"></div>
-                    <div class="absolute bottom-5 left-5 right-5">
-                        <p class="text-[10px] font-bold tracking-widest text-brand-teal uppercase">México</p>
-                        <h3 class="text-lg font-bold text-white mt-1">Isla Contoy</h3>
-                    </div>
-                </a>
+                @foreach($destinosDestacados as $destino)
+                    <a href="{{ route('catalog', ['location' => $destino->ubicacion]) }}" class="group relative overflow-hidden rounded-2xl aspect-[4/5] border border-slate-200 shadow-md transition-all hover:border-slate-350 hover:shadow-lg">
+                        <img src="{{ $destino->imagen_destacada }}" alt="{{ $destino->ubicacion }}" class="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105">
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-slate-900/20 to-transparent"></div>
+                        <div class="absolute bottom-5 left-5 right-5">
+                            <p class="text-[10px] font-bold tracking-widest text-brand-teal uppercase">{{ $destino->pais }}</p>
+                            <h3 class="text-lg font-bold text-white mt-1">{{ ucwords(strtolower($destino->ubicacion)) }}</h3>
+                        </div>
+                    </a>
+                @endforeach
             </div>
         </div>
     </section>
+    @endif
 
     <!-- SECCIÓN TOURS DESTACADOS -->
     <section class="py-16">
@@ -244,7 +217,8 @@
                             
                             <div class="absolute bottom-4 right-4 px-3 py-1.5 rounded-xl bg-white/95 backdrop-blur-xs border border-slate-200/80 text-right shadow-xs">
                                 <p class="text-[8px] font-bold text-slate-500 uppercase tracking-widest">{{ __('priceFrom') }}</p>
-                                <p class="text-sm font-black text-brand-teal">${{ number_format($tour->precio_base_usd) }} MXN</p>
+                                <p class="text-sm font-black text-brand-teal">${{ number_format($tour->precio_base_usd) }} USD</p>
+                                <x-currency-note :usd="$tour->precio_base_usd" />
                             </div>
                         </div>
 

@@ -24,11 +24,21 @@ class HomeController extends Controller
     {
         // Obtener los tours para mostrarlos en la sección destacada
         $tours = Tour::all();
-        
+
         // Destinos populares (ubicaciones únicas)
         $destinos = Tour::select('ubicacion')->distinct()->pluck('ubicacion');
 
-        return view('home', compact('tours', 'destinos'));
+        // Tarjetas de "Explora Destinos": una por ubicación única, usando el tour
+        // más antiguo de cada una como representante (imagen y país).
+        $destinosDestacados = Tour::query()
+            ->select('ubicacion', 'pais', 'imagen_destacada')
+            ->orderBy('created_at')
+            ->get()
+            ->unique('ubicacion')
+            ->take(8)
+            ->values();
+
+        return view('home', compact('tours', 'destinos', 'destinosDestacados'));
     }
 
     /**

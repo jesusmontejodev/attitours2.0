@@ -117,7 +117,7 @@
                     <div class="flex flex-col gap-3 text-xs mb-2 font-semibold">
                         <div class="flex justify-between text-slate-550">
                             <span>Subtotal:</span>
-                            <span>${{ number_format($total) }} MXN</span>
+                            <span>${{ number_format($total) }} USD</span>
                         </div>
                         <div class="flex justify-between text-slate-550">
                             <span>Comisión de Transacción:</span>
@@ -125,7 +125,10 @@
                         </div>
                         <div class="flex justify-between border-t border-slate-200 pt-3 font-bold text-slate-700 text-sm">
                             <span>Total a pagar:</span>
-                            <span class="text-brand-teal font-black">${{ number_format($total) }} MXN</span>
+                            <span class="text-right">
+                                <span class="text-brand-teal font-black">${{ number_format($total) }} USD</span>
+                                <x-currency-note :usd="$total" />
+                            </span>
                         </div>
                     </div>
                 </div>

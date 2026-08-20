@@ -72,7 +72,7 @@
                                         Pasajeros: {{ $detalle->cantidad_personas }} {{ $detalle->cantidad_personas > 1 ? __('people') : __('person') }}
                                     </p>
                                 </div>
-                                <span class="text-xs font-bold text-slate-650 shrink-0">${{ number_format($detalle->precio_unitario_usd * $detalle->cantidad_personas) }} MXN</span>
+                                <span class="text-xs font-bold text-slate-650 shrink-0">${{ number_format($detalle->precio_unitario_usd * $detalle->cantidad_personas) }} USD</span>
                             </div>
                         @endforeach
                     </div>
@@ -80,8 +80,11 @@
 
                 <!-- Total pagado -->
                 <div class="flex items-center justify-between border-t border-slate-200 pt-4 font-semibold">
-                    <span class="text-xs font-bold text-slate-500">Importe Pagado (MXN):</span>
-                    <span class="text-sm font-black text-brand-teal">${{ number_format($reserva->precio_total_usd, 2) }} MXN</span>
+                    <span class="text-xs font-bold text-slate-500">Importe Pagado (USD):</span>
+                    <span class="text-right">
+                        <span class="text-sm font-black text-brand-teal">${{ number_format($reserva->precio_total_usd, 2) }} USD</span>
+                        <x-currency-note :usd="$reserva->precio_total_usd" />
+                    </span>
                 </div>
 
                 <!-- Código de Barras / QR Simulador -->

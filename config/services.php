@@ -49,4 +49,24 @@ return [
         'forzar_sandbox' => env('TOURS_API_FORZAR_SANDBOX', true),
     ],
 
+    'exchange_rate' => [
+        'url' => env('EXCHANGE_RATE_API_URL', 'https://open.er-api.com/v6/latest/USD'),
+        'cache_ttl_horas' => env('EXCHANGE_RATE_CACHE_TTL_HORAS', 6),
+    ],
+
+    'seed_users' => [
+        'admin' => [
+            'email' => env('SEED_ADMIN_EMAIL', 'admin@attitours.com'),
+            'password' => env('SEED_ADMIN_PASSWORD'),
+        ],
+        'proveedor' => [
+            'email' => env('SEED_PROVEEDOR_EMAIL', 'proveedor@attitours.com'),
+            'password' => env('SEED_PROVEEDOR_PASSWORD'),
+        ],
+        'cliente' => [
+            'email' => env('SEED_CLIENTE_EMAIL', 'cliente@attitours.com'),
+            'password' => env('SEED_CLIENTE_PASSWORD'),
+        ],
+    ],
+
 ];

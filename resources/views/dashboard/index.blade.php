@@ -162,7 +162,7 @@
                 <div class="p-6 rounded-2xl border border-slate-200 bg-white shadow-xs relative overflow-hidden group">
                     <div class="absolute -right-4 -bottom-4 text-slate-100 text-7xl select-none font-black opacity-30 group-hover:scale-105 transition-transform duration-300">$</div>
                     <p class="text-[9px] font-bold text-slate-450 uppercase tracking-widest">{{ __('totalSales') }}</p>
-                    <p class="text-2xl font-black text-slate-800 mt-2">$<span id="metric-total-sales">{{ number_format($totalSales, 2) }}</span> <span class="text-[10px] text-slate-550 font-bold">MXN</span></p>
+                    <p class="text-2xl font-black text-slate-800 mt-2">$<span id="metric-total-sales">{{ number_format($totalSales, 2) }}</span> <span class="text-[10px] text-slate-550 font-bold">USD</span></p>
                 </div>
 
                 <!-- Reservas Totales -->
@@ -178,7 +178,7 @@
                     <p class="text-[9px] font-bold text-slate-450 uppercase tracking-widest">
                         {{ Auth::user()->isAdmin() ? __('commissions') : 'Comisión Plataforma' }}
                     </p>
-                    <p class="text-2xl font-black text-rose-600 mt-2">$<span id="metric-total-commissions">{{ number_format($totalCommissions, 2) }}</span> <span class="text-[10px] text-slate-500 font-bold">MXN</span></p>
+                    <p class="text-2xl font-black text-rose-600 mt-2">$<span id="metric-total-commissions">{{ number_format($totalCommissions, 2) }}</span> <span class="text-[10px] text-slate-500 font-bold">USD</span></p>
                 </div>
 
                 <!-- Ganancia Neta -->
@@ -187,7 +187,7 @@
                     <p class="text-[9px] font-bold text-slate-450 uppercase tracking-widest">
                         {{ Auth::user()->isAdmin() ? 'Ganancia Proveedores' : __('netEarnings') }}
                     </p>
-                    <p class="text-2xl font-black text-emerald-600 mt-2">$<span id="metric-net-earnings">{{ number_format($netEarnings, 2) }}</span> <span class="text-[10px] text-slate-550 font-bold">MXN</span></p>
+                    <p class="text-2xl font-black text-emerald-600 mt-2">$<span id="metric-net-earnings">{{ number_format($netEarnings, 2) }}</span> <span class="text-[10px] text-slate-550 font-bold">USD</span></p>
                 </div>
             </div>
 
@@ -718,7 +718,7 @@
                                                 </div>
                                             </div>
                                             <div class="flex items-center justify-between mt-1">
-                                                <span class="text-[10px] font-black text-brand-teal">${{ number_format($t->precio_base_usd) }} MXN</span>
+                                                <span class="text-[10px] font-black text-brand-teal">${{ number_format($t->precio_base_usd) }} USD</span>
                                                 <span class="text-[9px] text-slate-500 font-semibold uppercase tracking-wider">{{ $t->ubicacion }}</span>
                                             </div>
                                         </div>
@@ -1413,7 +1413,7 @@
                         <!-- Condiciones Financieras y Logística -->
                         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
                             <div class="flex flex-col gap-1.5">
-                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Precio MXN</label>
+                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Precio USD</label>
                                 <input type="number" name="precio_base_usd" required min="1" placeholder="1200" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
                             </div>
                             <div class="flex flex-col gap-1.5">
@@ -1572,7 +1572,7 @@
                         <!-- Condiciones Financieras y Logística -->
                         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
                             <div class="flex flex-col gap-1.5">
-                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Precio MXN</label>
+                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Precio USD</label>
                                 <input type="number" name="precio_base_usd" id="edit-tour-precio" required min="1" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
                             </div>
                             <div class="flex flex-col gap-1.5">
@@ -3266,7 +3266,7 @@
                         <input type="number" placeholder="Max Pax" value="${max}" class="tarifa-max w-full h-8 rounded border border-slate-200 bg-white px-2 text-xs text-slate-700" required>
                     </div>
                     <div class="flex gap-2 items-center">
-                        <input type="number" placeholder="Precio MXN" value="${precio}" class="tarifa-precio w-full h-8 rounded border border-slate-200 bg-white px-2 text-xs text-slate-700" required>
+                        <input type="number" placeholder="Precio USD" value="${precio}" class="tarifa-precio w-full h-8 rounded border border-slate-200 bg-white px-2 text-xs text-slate-700" required>
                         <button type="button" onclick="document.getElementById('${rowId}').remove(); serializeTarifas('${context}');" class="text-rose-650 hover:text-rose-800 text-base font-bold px-1.5 cursor-pointer">×</button>
                     </div>
                 </div>

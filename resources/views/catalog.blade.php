@@ -173,7 +173,7 @@
                                 {{ __('searchPrice') }}
                             </label>
                             <span id="price-val" class="text-xs font-black text-brand-teal">
-                                ${{ request('price', $precioMaximo) }} MXN
+                                ${{ request('price', $precioMaximo) }} USD
                             </span>
                         </div>
                         <input type="range" name="price" id="price-range" min="40" max="{{ $precioMaximo }}" step="5" value="{{ request('price', $precioMaximo) }}" class="w-full accent-brand-teal cursor-pointer">
@@ -224,7 +224,8 @@
                                     
                                     <div class="absolute bottom-4 right-4 px-3 py-1.5 rounded-xl bg-white/95 backdrop-blur-xs border border-slate-200/80 text-right shadow-xs">
                                         <p class="text-[8px] font-bold text-slate-500 uppercase tracking-widest">{{ __('priceFrom') }}</p>
-                                        <p class="text-sm font-black text-brand-teal">${{ number_format($tour->precio_base_usd) }} MXN</p>
+                                        <p class="text-sm font-black text-brand-teal">${{ number_format($tour->precio_base_usd) }} USD</p>
+                                        <x-currency-note :usd="$tour->precio_base_usd" />
                                     </div>
                                 </div>
 
@@ -282,7 +283,7 @@
         const priceVal = document.getElementById('price-val');
         if (range && priceVal) {
             range.addEventListener('input', (e) => {
-                priceVal.textContent = `$${e.target.value} MXN`;
+                priceVal.textContent = `$${e.target.value} USD`;
             });
         }
 

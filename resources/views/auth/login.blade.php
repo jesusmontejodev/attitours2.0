@@ -196,30 +196,6 @@
             </div>
         </div>
 
-        {{-- CREDENCIALES DE PRUEBA (solo para demo) --}}
-        <div class="p-4 rounded-2xl border border-slate-200 bg-white/70 backdrop-blur-sm shadow-md">
-            <h3 class="text-[10px] font-black uppercase tracking-wider text-brand-teal flex items-center gap-1.5 mb-3">
-                💡 Accesos de Prueba (Demo)
-            </h3>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[9px] text-slate-550 leading-relaxed font-semibold">
-                <div class="p-2 rounded-lg border border-slate-200 bg-slate-50/50">
-                    <p class="font-bold text-slate-700 mb-0.5">👤 Administrador</p>
-                    <p class="text-slate-600">admin@attitours.com</p>
-                    <p class="text-brand-teal font-bold">admin123</p>
-                </div>
-                <div class="p-2 rounded-lg border border-slate-200 bg-slate-50/50">
-                    <p class="font-bold text-slate-700 mb-0.5">🏢 Proveedor</p>
-                    <p class="text-slate-600">proveedor@attitours.com</p>
-                    <p class="text-brand-orange font-bold">proveedor123</p>
-                </div>
-                <div class="p-2 rounded-lg border border-slate-200 bg-slate-50/50">
-                    <p class="font-bold text-slate-700 mb-0.5">✈️ Cliente de Prueba</p>
-                    <p class="text-slate-600">cliente@attitours.com</p>
-                    <p class="text-brand-teal font-bold">cliente123</p>
-                </div>
-            </div>
-        </div>
-
     </div>
 </div>
 

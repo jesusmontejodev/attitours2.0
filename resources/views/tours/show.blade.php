@@ -78,8 +78,11 @@
                     <span class="text-xs font-bold text-slate-500 uppercase tracking-widest" id="price-type-label">
                         {{ $tour->tipo_modalidad === 'privado' ? 'Tour Privado (Desde)' : 'Precio por Persona' }}
                     </span>
-                    <span class="text-xl font-black text-brand-teal" id="price-value-label">
-                        ${{ number_format($tour->precio_base_usd) }} MXN
+                    <span class="text-right">
+                        <span class="text-xl font-black text-brand-teal" id="price-value-label">
+                            ${{ number_format($tour->precio_base_usd) }} USD
+                        </span>
+                        <span id="price-value-conversion" class="block text-[10px] font-medium text-slate-400 mt-0.5"></span>
                     </span>
                 </div>
 
@@ -218,7 +221,7 @@
                         <div id="shared-details" class="flex flex-col gap-2">
                             <div class="flex items-center justify-between text-slate-500">
                                 <span>Base:</span>
-                                <span>${{ number_format($tour->precio_base_usd) }} MXN x <span id="summary-qty">1</span></span>
+                                <span>${{ number_format($tour->precio_base_usd) }} USD x <span id="summary-qty">1</span></span>
                             </div>
                         </div>
 
@@ -226,22 +229,28 @@
                         <div id="private-details" class="hidden flex flex-col gap-2 border-t border-slate-200 pt-2">
                             <div class="flex items-center justify-between text-slate-500">
                                 <span>Monto total del tour:</span>
-                                <span id="private-total-raw">$0 MXN</span>
+                                <span id="private-total-raw">$0 USD</span>
                             </div>
                             <div class="flex items-center justify-between text-brand-orange font-bold">
                                 <span id="private-deposit-label">Pagar online hoy:</span>
-                                <span id="private-deposit-val">$0 MXN</span>
+                                <span class="text-right">
+                                    <span id="private-deposit-val">$0 USD</span>
+                                    <span id="private-deposit-conversion" class="block text-[10px] font-medium text-slate-400 mt-0.5"></span>
+                                </span>
                             </div>
                             <div class="flex items-center justify-between text-slate-600">
                                 <span id="private-balance-label">Liquidar en persona:</span>
-                                <span id="private-balance-val">$0 MXN</span>
+                                <span id="private-balance-val">$0 USD</span>
                             </div>
                         </div>
 
                         <!-- Total Final (a pagar hoy en checkout) -->
                         <div class="flex items-center justify-between border-t border-slate-200 pt-2 font-bold text-slate-700">
                             <span id="total-payment-label">Total a pagar hoy:</span>
-                            <span class="text-sm text-brand-teal font-black" id="summary-total">${{ number_format($tour->precio_base_usd) }} MXN</span>
+                            <span class="text-right">
+                                <span class="text-sm text-brand-teal font-black" id="summary-total">${{ number_format($tour->precio_base_usd) }} USD</span>
+                                <span id="summary-total-conversion" class="block text-[10px] font-medium text-slate-400 mt-0.5"></span>
+                            </span>
                         </div>
                     </div>
 
@@ -527,9 +536,21 @@
         const anticipoPorcentaje = {{ $tour->anticipo_porcentaje ?? 20 }};
         let esPrivadoSelected = {{ $tour->tipo_modalidad === 'privado' ? 'true' : 'false' }};
 
+        // Tasas de cambio de referencia (USD -> MXN/EUR). El cobro real en Stripe siempre es en USD.
+        const exchangeRates = @json($exchangeRates ?? []);
+        function conversionText(usd) {
+            if (!exchangeRates.MXN || !exchangeRates.EUR) return '';
+            const mxn = Math.round(usd * exchangeRates.MXN).toLocaleString();
+            const eur = Math.round(usd * exchangeRates.EUR).toLocaleString();
+            return `≈ $${mxn} MXN · €${eur} EUR`;
+        }
+
         const qtyInput = document.getElementById('reserva-qty');
         const summaryQty = document.getElementById('summary-qty');
         const summaryTotal = document.getElementById('summary-total');
+        const summaryTotalConversion = document.getElementById('summary-total-conversion');
+        const priceValueConversion = document.getElementById('price-value-conversion');
+        const privateDepositConversion = document.getElementById('private-deposit-conversion');
 
         function setModalidad(tipo) {
             const btnCompartido = document.getElementById('modalidad-compartido-btn');
@@ -568,7 +589,7 @@
                     btnCompartido.classList.remove('text-slate-500', 'font-semibold');
                 }
                 if (priceTypeLabel) priceTypeLabel.textContent = 'Precio por Persona';
-                if (priceValueLabel) priceValueLabel.textContent = `$${basePrice.toLocaleString()} MXN`;
+                if (priceValueLabel) priceValueLabel.textContent = `$${basePrice.toLocaleString()} USD`;
             }
 
             // Limpiar fecha y horario seleccionados ya que los calendarios son independientes
@@ -624,17 +645,20 @@
                 
                 const pct = anticipoPorcentaje;
                 if (totalPaymentLabel) totalPaymentLabel.textContent = `Anticipo online hoy (${pct}%):`;
-                if (priceValueLabel) priceValueLabel.textContent = `Desde $${total.toLocaleString()} MXN`;
+                if (priceValueLabel) priceValueLabel.textContent = `Desde $${total.toLocaleString()} USD`;
+                if (priceValueConversion) priceValueConversion.textContent = conversionText(total);
 
                 const deposit = total * (pct / 100);
                 const balance = total * ((100 - pct) / 100);
 
-                if (privateTotalRaw) privateTotalRaw.textContent = `$${total.toLocaleString()} MXN`;
+                if (privateTotalRaw) privateTotalRaw.textContent = `$${total.toLocaleString()} USD`;
                 if (privateDepositLabel) privateDepositLabel.textContent = `Pagar online hoy (${pct}%):`;
-                if (privateDepositVal) privateDepositVal.textContent = `$${deposit.toLocaleString()} MXN`;
+                if (privateDepositVal) privateDepositVal.textContent = `$${deposit.toLocaleString()} USD`;
+                if (privateDepositConversion) privateDepositConversion.textContent = conversionText(deposit);
                 if (privateBalanceLabel) privateBalanceLabel.textContent = `Liquidar en persona (${100 - pct}%):`;
-                if (privateBalanceVal) privateBalanceVal.textContent = `$${balance.toLocaleString()} MXN`;
-                summaryTotal.textContent = `$${deposit.toLocaleString()} MXN`;
+                if (privateBalanceVal) privateBalanceVal.textContent = `$${balance.toLocaleString()} USD`;
+                summaryTotal.textContent = `$${deposit.toLocaleString()} USD`;
+                if (summaryTotalConversion) summaryTotalConversion.textContent = conversionText(deposit);
             } else {
                 if (privateDetails) privateDetails.classList.add('hidden');
                 if (sharedDetails) sharedDetails.classList.remove('hidden');
@@ -642,9 +666,13 @@
 
                 summaryQty.textContent = qty;
                 const total = qty * basePrice;
-                summaryTotal.textContent = `$${total.toLocaleString()} MXN`;
+                summaryTotal.textContent = `$${total.toLocaleString()} USD`;
+                if (summaryTotalConversion) summaryTotalConversion.textContent = conversionText(total);
+                if (priceValueConversion) priceValueConversion.textContent = conversionText(basePrice);
             }
         }
+
+        calculateTotal();
 
         qtyInput.addEventListener('input', () => {
             if (parseInt(qtyInput.value) < 1 || isNaN(qtyInput.value)) {
