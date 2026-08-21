@@ -13,6 +13,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 
 class AuthController extends Controller
@@ -132,6 +133,12 @@ class AuthController extends Controller
         Auth::login($user);
         $request->session()->regenerate();
 
-        return redirect()->route('home')->with('success', '¡Bienvenido a Atti Tours, ' . $user->name . '! Tu cuenta ha sido creada exitosamente.');
+        try {
+            $user->sendEmailVerificationNotification();
+        } catch (\Throwable $mailEx) {
+            Log::warning('Error enviando correo de verificación: ' . $mailEx->getMessage());
+        }
+
+        return redirect()->route('home')->with('success', '¡Bienvenido a Atti Tours, ' . $user->name . '! Tu cuenta ha sido creada exitosamente. Revisa tu correo para verificarla.');
     }
 }

@@ -83,6 +83,7 @@ class StripeCheckoutService
 
         $this->notificarWebhookConfirmacion($reserva);
         $this->despacharNotificacionesApiExterna($reserva);
+        $this->notificarWhatsapp($reserva);
 
         return $reserva->fresh(['detalles.tour']);
     }
@@ -146,6 +147,24 @@ class StripeCheckoutService
             ]);
         } catch (\Throwable $webhookEx) {
             Log::warning('Error notificando al webhook de n8n: ' . $webhookEx->getMessage());
+        }
+    }
+
+    /**
+     * Envía el mensaje de confirmación de reserva por WhatsApp al teléfono del cliente.
+     * No lanza excepciones: si el envío falla (p. ej. plantilla aún no aprobada por Meta,
+     * token vencido), no debe romper la confirmación del pago.
+     */
+    private function notificarWhatsapp(Reserva $reserva): void
+    {
+        if (!config('services.whatsapp.token') || !config('services.whatsapp.phone_number_id')) {
+            return;
+        }
+
+        try {
+            app(WhatsappNotificationService::class)->enviarConfirmacionReserva($reserva);
+        } catch (\Throwable $whatsappEx) {
+            Log::warning("Error enviando WhatsApp de confirmación para la reserva {$reserva->id}: " . $whatsappEx->getMessage());
         }
     }
 

@@ -18,6 +18,8 @@ use App\Http\Controllers\TourController;
 use App\Http\Controllers\QrScanController;
 use App\Http\Controllers\StripeWebhookController;
 use App\Http\Controllers\TourApiProxyController;
+use Illuminate\Foundation\Auth\EmailVerificationRequest;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 // ==========================================
@@ -71,6 +73,27 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
 Route::post('/register', [AuthController::class, 'register'])->name('register.submit');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+// ==========================================
+// VERIFICACIÓN DE CORREO (al crear una cuenta)
+// ==========================================
+Route::middleware('auth')->group(function () {
+    Route::get('/email/verify', function () {
+        return view('auth.verify-email');
+    })->name('verification.notice');
+
+    Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
+        $request->fulfill();
+
+        return redirect()->route('home')->with('success', '¡Tu correo ha sido verificado exitosamente!');
+    })->middleware('signed')->name('verification.verify');
+
+    Route::post('/email/verification-notification', function (Request $request) {
+        $request->user()->sendEmailVerificationNotification();
+
+        return back()->with('success', 'Te hemos enviado un nuevo enlace de verificación a tu correo.');
+    })->middleware('throttle:6,1')->name('verification.send');
+});
 
 // ==========================================
 // DASHBOARD DEL CLIENTE FINAL (MI CUENTA)
