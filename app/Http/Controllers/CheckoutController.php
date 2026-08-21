@@ -62,8 +62,11 @@ class CheckoutController extends Controller
         $request->validate([
             'nombre' => 'required|string|max:100',
             'email' => 'required|email|max:100',
+            'codigo_pais' => 'required|string|max:5|regex:/^\+[0-9]{1,4}$/',
             'telefono' => 'required|string|max:30',
         ]);
+
+        $telefonoCompleto = trim($request->input('codigo_pais') . ' ' . $request->input('telefono'));
 
         $cart = session()->get('cart', []);
 
@@ -72,7 +75,7 @@ class CheckoutController extends Controller
         }
 
         try {
-            [$reserva, $lineItems] = DB::transaction(function () use ($request, $cart) {
+            [$reserva, $lineItems] = DB::transaction(function () use ($request, $cart, $telefonoCompleto) {
                 $totalVenta = 0;
                 $totalComision = 0;
                 $montoOnlineTotal = 0;
@@ -144,7 +147,7 @@ class CheckoutController extends Controller
                     'user_id'                     => Auth::check() ? Auth::id() : null,
                     'nombre_cliente'              => $request->input('nombre'),
                     'correo_cliente'              => $request->input('email'),
-                    'telefono_cliente'            => $request->input('telefono'),
+                    'telefono_cliente'            => $telefonoCompleto,
                     'precio_total_usd'            => $totalVenta,
                     'monto_pagado_online_usd'     => $montoOnlineTotal,
                     'monto_pendiente_destino_usd' => $montoDestinoTotal,

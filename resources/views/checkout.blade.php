@@ -67,8 +67,44 @@
 
                             <!-- Teléfono -->
                             <div class="flex flex-col gap-1.5 sm:col-span-2">
-                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Número de Teléfono (con código de país)</label>
-                                <input type="text" name="telefono" required value="{{ old('telefono', Auth::check() ? Auth::user()->telefono : '') }}" placeholder="Ej. +52 55 1234 5678" class="w-full h-10 rounded-lg border border-slate-200 bg-slate-55 px-3 text-xs text-slate-800 placeholder-slate-400 focus:border-brand-teal focus:bg-white focus:ring-0 focus:outline-none transition-colors">
+                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Número de Teléfono (WhatsApp)</label>
+                                <div class="flex gap-2">
+                                    @php
+                                        $codigosPais = [
+                                            ['code' => '+52', 'flag' => '🇲🇽', 'name' => 'México'],
+                                            ['code' => '+1', 'flag' => '🇺🇸', 'name' => 'Estados Unidos'],
+                                            ['code' => '+1', 'flag' => '🇨🇦', 'name' => 'Canadá'],
+                                            ['code' => '+34', 'flag' => '🇪🇸', 'name' => 'España'],
+                                            ['code' => '+54', 'flag' => '🇦🇷', 'name' => 'Argentina'],
+                                            ['code' => '+55', 'flag' => '🇧🇷', 'name' => 'Brasil'],
+                                            ['code' => '+56', 'flag' => '🇨🇱', 'name' => 'Chile'],
+                                            ['code' => '+57', 'flag' => '🇨🇴', 'name' => 'Colombia'],
+                                            ['code' => '+506', 'flag' => '🇨🇷', 'name' => 'Costa Rica'],
+                                            ['code' => '+593', 'flag' => '🇪🇨', 'name' => 'Ecuador'],
+                                            ['code' => '+503', 'flag' => '🇸🇻', 'name' => 'El Salvador'],
+                                            ['code' => '+502', 'flag' => '🇬🇹', 'name' => 'Guatemala'],
+                                            ['code' => '+504', 'flag' => '🇭🇳', 'name' => 'Honduras'],
+                                            ['code' => '+505', 'flag' => '🇳🇮', 'name' => 'Nicaragua'],
+                                            ['code' => '+507', 'flag' => '🇵🇦', 'name' => 'Panamá'],
+                                            ['code' => '+595', 'flag' => '🇵🇾', 'name' => 'Paraguay'],
+                                            ['code' => '+51', 'flag' => '🇵🇪', 'name' => 'Perú'],
+                                            ['code' => '+1', 'flag' => '🇩🇴', 'name' => 'República Dominicana'],
+                                            ['code' => '+598', 'flag' => '🇺🇾', 'name' => 'Uruguay'],
+                                            ['code' => '+58', 'flag' => '🇻🇪', 'name' => 'Venezuela'],
+                                            ['code' => '+44', 'flag' => '🇬🇧', 'name' => 'Reino Unido'],
+                                            ['code' => '+33', 'flag' => '🇫🇷', 'name' => 'Francia'],
+                                            ['code' => '+49', 'flag' => '🇩🇪', 'name' => 'Alemania'],
+                                        ];
+                                        $codigoPaisSeleccionado = old('codigo_pais', '+52');
+                                    @endphp
+                                    <select name="codigo_pais" required class="h-10 w-28 shrink-0 rounded-lg border border-slate-200 bg-slate-55 px-2 text-xs text-slate-800 focus:border-brand-teal focus:bg-white focus:ring-0 focus:outline-none transition-colors">
+                                        @foreach($codigosPais as $pais)
+                                            <option value="{{ $pais['code'] }}" {{ $codigoPaisSeleccionado === $pais['code'] ? 'selected' : '' }}>{{ $pais['flag'] }} {{ $pais['code'] }}</option>
+                                        @endforeach
+                                    </select>
+                                    <input type="tel" name="telefono" required value="{{ old('telefono', Auth::check() ? Auth::user()->telefono : '') }}" placeholder="Ej. 55 1234 5678" class="flex-1 min-w-0 h-10 rounded-lg border border-slate-200 bg-slate-55 px-3 text-xs text-slate-800 placeholder-slate-400 focus:border-brand-teal focus:bg-white focus:ring-0 focus:outline-none transition-colors">
+                                </div>
+                                <p class="text-[9px] text-slate-400 font-semibold">Selecciona el código de tu país y escribe tu número sin el código. Lo usaremos para confirmarte por WhatsApp.</p>
                             </div>
                         </div>
                     </div>

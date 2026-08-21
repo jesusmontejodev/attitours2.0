@@ -43,6 +43,7 @@ return [
 
     'n8n' => [
         'confirmacion_webhook_url' => env('N8N_CONFIRMACION_WEBHOOK_URL'),
+        'pagos_webhook_url' => env('URL_WEBHOOK_N8N'),
     ],
 
     'tours_api' => [
