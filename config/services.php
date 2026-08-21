@@ -49,7 +49,7 @@ return [
     'whatsapp' => [
         'token' => env('WHATSAPP_TOKEN'),
         'phone_number_id' => env('WHATSAPP_PHONE_NUMBER_ID'),
-        'template_name' => env('WHATSAPP_TEMPLATE_NAME', 'confirmacion_reserva_tour'),
+        'template_name' => env('WHATSAPP_TEMPLATE_NAME', 'confirmacion_reserva_tour_v2'),
         'template_language' => env('WHATSAPP_TEMPLATE_LANGUAGE', 'es_MX'),
     ],
 

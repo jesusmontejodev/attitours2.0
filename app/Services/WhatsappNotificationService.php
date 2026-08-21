@@ -2,8 +2,8 @@
 /**
  * @file WhatsappNotificationService.php
  * @description Cliente delgado para la WhatsApp Cloud API (Meta). Envía la plantilla de
- *              confirmación de reserva (confirmacion_reserva_tour) al teléfono del cliente
- *              usando los datos de la Reserva recién pagada.
+ *              confirmación de reserva (confirmacion_reserva_tour_v2, con imagen de header)
+ *              al teléfono del cliente usando los datos de la Reserva recién pagada.
  * @date 2026-08-21
  * @author Antigravity
  */
@@ -41,7 +41,7 @@ class WhatsappNotificationService
                     [
                         'type' => 'header',
                         'parameters' => [
-                            ['type' => 'text', 'parameter_name' => 'customer_name', 'text' => $reserva->nombre_cliente],
+                            ['type' => 'image', 'image' => ['link' => asset('images/imagen-plantilla-whatsapp.png')]],
                         ],
                     ],
                     [
