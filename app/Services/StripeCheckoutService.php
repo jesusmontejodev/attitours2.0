@@ -191,7 +191,7 @@ class StripeCheckoutService
             return "- {$nombre}: {$fecha}{$horario}{$modalidad} ({$detalle->cantidad_personas} pax)";
         })->implode("\n");
 
-        $mensaje = "¡Hola {$reserva->nombre_cliente}! 🎉 Tu reserva con Atti Tours fue confirmada.\n\n"
+        $mensaje = "¡Hola {$reserva->nombre_cliente}! 🎉 Tu reserva con Attitour fue confirmada.\n\n"
             . "🎫 Ticket: {$reserva->ticket_codigo}\n\n"
             . "🧭 Tours reservados:\n{$tours}\n\n"
             . "💰 Total pagado hoy: \${$reserva->monto_pagado_online_usd} USD\n";

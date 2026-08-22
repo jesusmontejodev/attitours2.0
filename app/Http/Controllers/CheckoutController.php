@@ -316,7 +316,7 @@ class CheckoutController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => __('Redirigiendo a WhatsApp...'),
-                'redirect_url' => 'https://api.whatsapp.com/send?phone=5212345678&text=' . urlencode('Hola, aquí está tu ticket de viaje de Atti Tours.')
+                'redirect_url' => 'https://api.whatsapp.com/send?phone=5212345678&text=' . urlencode('Hola, aquí está tu ticket de viaje de Attitour.')
             ]);
         }
     }

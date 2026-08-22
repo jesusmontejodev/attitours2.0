@@ -27,7 +27,7 @@ class VerificaTuEmail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Confirma tu correo — Atti Tours',
+            subject: 'Confirma tu correo — Attitour',
         );
     }
 

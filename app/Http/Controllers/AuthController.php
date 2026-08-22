@@ -139,6 +139,6 @@ class AuthController extends Controller
             Log::warning('Error enviando correo de verificación: ' . $mailEx->getMessage());
         }
 
-        return redirect()->route('home')->with('success', '¡Bienvenido a Atti Tours, ' . $user->name . '! Tu cuenta ha sido creada exitosamente. Revisa tu correo para verificarla.');
+        return redirect()->route('home')->with('success', '¡Bienvenido a Attitour, ' . $user->name . '! Tu cuenta ha sido creada exitosamente. Revisa tu correo para verificarla.');
     }
 }

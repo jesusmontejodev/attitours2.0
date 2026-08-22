@@ -7,7 +7,7 @@
  * @author Antigravity
  -->
 
-@section('title', 'Pasarela de Pago - Atti Tours')
+@section('title', 'Pasarela de Pago - Attitour')
 
 @section('content')
     <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-10 relative">
@@ -115,7 +115,7 @@
                             2. Pago Seguro
                         </h2>
                         <p class="text-xs text-slate-500 font-semibold leading-relaxed">
-                            Al continuar serás redirigido a la página de pago segura de Stripe para completar tu compra con tarjeta, Apple Pay o Google Pay. Atti Tours nunca ve ni almacena los datos de tu tarjeta.
+                            Al continuar serás redirigido a la página de pago segura de Stripe para completar tu compra con tarjeta, Apple Pay o Google Pay. Attitour nunca ve ni almacena los datos de tu tarjeta.
                         </p>
                     </div>
 

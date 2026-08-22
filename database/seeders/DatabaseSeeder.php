@@ -1,7 +1,7 @@
 <?php
 /**
  * @file DatabaseSeeder.php
- * @description Seeder principal de la base de datos para inicializar Atti Tours con el proveedor y usuarios base. Email y contraseña de cada cuenta se toman de config('services.seed_users'), es decir de las variables SEED_*_EMAIL / SEED_*_PASSWORD del .env; si alguna contraseña no está definida ahí, se genera una aleatoria y se imprime en consola. No crea tours ni reservas de ejemplo (ver DemoDataSeeder para datos de prueba).
+ * @description Seeder principal de la base de datos para inicializar Attitour con el proveedor y usuarios base. Email y contraseña de cada cuenta se toman de config('services.seed_users'), es decir de las variables SEED_*_EMAIL / SEED_*_PASSWORD del .env; si alguna contraseña no está definida ahí, se genera una aleatoria y se imprime en consola. No crea tours ni reservas de ejemplo (ver DemoDataSeeder para datos de prueba).
  * @date 2026-08-20
  * @author Antigravity
  */
@@ -27,7 +27,7 @@ class DatabaseSeeder extends Seeder
 
         // 1. Crear Proveedor por defecto
         $proveedor = Proveedor::create([
-            'nombre_empresa' => 'Atti Tours Operadora Local',
+            'nombre_empresa' => 'Attitour Operadora Local',
             'descripcion' => 'Especialistas en recorridos de sol, playa y arqueología en Quintana Roo y el Caribe Mexicano.',
             'rfc' => 'ATT120405H89',
             'correo' => 'contacto@attitours.com',

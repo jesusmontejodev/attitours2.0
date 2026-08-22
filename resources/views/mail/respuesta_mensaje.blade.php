@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <!--
- * @file verificar_email.blade.php
- * @description Plantilla HTML del correo de verificación de cuenta, mismo estilo claro/corporativo
- *              que el correo de reserva confirmada (mail.reserva_confirmada).
+ * @file respuesta_mensaje.blade.php
+ * @description Plantilla HTML del correo que avisa al cliente de una respuesta nueva en el chat
+ *              de su reserva, mismo estilo claro/corporativo que mail.verificar_email.
  * @date 2026-08-21
  * @author Antigravity
 -->
@@ -10,7 +10,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Confirma tu correo — Attitour</title>
+    <title>Respuesta nueva — Attitour</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -36,17 +36,17 @@
         .body { padding: 8px 36px 8px; text-align: center; }
         .body h1 { font-size: 19px; font-weight: 800; color: #0f172a; margin-bottom: 10px; }
         .body p { font-size: 13px; color: #64748b; line-height: 1.6; margin-bottom: 8px; }
+        .mensaje-box {
+            margin: 18px 0 4px; padding: 16px 18px;
+            background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px;
+            font-size: 13px; color: #334155; text-align: left; line-height: 1.6;
+        }
         .cta-btn {
             display: inline-block; margin: 20px 0 6px;
             padding: 13px 32px;
             background: #007a63;
             color: #fff !important; font-weight: 800; font-size: 13px;
             border-radius: 10px; text-decoration: none; letter-spacing: 0.5px;
-        }
-        .fallback-url {
-            margin: 18px 0 4px; padding: 12px 14px;
-            background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px;
-            font-size: 10px; color: #94a3b8; word-break: break-all; text-align: left;
         }
         .footer { padding: 24px 32px 32px; text-align: center; }
         .footer p { font-size: 10px; color: #94a3b8; line-height: 1.7; }
@@ -58,21 +58,17 @@
     <div class="card">
         <div class="header">
             <div class="logo">ATTITOUR</div>
-            <div class="icon-badge">📧</div>
+            <div class="icon-badge">💬</div>
         </div>
         <div class="body">
-            <h1>Confirma tu correo electrónico</h1>
-            <p>¡Hola {{ $user->name }}! Gracias por crear tu cuenta en Attitour.</p>
-            <p>Para activarla por completo, confirma que esta dirección de correo te pertenece dando clic en el siguiente botón:</p>
+            <h1>Tienes una respuesta nueva</h1>
+            <p>Sobre tu reserva <strong>{{ $reserva->ticket_codigo }}</strong>, el operador de tu tour te respondió:</p>
 
-            <a href="{{ $verificationUrl }}" class="cta-btn">Verificar mi correo →</a>
+            <div class="mensaje-box">{{ $mensaje->cuerpo }}</div>
 
-            <p style="margin-top: 18px; font-size: 11px;">Si tú no creaste esta cuenta, puedes ignorar este mensaje.</p>
+            <a href="{{ route('cliente.dashboard') }}" class="cta-btn">Ver conversación completa →</a>
 
-            <div class="fallback-url">
-                ¿El botón no funciona? Copia y pega este enlace en tu navegador:<br>
-                <a href="{{ $verificationUrl }}" style="color:#007a63;">{{ $verificationUrl }}</a>
-            </div>
+            <p style="margin-top: 18px; font-size: 11px;">Responde directamente desde "Mi Cuenta" en la plataforma.</p>
         </div>
         <div class="footer">
             <p>

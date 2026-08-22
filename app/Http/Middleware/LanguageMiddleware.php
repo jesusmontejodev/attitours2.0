@@ -28,7 +28,7 @@ class LanguageMiddleware
                 App::setLocale($locale);
             }
         } else {
-            // Establecer español por defecto para Atti Tours si no hay sesión configurada
+            // Establecer español por defecto para Attitour si no hay sesión configurada
             App::setLocale('es');
             session()->put('locale', 'es');
         }

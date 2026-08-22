@@ -7,7 +7,7 @@
  * @author Antigravity
  -->
 
-@section('title', 'Atti Tours - Descubre Experiencias Inolvidables')
+@section('title', 'Attitour - Descubre Experiencias Inolvidables')
 
 @section('content')
     <!-- HERO SECTION -->
@@ -328,7 +328,7 @@
                 
                 <div id="testimonial-container" class="transition-all duration-300">
                     <p id="t-text" class="text-sm md:text-base text-slate-650 italic leading-relaxed font-semibold">
-                        "El tour de snorkel en Cancún fue extraordinario. Los instructores fueron súper pacientes y pudimos ver tres tortugas marinas gigantescas de cerca. El catamarán e Isla Mujeres también son un sueño. ¡Volveré seguro con Atti Tours!"
+                        "El tour de snorkel en Cancún fue extraordinario. Los instructores fueron súper pacientes y pudimos ver tres tortugas marinas gigantescas de cerca. El catamarán e Isla Mujeres también son un sueño. ¡Volveré seguro con Attitour!"
                     </p>
                     <div class="mt-8 flex items-center gap-4">
                         <div class="h-10 w-10 rounded-full bg-brand-teal/10 text-brand-teal border border-brand-teal/20 flex items-center justify-center font-bold text-xs">
@@ -362,13 +362,13 @@
     <script>
         const testimonials = [
             {
-                text: '"El tour de snorkel en Cancún fue extraordinario. Los instructores fueron súper pacientes y pudimos ver tres tortugas marinas gigantescas de cerca. El catamarán e Isla Mujeres también son un sueño. ¡Volveré seguro con Atti Tours!"',
+                text: '"El tour de snorkel en Cancún fue extraordinario. Los instructores fueron súper pacientes y pudimos ver tres tortugas marinas gigantescas de cerca. El catamarán e Isla Mujeres también son un sueño. ¡Volveré seguro con Attitour!"',
                 author: 'María Prieto',
                 location: 'España',
                 initials: 'MP'
             },
             {
-                text: '"图伦古城和圣井的行程太棒了！导游讲解非常详细，午餐自助非常美味。我们还在神秘的天然井中游泳，这是一次超凡的体验。强烈推荐 Atti Tours！"',
+                text: '"图伦古城和圣井的行程太棒了！导游讲解非常详细，午餐自助非常美味。我们还在神秘的天然井中游泳，这是一次超凡的体验。强烈推荐 Attitour！"',
                 author: 'Chen Wei',
                 location: 'China',
                 initials: 'CW'

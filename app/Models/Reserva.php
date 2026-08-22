@@ -76,6 +76,14 @@ class Reserva extends Model
         return $this->belongsTo(Proveedor::class, 'asistencia_confirmada_por');
     }
 
+    /**
+     * Relación: Mensajes del chat interno cliente-admin para esta reserva.
+     */
+    public function mensajes(): HasMany
+    {
+        return $this->hasMany(Mensaje::class, 'reserva_id');
+    }
+
     // ─── Helpers QR ──────────────────────────────────────────────────────────
 
     /**

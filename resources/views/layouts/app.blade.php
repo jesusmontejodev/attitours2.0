@@ -11,7 +11,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>@yield('title', 'Atti Tours - Experiencias Inolvidables')</title>
+    <title>@yield('title', 'Attitour - Experiencias Inolvidables')</title>
     <meta name="description" content="Reserva los mejores tours en Cancún, Riviera Maya, Isla Mujeres y Contoy. La mejor experiencia local garantizada.">
 
     <!-- Favicon -->
@@ -31,7 +31,7 @@
 
             <!-- 1. LOGO -->
             <a href="{{ route('home') }}" class="flex items-center gap-2 group shrink-0">
-                <img src="/images/logo/LOGO 3.png" alt="Atti Tours"
+                <img src="/images/logo/LOGO 3.png" alt="Attitour"
                      class="h-20 w-auto object-contain scale-[1.85] origin-left transition-transform duration-250 group-hover:scale-[1.9]" />
             </a>
 
@@ -167,6 +167,9 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                                     </svg>
                                     Mi Cuenta
+                                    @if(($mensajesNoLeidosCliente ?? 0) > 0)
+                                        <span class="ml-auto px-1.5 py-0.5 rounded-full bg-rose-500 text-white text-[9px] font-black">{{ $mensajesNoLeidosCliente }}</span>
+                                    @endif
                                 </a>
                                 <a href="{{ route('catalog') }}"
                                    class="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold hover:bg-slate-50 text-slate-700 transition-colors">
@@ -190,6 +193,18 @@
                                     </svg>
                                     Lector QR
                                 </a>
+                                @if(Auth::user()->isAdmin())
+                                    <a href="{{ route('dashboard.mensajes.index') }}"
+                                       class="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold hover:bg-slate-50 text-slate-700 transition-colors">
+                                        <svg class="h-4 w-4 text-brand-teal" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                                        </svg>
+                                        Mensajes
+                                        @if(($mensajesNoLeidosAdmin ?? 0) > 0)
+                                            <span class="ml-auto px-1.5 py-0.5 rounded-full bg-rose-500 text-white text-[9px] font-black">{{ $mensajesNoLeidosAdmin }}</span>
+                                        @endif
+                                    </a>
+                                @endif
                             @endif
                             <div class="border-t border-slate-100 mt-1 pt-1">
                                 <form action="{{ route('logout') }}" method="POST" class="w-full">
@@ -294,8 +309,11 @@
             @auth
                 @if(Auth::user()->isCliente())
                     <a href="{{ route('cliente.dashboard') }}"
-                       class="px-3 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-50 text-slate-700 {{ Route::is('cliente.dashboard') ? 'bg-brand-teal/5 text-brand-teal' : '' }}">
+                       class="px-3 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-50 text-slate-700 flex items-center justify-between {{ Route::is('cliente.dashboard') ? 'bg-brand-teal/5 text-brand-teal' : '' }}">
                         Mi Cuenta
+                        @if(($mensajesNoLeidosCliente ?? 0) > 0)
+                            <span class="px-1.5 py-0.5 rounded-full bg-rose-500 text-white text-[9px] font-black">{{ $mensajesNoLeidosCliente }}</span>
+                        @endif
                     </a>
                 @else
                     <a href="{{ route('dashboard') }}"
@@ -306,6 +324,15 @@
                        class="px-3 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-50 text-slate-700">
                         Lector QR
                     </a>
+                    @if(Auth::user()->isAdmin())
+                        <a href="{{ route('dashboard.mensajes.index') }}"
+                           class="px-3 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-50 text-slate-700 flex items-center justify-between">
+                            Mensajes
+                            @if(($mensajesNoLeidosAdmin ?? 0) > 0)
+                                <span class="px-1.5 py-0.5 rounded-full bg-rose-500 text-white text-[9px] font-black">{{ $mensajesNoLeidosAdmin }}</span>
+                            @endif
+                        </a>
+                    @endif
                 @endif
                 <form action="{{ route('logout') }}" method="POST" class="w-full border-t border-slate-100 mt-1 pt-1">
                     @csrf
@@ -364,7 +391,7 @@
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
                 <div class="flex flex-col gap-4">
-                    <img src="/images/logo/LOGO 3.png" alt="Atti Tours" class="h-20 w-auto object-contain self-start" />
+                    <img src="/images/logo/LOGO 3.png" alt="Attitour" class="h-20 w-auto object-contain self-start" />
                     <p class="text-xs text-slate-500 leading-relaxed font-medium">
                         {{ __('heroSubtitle') }}
                     </p>

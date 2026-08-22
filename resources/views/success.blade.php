@@ -7,7 +7,7 @@
  * @author Antigravity
  -->
 
-@section('title', '¡Reserva Confirmada! - Atti Tours')
+@section('title', '¡Reserva Confirmada! - Attitour')
 
 @section('content')
     <div class="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-10 flex flex-col items-center">
@@ -36,7 +36,7 @@
                 <div class="absolute -bottom-3 -right-3 h-6 w-6 rounded-full bg-slate-50 border border-slate-50"></div>
 
                 <div class="flex items-center justify-between">
-                    <span class="text-xs font-black tracking-wider text-brand-teal">ATTI TOURS</span>
+                    <span class="text-xs font-black tracking-wider text-brand-teal">ATTITOUR</span>
                     <span class="px-2.5 py-1 rounded-md bg-white text-[10px] font-bold uppercase text-slate-800 border border-slate-200 shadow-xs">
                         {{ $reserva->ticket_codigo }}
                     </span>

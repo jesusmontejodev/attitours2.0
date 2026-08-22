@@ -1,7 +1,7 @@
 <?php
 /**
  * @file AttiToursTest.php
- * @description Pruebas de integración y características para validar las rutas críticas, internacionalización y flujos de Atti Tours. Modificado para validar creación/edición de tours con itinerarios, inclusiones/exclusiones dinámicos y módulo de escaneo de QR.
+ * @description Pruebas de integración y características para validar las rutas críticas, internacionalización y flujos de Attitour. Modificado para validar creación/edición de tours con itinerarios, inclusiones/exclusiones dinámicos y módulo de escaneo de QR.
  * @date 2026-06-29
  * @author Antigravity
  */
@@ -28,7 +28,7 @@ class AttiToursTest extends TestCase
     {
         $response = $this->get(route('home'));
         $response->assertStatus(200);
-        $response->assertSee('Atti Tours');
+        $response->assertSee('Attitour');
     }
 
     /**

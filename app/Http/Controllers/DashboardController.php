@@ -186,6 +186,7 @@ class DashboardController extends Controller
             'correo'                  => 'required|email|max:100|unique:users,email|unique:proveedores,correo',
             'representante_nombre'    => 'required|string|max:100',
             'representante_telefono'  => 'required|string|max:30',
+            'contacto_visible_cliente'=> 'nullable|string|max:150',
             'comision_porcentaje'     => 'required|integer|min:0|max:100',
             'password'                => 'required|string|min:6',
             'foto_file'               => 'nullable|image|mimes:jpeg,png,jpg,webp|max:15360',
@@ -205,6 +206,7 @@ class DashboardController extends Controller
                     'correo'                  => $validated['correo'],
                     'representante_nombre'    => $validated['representante_nombre'],
                     'representante_telefono'  => $validated['representante_telefono'],
+                    'contacto_visible_cliente'=> $validated['contacto_visible_cliente'] ?? null,
                     'comision_porcentaje'     => $validated['comision_porcentaje'],
                     'foto_url'                => $fotoUrl,
                 ]);
@@ -248,6 +250,7 @@ class DashboardController extends Controller
             'correo'                 => 'required|email|max:100|unique:proveedores,correo,' . $id,
             'representante_nombre'   => 'required|string|max:100',
             'representante_telefono' => 'required|string|max:30',
+            'contacto_visible_cliente' => 'nullable|string|max:150',
             'comision_porcentaje'    => 'required|integer|min:0|max:100',
             'foto_file'              => 'nullable|image|mimes:jpeg,png,jpg,webp|max:15360',
         ]);
@@ -265,6 +268,7 @@ class DashboardController extends Controller
                 'correo'                 => $validated['correo'],
                 'representante_nombre'   => $validated['representante_nombre'],
                 'representante_telefono' => $validated['representante_telefono'],
+                'contacto_visible_cliente' => $validated['contacto_visible_cliente'] ?? null,
                 'comision_porcentaje'    => $validated['comision_porcentaje'],
                 'foto_url'               => $fotoUrl,
             ]);

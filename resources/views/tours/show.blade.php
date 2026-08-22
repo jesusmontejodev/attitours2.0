@@ -7,7 +7,7 @@
  * @author Antigravity
  -->
 
-@section('title', $tour->nombre . ' - Atti Tours')
+@section('title', $tour->nombre . ' - Attitour')
 
 @section('content')
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
@@ -434,7 +434,7 @@
                             <div>
                                 <h4 class="text-xs font-bold text-slate-800">Lugar de Partida / Reunión</h4>
                                 <p class="text-[11px] text-slate-650 leading-relaxed mt-1 font-semibold">
-                                    {{ $tour->punto_encuentro ?: 'Oficina Principal de Atti Tours: Boulevard Kukulcán Km 9.5, Zona Hotelera, Cancún, Q.R., México. (Frente al Centro de Convenciones).' }}
+                                    {{ $tour->punto_encuentro ?: 'Oficina Principal de Attitour: Boulevard Kukulcán Km 9.5, Zona Hotelera, Cancún, Q.R., México. (Frente al Centro de Convenciones).' }}
                                 </p>
                             </div>
                         </div>

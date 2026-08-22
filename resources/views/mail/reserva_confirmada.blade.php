@@ -12,7 +12,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reserva Confirmada — Atti Tours</title>
+    <title>Reserva Confirmada — Attitour</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -141,7 +141,7 @@
 
     {{-- ── HEADER ── --}}
     <div class="header">
-        <div class="logo">ATTI TOURS</div>
+        <div class="logo">ATTITOUR</div>
         <h1>¡Reserva Confirmada! 🎉</h1>
         <p>Prepárate para vivir una experiencia inolvidable en el Caribe Mexicano</p>
     </div>
@@ -254,7 +254,7 @@
                 <p>Presenta este QR al proveedor al inicio del tour.<br>
                    El guía lo escaneará para confirmar tu asistencia.</p>
                 <div class="qr-box">
-                    <img src="{{ $qrUrl }}" alt="QR Atti Tours — {{ $reserva->ticket_codigo }}">
+                    <img src="{{ $qrUrl }}" alt="QR Attitour — {{ $reserva->ticket_codigo }}">
                 </div>
                 <div class="qr-note">
                     Código: <strong>{{ $reserva->ticket_codigo }}</strong> · Un uso por persona
@@ -273,7 +273,7 @@
             o visítanos en <a href="{{ url('/') }}">attitours.com</a>
         </p>
         <p style="margin-top:12px; font-size:10px; color:#cbd5e1;">
-            © {{ date('Y') }} Atti Tours. Todos los derechos reservados.<br>
+            © {{ date('Y') }} Attitour. Todos los derechos reservados.<br>
             Este correo fue enviado a {{ $reserva->correo_cliente }} por haber realizado una reserva.
         </p>
     </div>

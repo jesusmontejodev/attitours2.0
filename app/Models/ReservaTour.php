@@ -11,6 +11,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ReservaTour extends Model
 {
@@ -62,5 +63,14 @@ class ReservaTour extends Model
     public function tour(): BelongsTo
     {
         return $this->belongsTo(Tour::class, 'tour_id');
+    }
+
+    /**
+     * Relación: Mensajes del chat interno específicos a este tour dentro de la reserva
+     * (usado cuando una reserva incluye tours de proveedores distintos).
+     */
+    public function mensajes(): HasMany
+    {
+        return $this->hasMany(Mensaje::class, 'reserva_tour_id');
     }
 }

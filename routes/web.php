@@ -1,16 +1,18 @@
 <?php
 /**
  * @file web.php
- * @description Registro de todas las rutas HTTP de la plataforma Atti Tours 2.0.
+ * @description Registro de todas las rutas HTTP de la plataforma Attitour 2.0.
  * @date 2026-06-29
  * @author Antigravity
  */
 
+use App\Http\Controllers\AdminMensajeController;
 use App\Http\Controllers\ApiConexionController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\ClienteController;
+use App\Http\Controllers\ClienteMensajeController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LanguageController;
@@ -102,6 +104,11 @@ Route::middleware(['auth'])->prefix('mi-cuenta')->group(function () {
     Route::get('/', [ClienteController::class, 'dashboard'])->name('cliente.dashboard');
     Route::post('/perfil', [ClienteController::class, 'updatePerfil'])->name('cliente.perfil.update');
     Route::post('/eliminar-cuenta', [ClienteController::class, 'deleteCuenta'])->name('cliente.cuenta.delete');
+
+    // ── Chat interno con el proveedor (proxy vía admin) ─────────────────────
+    Route::get('/mensajes/{reserva}', [ClienteMensajeController::class, 'index'])->name('cliente.mensajes.index');
+    Route::post('/mensajes/{reserva}', [ClienteMensajeController::class, 'store'])->name('cliente.mensajes.store');
+    Route::post('/mensajes/{reserva}/marcar-leido', [ClienteMensajeController::class, 'marcarLeido'])->name('cliente.mensajes.marcar-leido');
 });
 
 // ==========================================
@@ -131,6 +138,12 @@ Route::middleware(['auth'])->prefix('dashboard')->group(function () {
     Route::get('/qr', [QrScanController::class, 'showScanner'])->name('dashboard.qr.scanner');
     Route::post('/qr/scan', [QrScanController::class, 'scanQr'])->name('dashboard.qr.scan');
     Route::get('/qr/verify/{token}', [QrScanController::class, 'verifyQrDirect'])->name('dashboard.qr.verify');
+
+    // ── Mensajes (chat interno cliente-proveedor, admin como proxy) ────────────
+    Route::get('/mensajes', [AdminMensajeController::class, 'index'])->name('dashboard.mensajes.index');
+    Route::get('/mensajes/{reserva}', [AdminMensajeController::class, 'show'])->name('dashboard.mensajes.show');
+    Route::post('/mensajes/{reserva}/responder', [AdminMensajeController::class, 'responder'])->name('dashboard.mensajes.responder');
+    Route::post('/mensajes/{reserva}/marcar-leido', [AdminMensajeController::class, 'marcarLeido'])->name('dashboard.mensajes.marcar-leido');
 
     // ── Conexiones a APIs externas y sincronización de catálogo ────────────────
     Route::prefix('api-conexiones')->group(function () {

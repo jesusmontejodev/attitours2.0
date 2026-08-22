@@ -7,7 +7,7 @@
  * @author Antigravity
  -->
 
-@section('title', 'Tu Carrito - Atti Tours')
+@section('title', 'Tu Carrito - Attitour')
 
 @section('content')
     @php

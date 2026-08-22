@@ -286,6 +286,11 @@
                                 @else
                                     <span class="text-[10px] text-slate-400 font-semibold">QR no disponible</span>
                                 @endif
+                                <button type="button"
+                                        onclick="openChatModal({{ $reserva->id }}, '{{ $reserva->ticket_codigo }}')"
+                                        class="mt-1 text-[10px] font-bold text-brand-teal hover:underline cursor-pointer flex items-center gap-1">
+                                    💬 Chat con el proveedor
+                                </button>
                             </div>
 
                         </div>
@@ -508,6 +513,32 @@
 </div>
 
 <!-- ====================================================================== -->
+<!-- MODAL: CHAT CON EL PROVEEDOR (vía admin, contacto real nunca visible)   -->
+<!-- ====================================================================== -->
+<div id="chat-modal" class="hidden fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in">
+    <div class="w-full max-w-md mx-4 p-6 rounded-3xl border border-slate-200 bg-white shadow-2xl relative flex flex-col gap-4" style="max-height: 85vh;">
+        <button onclick="closeChatModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 text-lg cursor-pointer">✕</button>
+        <div>
+            <span class="text-xs font-black tracking-widest text-brand-teal uppercase block">Chat con tu operador</span>
+            <h3 id="chat-modal-code" class="text-sm font-bold text-slate-800"></h3>
+        </div>
+
+        <div id="chat-proveedores" class="flex flex-col gap-1"></div>
+
+        <div id="chat-mensajes" class="flex-1 flex flex-col gap-2 overflow-y-auto min-h-[180px] max-h-[40vh] pr-1"></div>
+
+        <div class="flex gap-2 border-t border-slate-100 pt-3">
+            <input type="text" id="chat-input-cuerpo" placeholder="Escribe tu mensaje..."
+                   class="flex-1 h-10 rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs text-slate-800 placeholder-slate-400 focus:border-brand-teal focus:bg-white focus:outline-none transition-colors">
+            <button onclick="enviarMensajeChat()"
+                    class="px-4 h-10 rounded-xl bg-brand-teal text-white text-xs font-bold hover:bg-brand-teal-hover cursor-pointer transition-all">
+                Enviar
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ====================================================================== -->
 <!-- MODAL: CONFIRMAR BORRADO DE CUENTA                                      -->
 <!-- ====================================================================== -->
 <div id="delete-account-modal" class="hidden fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in">
@@ -573,6 +604,86 @@ function openQrModal(imgUrl, code) {
 
 function closeQrModal() {
     document.getElementById('qr-modal').classList.add('hidden');
+}
+
+let chatReservaId = null;
+
+function openChatModal(reservaId, code) {
+    chatReservaId = reservaId;
+    document.getElementById('chat-modal-code').textContent = code;
+    document.getElementById('chat-modal').classList.remove('hidden');
+    cargarMensajesChat();
+}
+
+function closeChatModal() {
+    document.getElementById('chat-modal').classList.add('hidden');
+    chatReservaId = null;
+}
+
+function cargarMensajesChat() {
+    if (!chatReservaId) return;
+
+    fetch(`/mi-cuenta/mensajes/${chatReservaId}`, {
+        headers: { 'Accept': 'application/json' },
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (!data.success) return;
+
+        const proveedoresEl = document.getElementById('chat-proveedores');
+        proveedoresEl.innerHTML = data.proveedores.map(p => `
+            <span class="text-[10px] font-semibold text-slate-500">${p.tour_nombre}: ${p.contacto_visible}</span>
+        `).join('');
+
+        const mensajesEl = document.getElementById('chat-mensajes');
+        if (data.mensajes.length === 0) {
+            mensajesEl.innerHTML = '<p class="text-[11px] text-slate-400 font-semibold text-center py-6">Aún no hay mensajes. Escribe el primero.</p>';
+        } else {
+            mensajesEl.innerHTML = data.mensajes.map(m => {
+                const esCliente = m.remitente_tipo === 'cliente';
+                return `
+                    <div class="flex ${esCliente ? 'justify-end' : 'justify-start'}">
+                        <div class="max-w-[80%] px-3 py-2 rounded-xl text-xs font-semibold ${esCliente ? 'bg-brand-teal/10 text-brand-teal' : 'bg-slate-100 text-slate-800'}">
+                            <p>${m.cuerpo}</p>
+                            <span class="block text-[9px] mt-1 opacity-60">${m.created_at}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        mensajesEl.scrollTop = mensajesEl.scrollHeight;
+
+        fetch(`/mi-cuenta/mensajes/${chatReservaId}/marcar-leido`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json',
+            },
+        });
+    });
+}
+
+function enviarMensajeChat() {
+    const input = document.getElementById('chat-input-cuerpo');
+    const cuerpo = input.value.trim();
+    if (!chatReservaId || !cuerpo) return;
+
+    fetch(`/mi-cuenta/mensajes/${chatReservaId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json',
+        },
+        body: JSON.stringify({ cuerpo: cuerpo }),
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (!data.success) return;
+        input.value = '';
+        cargarMensajesChat();
+    });
 }
 
 function openDeleteAccountModal() {

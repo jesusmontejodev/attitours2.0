@@ -8,7 +8,7 @@
  * @author Antigravity
  -->
 
-@section('title', 'Verifica tu correo - Atti Tours')
+@section('title', 'Verifica tu correo - Attitour')
 
 @section('content')
 <div class="relative min-h-[calc(100vh-10rem)] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 overflow-hidden">
@@ -19,7 +19,7 @@
 
         <div class="text-center">
             <a href="{{ route('home') }}" class="inline-block">
-                <img src="/images/logo/LOGO 3.png" alt="Atti Tours" class="h-22 w-auto object-contain mx-auto transition-transform duration-250 hover:scale-105" />
+                <img src="/images/logo/LOGO 3.png" alt="Attitour" class="h-22 w-auto object-contain mx-auto transition-transform duration-250 hover:scale-105" />
             </a>
         </div>
 

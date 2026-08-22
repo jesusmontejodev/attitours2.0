@@ -7,7 +7,7 @@
  * @author Antigravity
 -->
 
-@section('title', 'Dashboard de Gestión - Atti Tours')
+@section('title', 'Dashboard de Gestión - Attitour')
 
 @section('content')
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
@@ -77,7 +77,7 @@
             if (!$initialTab && $errors->any()) {
                 $allFields = $errors->keys();
                 $apiFields = ['base_url','uniqid_empresa','modo'];
-                $provFields = ['nombre_empresa','descripcion','rfc','correo','representante_nombre','representante_telefono','comision_porcentaje','password','foto_url'];
+                $provFields = ['nombre_empresa','descripcion','rfc','correo','representante_nombre','representante_telefono','contacto_visible_cliente','comision_porcentaje','password','foto_url'];
                 $tourFields = ['titulo','descripcion_tour','duracion','precio_adulto','precio_nino','destino','proveedor_id'];
                 if (array_intersect($allFields, $apiFields)) $initialTab = 'apis';
                 elseif (array_intersect($allFields, $provFields)) $initialTab = 'proveedores';
@@ -551,6 +551,12 @@
                             </div>
 
                             <div class="flex flex-col gap-1.5">
+                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Contacto Visible al Cliente (chat)</label>
+                                <input type="text" name="contacto_visible_cliente" placeholder="Ej: Operador local certificado" class="w-full h-9 rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs text-slate-700 placeholder-slate-400 focus:border-brand-teal focus:border-cyan-500 focus:ring-0 focus:outline-none">
+                                <p class="text-[9px] text-slate-400 font-semibold">Se muestra al cliente en el chat en vez del teléfono/correo real, que nunca se expone.</p>
+                            </div>
+
+                            <div class="flex flex-col gap-1.5">
                                 <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Contraseña de Acceso (Usuario)</label>
                                 <input type="password" name="password" required placeholder="Mínimo 6 caracteres" minlength="6" class="w-full h-9 rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs text-slate-700 placeholder-slate-400 focus:border-brand-teal focus:border-cyan-500">
                             </div>
@@ -607,7 +613,7 @@
                                             <td class="py-3.5 px-2 text-center text-rose-600">{{ $prov->comision_percentage ?? $prov->comision_porcentaje }}%</td>
                                             <td class="py-3.5 px-2 text-center">
                                                 <div class="flex items-center justify-center gap-2">
-                                                    <button onclick="openEditProveedorModal({{ $prov->id }}, '{{ addslashes($prov->nombre_empresa) }}', '{{ addslashes($prov->descripcion) }}', '{{ $prov->rfc }}', '{{ $prov->correo }}', '{{ addslashes($prov->representante_nombre) }}', '{{ $prov->representante_telefono }}', {{ $prov->comision_percentage ?? $prov->comision_porcentaje }}, '{{ $prov->foto_url }}')" 
+                                                    <button onclick="openEditProveedorModal({{ $prov->id }}, '{{ addslashes($prov->nombre_empresa) }}', '{{ addslashes($prov->descripcion) }}', '{{ $prov->rfc }}', '{{ $prov->correo }}', '{{ addslashes($prov->representante_nombre) }}', '{{ $prov->representante_telefono }}', {{ $prov->comision_percentage ?? $prov->comision_porcentaje }}, '{{ $prov->foto_url }}', '{{ addslashes($prov->contacto_visible_cliente ?? '') }}')"
                                                             class="px-2.5 py-1 rounded-md bg-brand-teal/10 hover:bg-brand-teal border border-brand-teal/30 text-[10px] font-bold uppercase text-brand-teal hover:text-white transition-colors cursor-pointer">
                                                         Editar
                                                     </button>
@@ -1342,6 +1348,12 @@
                                 <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Teléfono del Representante</label>
                                 <input type="text" name="representante_telefono" id="edit-prov-rep-tel" required class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
                             </div>
+                        </div>
+
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Contacto Visible al Cliente (chat)</label>
+                            <input type="text" name="contacto_visible_cliente" id="edit-prov-contacto-visible" placeholder="Ej: Operador local certificado" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                            <p class="text-[9px] text-slate-400 font-semibold">Se muestra al cliente en el chat en vez del teléfono/correo real, que nunca se expone.</p>
                         </div>
 
                         <div class="flex flex-col gap-1.5">
@@ -2408,7 +2420,7 @@
         }
 
         // Lógica Modales Editar Proveedor
-        function openEditProveedorModal(id, name, desc, rfc, email, repName, repTel, commission, fotoUrl) {
+        function openEditProveedorModal(id, name, desc, rfc, email, repName, repTel, commission, fotoUrl, contactoVisible) {
             const modal = document.getElementById('edit-proveedor-modal');
             const form = document.getElementById('edit-prov-form');
 
@@ -2419,6 +2431,7 @@
             document.getElementById('edit-prov-rep-name').value = repName;
             document.getElementById('edit-prov-rep-tel').value = repTel;
             document.getElementById('edit-prov-commission').value = commission;
+            document.getElementById('edit-prov-contacto-visible').value = contactoVisible || '';
             if (document.getElementById('edit-prov-foto')) {
                 document.getElementById('edit-prov-foto').value = fotoUrl || '';
             }

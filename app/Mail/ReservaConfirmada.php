@@ -37,7 +37,7 @@ class ReservaConfirmada extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: '🎉 ¡Reserva Confirmada! Tu ticket para Atti Tours — ' . $this->reserva->ticket_codigo,
+            subject: '🎉 ¡Reserva Confirmada! Tu ticket para Attitour — ' . $this->reserva->ticket_codigo,
         );
     }
 

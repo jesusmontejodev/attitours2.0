@@ -25,6 +25,7 @@ class Proveedor extends Model
         'correo',
         'representante_nombre',
         'representante_telefono',
+        'contacto_visible_cliente',
         'comision_porcentaje',
         'foto_url'
     ];
