@@ -81,6 +81,24 @@ class UniqueApiClient
     }
 
     /**
+     * Consulta la disponibilidad (cupos restantes) de un servicio para una fecha (y opcionalmente
+     * un rango hasta fecha_fin, o un horario específico). Usado para el sync de calendarios
+     * (Fase "Sincronizar Calendarios"), a diferencia de prices() que solo trae precio.
+     */
+    public function soldOut(string $fecha, string $locacion, string $servicio, ?string $horario = null, ?string $fechaFin = null): array
+    {
+        $payload = ['fecha' => $fecha, 'locacion' => $locacion, 'servicio' => $servicio];
+        if ($horario) {
+            $payload['horario'] = $horario;
+        }
+        if ($fechaFin) {
+            $payload['fecha_fin'] = $fechaFin;
+        }
+
+        return $this->request('post', '/sold_out', $payload);
+    }
+
+    /**
      * Lista los idiomas disponibles para reservar un tour.
      */
     public function idiomas(): array

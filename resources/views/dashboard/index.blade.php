@@ -342,6 +342,23 @@
                                                                 🔒 Privado (Depósito)
                                                             </span>
                                                         @endif
+                                                        {{-- Estado de notificación a la API externa, por cada tour de esta reserva que venga de una API --}}
+                                                        @foreach($res->detalles->filter(fn($d) => $d->tour && $d->tour->esApiExterna()) as $d)
+                                                            @php $notif = $d->apiNotificacion; @endphp
+                                                            @if($notif && $notif->estado === 'enviado')
+                                                                <span class="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded bg-emerald-50 text-emerald-600 border border-emerald-200 text-[9px] font-bold uppercase tracking-wider" title="Confirmado en {{ $d->tour->apiConexion->nombre ?? 'la API' }}: {{ $notif->unique_confirma ?? '—' }}">
+                                                                    🔌 {{ $d->tour->apiConexion->nombre ?? 'API' }} ✓ Actualizado
+                                                                </span>
+                                                            @elseif($notif && $notif->estado === 'fallido')
+                                                                <span class="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded bg-rose-50 text-rose-600 border border-rose-200 text-[9px] font-bold uppercase tracking-wider" title="{{ $notif->respuesta_body }}">
+                                                                    🔌 {{ $d->tour->apiConexion->nombre ?? 'API' }} ✗ Falló
+                                                                </span>
+                                                            @else
+                                                                <span class="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded bg-slate-100 text-slate-500 border border-slate-200 text-[9px] font-bold uppercase tracking-wider">
+                                                                    🔌 {{ $d->tour->apiConexion->nombre ?? 'API' }} ⏳ Pendiente
+                                                                </span>
+                                                            @endif
+                                                        @endforeach
                                                     </td>
                                                     <td class="py-3.5 px-2 max-w-[200px]">
                                                         <span class="block text-slate-700">{{ $res->fecha_reserva->format('Y-m-d H:i') }}</span>
@@ -665,6 +682,22 @@
                                 </div>
                             </div>
 
+                            <!-- Filtro por Origen / Conexión API -->
+                            <div class="relative">
+                                <select id="tour-api-filter" onchange="filterTourList()" class="w-full h-9 rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs text-slate-750 focus:border-brand-teal focus:outline-none appearance-none cursor-pointer">
+                                    <option value="">Todas las fuentes ({{ $tours->count() }})</option>
+                                    <option value="interno">🏠 Manual / Interno ({{ $tours->where('origen', 'interno')->count() }})</option>
+                                    @foreach($apiConexiones as $conexion)
+                                        <option value="api-{{ $conexion->id }}">🔌 {{ $conexion->nombre }} ({{ $tours->where('api_conexion_id', $conexion->id)->count() }})</option>
+                                    @endforeach
+                                </select>
+                                <div class="absolute right-3 top-2.5 text-slate-600 pointer-events-none">
+                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </div>
+                            </div>
+
                             <!-- Lista de Tours Vertical Interactiva -->
                             <div class="flex flex-col gap-3 max-h-[600px] overflow-y-auto pr-1" id="admin-tours-list">
                                 @foreach($tours as $t)
@@ -699,7 +732,13 @@
                                          data-no-incluye="{{ implode(', ', $t->no_incluye ?: []) }}"
                                          data-tipo-modalidad="{{ $t->tipo_modalidad }}"
                                          data-anticipo-porcentaje="{{ $t->anticipo_porcentaje }}"
-                                         data-tarifas-privadas="{{ json_encode($t->tarifas_privadas ?? []) }}">
+                                         data-tarifas-privadas="{{ json_encode($t->tarifas_privadas ?? []) }}"
+                                         data-origen="{{ $t->origen }}"
+                                         data-api-conexion-id="{{ $t->api_conexion_id }}"
+                                         data-api-conexion-nombre="{{ $t->apiConexion->nombre ?? '' }}"
+                                         data-sync-calendario-activo="{{ $t->sync_calendario_activo ? '1' : '0' }}"
+                                         data-punto-encuentro-lat="{{ $t->punto_encuentro_lat }}"
+                                         data-punto-encuentro-lng="{{ $t->punto_encuentro_lng }}">
                                         
                                         <!-- Foto miniatura -->
                                         <div class="h-16 w-16 rounded-xl bg-slate-100 overflow-hidden flex-shrink-0">
@@ -720,6 +759,13 @@
                                                         <span class="inline-flex items-center px-1 rounded bg-indigo-50 text-indigo-750 text-[7px] font-black uppercase tracking-wider">👥🔒 Mixto</span>
                                                     @else
                                                         <span class="inline-flex items-center px-1 rounded bg-brand-teal/10 text-brand-teal text-[7px] font-black uppercase tracking-wider">👥 Compartido</span>
+                                                    @endif
+                                                    @if($t->esApiExterna())
+                                                        <span class="inline-flex items-center px-1 rounded bg-violet-50 text-violet-600 text-[7px] font-black uppercase tracking-wider truncate max-w-[90px]" title="Fuente: {{ $t->apiConexion->nombre ?? 'API externa' }}">
+                                                            🔌 {{ $t->apiConexion->nombre ?? 'API externa' }}
+                                                        </span>
+                                                    @else
+                                                        <span class="inline-flex items-center px-1 rounded bg-slate-100 text-slate-500 text-[7px] font-black uppercase tracking-wider">🏠 Manual</span>
                                                     @endif
                                                 </div>
                                             </div>
@@ -794,6 +840,9 @@
 
                                     <!-- Botones de acción y navegación de mes -->
                                     <div class="flex items-center gap-2">
+                                        <button type="button" id="sync-disponibilidad-btn" onclick="sincronizarDisponibilidadTour()" class="hidden h-8 px-3 rounded-lg border border-violet-300 bg-violet-50 text-[9px] font-bold uppercase tracking-wider text-violet-600 hover:bg-violet-600 hover:text-white transition-colors cursor-pointer items-center gap-1 shadow-xs">
+                                            🔄 Sincronizar Disponibilidad
+                                        </button>
                                         <button type="button" onclick="openBatchModal()" class="h-8 px-3 rounded-lg border border-brand-orange/30 bg-brand-orange/5 text-[9px] font-bold uppercase tracking-wider text-brand-orange hover:bg-brand-orange hover:text-white transition-colors cursor-pointer flex items-center gap-1 shadow-xs">
                                             📅 Lote
                                         </button>
@@ -806,6 +855,12 @@
                                         </button>
                                     </div>
                                 </div>
+
+                                <!-- Aviso de dependencia del proveedor al sincronizar disponibilidad -->
+                                <p id="sync-disponibilidad-info" class="hidden text-[9px] text-violet-600 bg-violet-50 border border-violet-200 rounded-lg px-3 py-2 -mt-2 mb-1 leading-relaxed">
+                                    🔌 Este tour trae su calendario en tiempo real de la API de <strong id="sync-disponibilidad-info-nombre">este proveedor</strong>. "Sincronizar Disponibilidad" trae los próximos 60 días: crea/actualiza las fechas que el proveedor reporta con cupo y cierra las que ya no ofrece (sin reservas). Dependemos de que el proveedor mantenga <strong>su</strong> calendario actualizado de su lado — Attitour no puede corregir errores en los datos que ellos reporten.
+                                    <br>🔔 Además, cada vez que un cliente compre este tour, se notifica automáticamente esa compra a la misma API para descontar el cupo de su lado.
+                                </p>
 
                                 <!-- Días de la semana -->
                                 <div class="grid grid-cols-7 gap-1.5 text-center text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-3">
@@ -911,6 +966,10 @@
                         <h2 class="text-xs font-black uppercase tracking-widest text-brand-teal border-b border-slate-200 pb-3 mb-4">
                             Nueva Conexión API
                         </h2>
+
+                        <p class="mb-4 text-[10px] text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 leading-relaxed">
+                            ⚠️ <strong>Zona sensible.</strong> Estas credenciales conectan Attitour directamente con el sistema de reservas del proveedor — un error aquí puede afectar ventas y disponibilidad en producción. Para futuras integraciones, consulta primero al equipo de <strong>Avaspace</strong> (<a href="mailto:contacto@avaspaceio.com" class="underline hover:text-amber-800">contacto@avaspaceio.com</a>).
+                        </p>
 
                         <form action="{{ route('dashboard.api.store') }}" method="POST" class="flex flex-col gap-4">
                             @csrf
@@ -1063,16 +1122,29 @@
 
                 <!-- Tours Importados / Pendientes de Revisión -->
                 <div class="mt-8 p-6 rounded-3xl border border-slate-200 bg-white shadow-sm">
-                    <h2 class="text-xs font-black uppercase tracking-widest text-slate-800 border-b border-slate-200 pb-3 mb-5">
-                        📥 Tours Importados / Pendientes de Revisión
-                    </h2>
+                    <div class="flex items-center justify-between gap-4 border-b border-slate-200 pb-3 mb-5 flex-wrap">
+                        <h2 class="text-xs font-black uppercase tracking-widest text-slate-800">
+                            📥 Tours Importados / Pendientes de Revisión
+                        </h2>
+                        <div class="flex items-center gap-2">
+                            <input type="text" id="importados-search" oninput="filtrarToursImportados()" placeholder="Buscar tour importado por nombre…" class="h-8 w-56 rounded-lg border border-slate-200 bg-slate-50 px-2.5 text-[10px] text-slate-700 placeholder-slate-400 focus:border-brand-teal focus:outline-none">
+                            <select id="importados-conexion-filtro" onchange="filtrarToursImportados()" class="h-8 rounded-lg border border-slate-200 bg-slate-50 px-2 text-[10px] text-slate-700 focus:border-brand-teal cursor-pointer">
+                                <option value="">Todas las conexiones</option>
+                                @foreach($apiConexiones as $conexion)
+                                    <option value="{{ $conexion->id }}">{{ $conexion->nombre }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
 
                     @if($toursImportadosPendientes->isEmpty())
                         <p class="text-xs text-slate-400 italic py-10 text-center">No hay tours pendientes de revisión. Usa "Actualizar Catálogo" en una conexión para importar su catálogo.</p>
                     @else
-                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="importados-grid">
                             @foreach($toursImportadosPendientes as $importado)
-                                <div class="rounded-2xl border border-slate-200 overflow-hidden bg-slate-50/40 flex flex-col">
+                                <div class="importado-card rounded-2xl border border-slate-200 overflow-hidden bg-slate-50/40 flex flex-col"
+                                     data-busqueda="{{ strtolower($importado->titulo_preview ?: $importado->external_id) }}"
+                                     data-conexion-id="{{ $importado->api_conexion_id }}">
                                     <div class="h-28 bg-slate-100 overflow-hidden">
                                         <img src="{{ $importado->imagen_preview }}" alt="{{ $importado->titulo_preview }}" class="w-full h-full object-cover" onerror="this.style.display='none'">
                                     </div>
@@ -1094,6 +1166,7 @@
                                 </div>
                             @endforeach
                         </div>
+                        <p id="importados-sin-resultados" class="hidden text-xs text-slate-400 italic py-10 text-center">No hay tours importados que coincidan con el filtro.</p>
                     @endif
                 </div>
 
@@ -1170,6 +1243,80 @@
                                 </tbody>
                             </table>
                             <p id="notif-api-sin-resultados" class="hidden text-xs text-slate-400 italic py-8 text-center">No hay notificaciones que coincidan con el filtro.</p>
+                        </div>
+                    @endif
+                </div>
+
+                <!-- Historial de Sincronización de Disponibilidad -->
+                <div class="mt-8 p-6 rounded-3xl border border-slate-200 bg-white shadow-sm">
+                    <div class="flex items-center justify-between gap-4 border-b border-slate-200 pb-3 mb-5 flex-wrap">
+                        <div>
+                            <h2 class="text-xs font-black uppercase tracking-widest text-slate-800">
+                                🔄 Historial de Sincronización de Disponibilidad
+                            </h2>
+                            <p class="text-[9px] text-slate-500 mt-0.5">Cada vez que se refresca el calendario de un tour contra su API externa (manual o automático al abrir su ficha pública), queda una fila aquí.</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <input type="text" id="sync-disp-search" oninput="filtrarSincronizacionesDisponibilidad()" placeholder="Buscar por tour…" class="h-8 w-48 rounded-lg border border-slate-200 bg-slate-50 px-2.5 text-[10px] text-slate-700 placeholder-slate-400 focus:border-brand-teal focus:outline-none">
+                            <select id="sync-disp-estado-filtro" onchange="filtrarSincronizacionesDisponibilidad()" class="h-8 rounded-lg border border-slate-200 bg-slate-50 px-2 text-[10px] text-slate-700 focus:border-brand-teal cursor-pointer">
+                                <option value="">Todos los estados</option>
+                                <option value="exitoso">Exitoso</option>
+                                <option value="fallido">Fallido</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    @if($sincronizacionesDisponibilidad->isEmpty())
+                        <p class="text-xs text-slate-400 italic py-10 text-center">Todavía no se ha sincronizado el calendario de ningún tour. Esto ocurre al usar "Sincronizar Disponibilidad" en un tour, o automáticamente cuando un visitante abre la ficha pública de un tour con la sincronización activa.</p>
+                    @else
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-[11px] border-collapse">
+                                <thead>
+                                    <tr class="border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider bg-slate-50/80">
+                                        <th class="py-2.5 px-2">Tour</th>
+                                        <th class="py-2.5 px-2">Conexión</th>
+                                        <th class="py-2.5 px-2 text-center">Origen</th>
+                                        <th class="py-2.5 px-2 text-center">Estado</th>
+                                        <th class="py-2.5 px-2 text-center">Actualizadas</th>
+                                        <th class="py-2.5 px-2 text-center">Deshabilitadas</th>
+                                        <th class="py-2.5 px-2">Detalle / Error</th>
+                                        <th class="py-2.5 px-2">Fecha</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100" id="sync-disp-tbody">
+                                    @foreach($sincronizacionesDisponibilidad as $sync)
+                                        <tr class="hover:bg-slate-50 transition-colors text-slate-700 sync-disp-row" data-estado="{{ $sync->estado }}" data-busqueda="{{ strtolower($sync->tour->nombre ?? $sync->tour_id) }}">
+                                            <td class="py-2.5 px-2 font-bold text-slate-800">{{ $sync->tour->nombre ?? $sync->tour_id }}</td>
+                                            <td class="py-2.5 px-2 text-[10px] text-slate-500">{{ $sync->apiConexion->nombre ?? '—' }}</td>
+                                            <td class="py-2.5 px-2 text-center">
+                                                @if($sync->origen === 'manual')
+                                                    <span class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 text-[8px] font-black uppercase tracking-wider border border-slate-200">👤 Manual</span>
+                                                @else
+                                                    <span class="px-1.5 py-0.5 rounded bg-cyan-50 text-cyan-700 text-[8px] font-black uppercase tracking-wider border border-cyan-200">🌐 Vista pública</span>
+                                                @endif
+                                            </td>
+                                            <td class="py-2.5 px-2 text-center">
+                                                @if($sync->estado === 'exitoso')
+                                                    <span class="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-600 text-[8px] font-black uppercase tracking-wider border border-emerald-200">EXITOSO</span>
+                                                @else
+                                                    <span class="px-1.5 py-0.5 rounded bg-rose-50 text-rose-600 text-[8px] font-black uppercase tracking-wider border border-rose-200">FALLIDO</span>
+                                                @endif
+                                            </td>
+                                            <td class="py-2.5 px-2 text-center font-bold">{{ $sync->fechas_actualizadas }}</td>
+                                            <td class="py-2.5 px-2 text-center font-bold">{{ $sync->fechas_deshabilitadas }}</td>
+                                            <td class="py-2.5 px-2 max-w-[220px]">
+                                                @if($sync->estado === 'fallido')
+                                                    <span class="text-[10px] text-rose-600 truncate block" title="{{ $sync->mensaje_error }}">{{ \Illuminate\Support\Str::limit($sync->mensaje_error, 60) ?: '—' }}</span>
+                                                @else
+                                                    <span class="text-[10px] text-slate-400">—</span>
+                                                @endif
+                                            </td>
+                                            <td class="py-2.5 px-2 text-[10px] text-slate-500">{{ $sync->created_at->format('d M Y, H:i') }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                            <p id="sync-disp-sin-resultados" class="hidden text-xs text-slate-400 italic py-8 text-center">No hay sincronizaciones que coincidan con el filtro.</p>
                         </div>
                     @endif
                 </div>
@@ -1455,7 +1602,15 @@
                         <!-- Punto de encuentro y fotos -->
                         <div class="flex flex-col gap-1.5">
                             <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Punto de Encuentro (Dirección y detalles)</label>
-                            <input type="text" name="punto_encuentro" placeholder="Ej. Lobby de su hotel o Marina de Cancún" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                            <div class="flex gap-2">
+                                <input type="text" name="punto_encuentro" id="create-tour-punto-encuentro" placeholder="Ej. Lobby de su hotel o Marina de Cancún" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                                <button type="button" onclick="openMapPicker('create')" class="shrink-0 h-9 px-3 rounded-lg bg-brand-teal/10 hover:bg-brand-teal border border-brand-teal/30 text-[10px] font-bold text-brand-teal hover:text-white transition-colors cursor-pointer whitespace-nowrap">
+                                    📍 Mapa
+                                </button>
+                            </div>
+                            <input type="hidden" name="punto_encuentro_lat" id="create-tour-punto-encuentro-lat">
+                            <input type="hidden" name="punto_encuentro_lng" id="create-tour-punto-encuentro-lng">
+                            <span id="create-punto-encuentro-coords" class="text-[9px] text-slate-400 font-semibold"></span>
                         </div>
 
                         <!-- Carga de Imagen Destacada (Portada) -->
@@ -1504,6 +1659,14 @@
                                     <button type="button" onclick="addTarifaPrivadaRow('create')" class="px-2 py-1 rounded bg-brand-orange/10 hover:bg-brand-orange hover:text-white border border-brand-orange/20 text-[9px] font-bold text-brand-orange transition-colors cursor-pointer">
                                         + Añadir Escala
                                     </button>
+                                </div>
+                                <p class="text-[9px] text-slate-500 leading-relaxed">
+                                    Cada escala cobra un <strong>precio total fijo</strong> (no por persona) al grupo completo cuando su número de pasajeros cae en ese rango. Ej: <strong>1–4 pax → $200 total</strong>, 5–8 pax → $350 total. Cubre las escalas sin huecos hasta el cupo máximo que aceptas — si un grupo no cae en ninguna escala, se le cobrará el precio normal del tour (precio base × pax) en su lugar.
+                                </p>
+                                <div class="grid grid-cols-3 gap-2 text-[8px] font-bold text-slate-400 uppercase tracking-wider px-0.5">
+                                    <span>Min Pax</span>
+                                    <span>Max Pax</span>
+                                    <span>Precio Total (USD)</span>
                                 </div>
                                 <div id="create-tarifas-privadas-container" class="flex flex-col gap-2">
                                     <!-- Filas de escalas dinámicas -->
@@ -1614,7 +1777,15 @@
                         <!-- Punto de encuentro y fotos -->
                         <div class="flex flex-col gap-1.5">
                             <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Punto de Encuentro (Dirección y detalles)</label>
-                            <input type="text" name="punto_encuentro" id="edit-tour-punto-encuentro" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                            <div class="flex gap-2">
+                                <input type="text" name="punto_encuentro" id="edit-tour-punto-encuentro" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                                <button type="button" onclick="openMapPicker('edit')" class="shrink-0 h-9 px-3 rounded-lg bg-brand-teal/10 hover:bg-brand-teal border border-brand-teal/30 text-[10px] font-bold text-brand-teal hover:text-white transition-colors cursor-pointer whitespace-nowrap">
+                                    📍 Mapa
+                                </button>
+                            </div>
+                            <input type="hidden" name="punto_encuentro_lat" id="edit-tour-punto-encuentro-lat">
+                            <input type="hidden" name="punto_encuentro_lng" id="edit-tour-punto-encuentro-lng">
+                            <span id="edit-punto-encuentro-coords" class="text-[9px] text-slate-400 font-semibold"></span>
                         </div>
 
                         <!-- Carga de Imagen Destacada (Portada) -->
@@ -1673,11 +1844,34 @@
                                         + Añadir Escala
                                     </button>
                                 </div>
+                                <p class="text-[9px] text-slate-500 leading-relaxed">
+                                    Cada escala cobra un <strong>precio total fijo</strong> (no por persona) al grupo completo cuando su número de pasajeros cae en ese rango. Ej: <strong>1–4 pax → $200 total</strong>, 5–8 pax → $350 total. Cubre las escalas sin huecos hasta el cupo máximo que aceptas — si un grupo no cae en ninguna escala, se le cobrará el precio normal del tour (precio base × pax) en su lugar.
+                                </p>
+                                <div class="grid grid-cols-3 gap-2 text-[8px] font-bold text-slate-400 uppercase tracking-wider px-0.5">
+                                    <span>Min Pax</span>
+                                    <span>Max Pax</span>
+                                    <span>Precio Total (USD)</span>
+                                </div>
                                 <div id="edit-tarifas-privadas-container" class="flex flex-col gap-2">
                                     <!-- Filas de escalas dinámicas -->
                                 </div>
                                 <input type="hidden" name="tarifas_privadas" id="edit-tarifas-privadas-hidden">
                             </div>
+                        </div>
+
+                        <!-- Disponibilidad desde API externa (solo tours con origen = api_externa) -->
+                        <div id="edit-sync-calendario-box" style="display: none;" class="border-t border-slate-200 pt-4 flex flex-col gap-2">
+                            <h4 class="text-[10px] font-black uppercase tracking-wider text-slate-500">Disponibilidad desde API Externa</h4>
+                            <label class="flex items-center gap-2 cursor-pointer select-none">
+                                <input type="checkbox" name="sync_calendario_activo" id="edit-tour-sync-calendario" value="1" class="h-4 w-4 rounded border-slate-300 text-brand-teal focus:ring-brand-teal cursor-pointer">
+                                <span class="text-xs font-semibold text-slate-600">📅 Activar conexión automática de disponibilidad</span>
+                            </label>
+                            <p class="text-[10px] text-slate-400 leading-relaxed">
+                                Cuando está activo, el cupo que se muestra y se valida al momento de comprar es el menor entre el cupo local y el que reporte la API externa en tiempo real — evita sobreventa si el proveedor ya vendió ese cupo por otro canal.
+                            </p>
+                            <p id="edit-tour-api-purchase-alert" class="text-[10px] text-violet-600 bg-violet-50 border border-violet-200 rounded-lg px-3 py-2 leading-relaxed">
+                                🔔 Cada vez que un cliente compre este tour, se actualiza automáticamente la disponibilidad en la API de <strong id="edit-tour-api-conexion-nombre">este proveedor</strong>.
+                            </p>
                         </div>
 
                         <!-- Itinerario de Viaje -->
@@ -1703,6 +1897,33 @@
                             </button>
                         </div>
                     </form>
+                </div>
+            </div>
+
+            <!-- Modal Selector de Ubicación en Mapa (Punto de Encuentro) -->
+            <div id="map-picker-modal" class="hidden fixed inset-0 z-[80] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-fade-in">
+                <div class="w-full max-w-2xl bg-white rounded-3xl shadow-2xl p-6 flex flex-col gap-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-sm font-black text-slate-800">📍 Selecciona el Punto de Encuentro</h3>
+                            <p class="text-[10px] text-slate-500 mt-0.5">Haz clic en el mapa o arrastra el marcador para ubicar el punto exacto.</p>
+                        </div>
+                        <button type="button" onclick="closeMapPicker()" class="h-8 w-8 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer">✕</button>
+                    </div>
+
+                    <div id="map-picker-container" style="height: 380px;" class="w-full rounded-2xl overflow-hidden border border-slate-200"></div>
+
+                    <div class="flex items-center justify-between gap-3">
+                        <span id="map-picker-coords" class="text-[10px] text-slate-500 font-semibold">Ningún punto seleccionado todavía.</span>
+                        <div class="flex gap-2 shrink-0">
+                            <button type="button" onclick="closeMapPicker()" class="h-9 px-4 rounded-lg border border-slate-200 hover:bg-slate-100 text-xs font-bold text-slate-500 transition-colors cursor-pointer">
+                                Cancelar
+                            </button>
+                            <button type="button" onclick="confirmMapPicker()" class="h-9 px-4 rounded-lg bg-gradient-to-r from-brand-teal to-brand-teal-hover text-xs font-black uppercase text-white shadow-md cursor-pointer">
+                                Usar esta ubicación
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         @endif
@@ -1758,6 +1979,17 @@
             <form id="batch-availability-form" class="flex flex-col gap-4">
                 <input type="hidden" id="batch-tour-id" name="tour_id">
                 <input type="hidden" id="batch-fecha" name="fecha">
+                <input type="hidden" id="batch-es-privado" name="es_privado" value="0">
+
+                <!-- Selector de Modalidad (solo tours "Mixtos": compartido y privado tienen salidas independientes) -->
+                <div id="batch-modalidad-selector" class="hidden flex items-center gap-1.5 p-1 rounded-xl border border-slate-200 bg-slate-50">
+                    <button type="button" id="batch-modalidad-compartido-btn" onclick="setBatchModalidad(false)" class="flex-1 h-8 rounded-lg text-[10px] font-black uppercase tracking-wider transition-colors cursor-pointer">
+                        👥 Compartido
+                    </button>
+                    <button type="button" id="batch-modalidad-privado-btn" onclick="setBatchModalidad(true)" class="flex-1 h-8 rounded-lg text-[10px] font-black uppercase tracking-wider transition-colors cursor-pointer">
+                        🔒 Privado
+                    </button>
+                </div>
 
                 <!-- Rango de Fechas -->
                 <div class="grid grid-cols-2 gap-4">
@@ -1842,7 +2074,18 @@
             <form id="day-availability-form" class="flex flex-col gap-4">
                 <input type="hidden" id="modal-tour-id" name="tour_id">
                 <input type="hidden" id="modal-fecha" name="fecha">
-                
+                <input type="hidden" id="modal-es-privado" name="es_privado" value="0">
+
+                <!-- Selector de Modalidad (solo tours "Mixtos": compartido y privado tienen salidas independientes) -->
+                <div id="modal-modalidad-selector" class="hidden flex items-center gap-1.5 p-1 rounded-xl border border-slate-200 bg-slate-50">
+                    <button type="button" id="modal-modalidad-compartido-btn" onclick="setModalDayModalidad(false)" class="flex-1 h-8 rounded-lg text-[10px] font-black uppercase tracking-wider transition-colors cursor-pointer">
+                        👥 Compartido
+                    </button>
+                    <button type="button" id="modal-modalidad-privado-btn" onclick="setModalDayModalidad(true)" class="flex-1 h-8 rounded-lg text-[10px] font-black uppercase tracking-wider transition-colors cursor-pointer">
+                        🔒 Privado
+                    </button>
+                </div>
+
                 <!-- Toggle Habilitado -->
                 <div class="flex items-center justify-between p-3 rounded-xl border border-slate-200 bg-slate-50">
                     <span class="text-xs font-bold text-slate-700">¿Habilitar salidas para este día?</span>
@@ -1948,6 +2191,78 @@
             window.allReservas = [];
         </script>
     @endif
+
+    <!-- Leaflet (OpenStreetMap) — selector de punto de encuentro en el mapa -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // --- SELECTOR DE PUNTO DE ENCUENTRO EN MAPA (Leaflet / OpenStreetMap) ---
+        let mapPickerMap = null;
+        let mapPickerMarker = null;
+        let mapPickerTargetPrefix = null;
+
+        // Centro por defecto: Cancún (área de operación de Attitour).
+        const MAP_PICKER_DEFAULT_LAT = 21.1619;
+        const MAP_PICKER_DEFAULT_LNG = -86.8515;
+
+        function openMapPicker(prefix) {
+            mapPickerTargetPrefix = prefix;
+
+            const latInput = document.getElementById(`${prefix}-tour-punto-encuentro-lat`);
+            const lngInput = document.getElementById(`${prefix}-tour-punto-encuentro-lng`);
+            const lat = parseFloat(latInput.value) || MAP_PICKER_DEFAULT_LAT;
+            const lng = parseFloat(lngInput.value) || MAP_PICKER_DEFAULT_LNG;
+            const yaTeniaUbicacion = !!(latInput.value && lngInput.value);
+
+            document.getElementById('map-picker-modal').classList.remove('hidden');
+
+            // Leaflet necesita el contenedor visible para medir su tamaño — se crea/reposiciona
+            // después de mostrar el modal, y se fuerza un recalculo de tamaño con invalidateSize().
+            if (!mapPickerMap) {
+                mapPickerMap = L.map('map-picker-container').setView([lat, lng], yaTeniaUbicacion ? 15 : 12);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                    maxZoom: 19,
+                }).addTo(mapPickerMap);
+
+                mapPickerMarker = L.marker([lat, lng], { draggable: true }).addTo(mapPickerMap);
+                mapPickerMarker.on('dragend', () => updateMapPickerCoordsLabel());
+                mapPickerMap.on('click', (e) => {
+                    mapPickerMarker.setLatLng(e.latlng);
+                    updateMapPickerCoordsLabel();
+                });
+            } else {
+                mapPickerMap.setView([lat, lng], yaTeniaUbicacion ? 15 : 12);
+                mapPickerMarker.setLatLng([lat, lng]);
+            }
+
+            updateMapPickerCoordsLabel();
+
+            setTimeout(() => mapPickerMap.invalidateSize(), 100);
+        }
+
+        function updateMapPickerCoordsLabel() {
+            const { lat, lng } = mapPickerMarker.getLatLng();
+            document.getElementById('map-picker-coords').textContent = `📍 ${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+        }
+
+        function closeMapPicker() {
+            document.getElementById('map-picker-modal').classList.add('hidden');
+            mapPickerTargetPrefix = null;
+        }
+
+        function confirmMapPicker() {
+            if (!mapPickerTargetPrefix || !mapPickerMarker) return;
+
+            const { lat, lng } = mapPickerMarker.getLatLng();
+            document.getElementById(`${mapPickerTargetPrefix}-tour-punto-encuentro-lat`).value = lat.toFixed(7);
+            document.getElementById(`${mapPickerTargetPrefix}-tour-punto-encuentro-lng`).value = lng.toFixed(7);
+            document.getElementById(`${mapPickerTargetPrefix}-punto-encuentro-coords`).textContent =
+                `📍 Ubicación seleccionada: ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+
+            closeMapPicker();
+        }
+    </script>
 
     <!-- SCRIPTS JS DASHBOARD INTERACTIVO -->
     <script>
@@ -2546,6 +2861,50 @@
             if (sinResultados) sinResultados.classList.toggle('hidden', visibles > 0);
         }
 
+        function filtrarSincronizacionesDisponibilidad() {
+            const searchInput = document.getElementById('sync-disp-search');
+            const estadoSelect = document.getElementById('sync-disp-estado-filtro');
+            if (!searchInput) return;
+
+            const query = searchInput.value.toLowerCase().trim();
+            const estadoFiltro = estadoSelect ? estadoSelect.value : '';
+            const filas = document.querySelectorAll('.sync-disp-row');
+            let visibles = 0;
+
+            filas.forEach(fila => {
+                const coincideTexto = !query || fila.dataset.busqueda.includes(query);
+                const coincideEstado = !estadoFiltro || fila.dataset.estado === estadoFiltro;
+                const mostrar = coincideTexto && coincideEstado;
+                fila.classList.toggle('hidden', !mostrar);
+                if (mostrar) visibles++;
+            });
+
+            const sinResultados = document.getElementById('sync-disp-sin-resultados');
+            if (sinResultados) sinResultados.classList.toggle('hidden', visibles > 0);
+        }
+
+        function filtrarToursImportados() {
+            const searchInput = document.getElementById('importados-search');
+            const conexionSelect = document.getElementById('importados-conexion-filtro');
+            if (!searchInput) return;
+
+            const query = searchInput.value.toLowerCase().trim();
+            const conexionFiltro = conexionSelect ? conexionSelect.value : '';
+            const cards = document.querySelectorAll('.importado-card');
+            let visibles = 0;
+
+            cards.forEach(card => {
+                const coincideTexto = !query || card.dataset.busqueda.includes(query);
+                const coincideConexion = !conexionFiltro || card.dataset.conexionId === conexionFiltro;
+                const mostrar = coincideTexto && coincideConexion;
+                card.classList.toggle('hidden', !mostrar);
+                if (mostrar) visibles++;
+            });
+
+            const sinResultados = document.getElementById('importados-sin-resultados');
+            if (sinResultados) sinResultados.classList.toggle('hidden', visibles > 0);
+        }
+
         // ========================================================
         // LÓGICA DE CALENDARIO DE DISPONIBILIDAD ESTILO AIRBNB
         // ========================================================
@@ -2688,7 +3047,8 @@
                         salidas.forEach(sal => {
                             const badge = document.createElement('div');
                             badge.className = `text-[8px] font-semibold px-1 py-0.5 rounded truncate ${sal.cupo_reservado > 0 ? 'bg-indigo-950 text-brand-orange' : 'bg-emerald-950 text-emerald-600'}`;
-                            badge.textContent = `${sal.horario} (${sal.cupo_reservado}/${sal.cupo_maximo})`;
+                            const iconoModalidad = sal.es_privado ? '🔒' : '👥';
+                            badge.textContent = `${iconoModalidad} ${sal.horario} (${sal.cupo_reservado}/${sal.cupo_maximo})`;
                             infoContainer.appendChild(badge);
                         });
                     } else {
@@ -2716,13 +3076,23 @@
         }
 
         // --- MANEJO DEL MODAL ---
-        
-        function openDayModal(fechaStr, salidas) {
+
+        // Devuelve la modalidad ('compartido'|'privado'|'ambos') del tour actualmente
+        // seleccionado en el calendario, leyendo el atributo de su tarjeta en el catálogo.
+        function getCurrentTourTipoModalidad() {
+            const card = document.getElementById(`tour-card-${currentTourId}`);
+            return card ? (card.getAttribute('data-tipo-modalidad') || 'compartido') : 'compartido';
+        }
+
+        // Guarda TODAS las salidas del día abierto (compartidas + privadas) para poder
+        // alternar entre modalidades sin volver a pedir datos al servidor.
+        let modalDiaSalidasCompleto = [];
+
+        function openDayModal(fechaStr, salidasDia) {
             const modal = document.getElementById('edit-day-availability-modal');
             const dateTitle = document.getElementById('modal-date-title');
             const formTourId = document.getElementById('modal-tour-id');
             const formFecha = document.getElementById('modal-fecha');
-            const checkboxHabilitado = document.getElementById('modal-habilitado');
             const warningAlert = document.getElementById('modal-warning-alert');
 
             // Formatear título del modal de forma amigable (Ej: 15 de Junio, 2026)
@@ -2732,29 +3102,25 @@
                 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
             ];
             const tituloLimpio = `Disponibilidad: ${partes[2]} de ${meses[parseInt(partes[1]) - 1]}, ${partes[0]}`;
-            
+
             dateTitle.textContent = tituloLimpio;
             formTourId.value = currentTourId;
             formFecha.value = fechaStr;
             warningAlert.classList.add('hidden');
             warningAlert.innerHTML = '';
 
-            // Limpiar la lista del modal
-            const listContainer = document.getElementById('modal-salidas-list');
-            listContainer.innerHTML = '';
+            modalDiaSalidasCompleto = salidasDia;
 
-            if (salidas.length > 0) {
-                checkboxHabilitado.checked = true;
-                // Mostrar el wrapper directamente SIN agregar fila default
-                // (las filas vendrán del forEach a continuación)
-                document.getElementById('modal-salidas-wrapper').classList.remove('hidden');
-
-                salidas.forEach(sal => {
-                    addSalidaRow(sal.horario, sal.cupo_maximo, sal.cupo_reservado);
-                });
+            // El selector de modalidad solo aplica a tours "Mixtos" — compartido y privado
+            // son fechas independientes. Para tours de un solo tipo, la modalidad queda fija.
+            const tipoModalidad = getCurrentTourTipoModalidad();
+            const selector = document.getElementById('modal-modalidad-selector');
+            if (tipoModalidad === 'ambos') {
+                selector.classList.remove('hidden');
+                setModalDayModalidad(false); // Por defecto abre en Compartido
             } else {
-                checkboxHabilitado.checked = false;
-                toggleModalSalidas(false);
+                selector.classList.add('hidden');
+                setModalDayModalidad(tipoModalidad === 'privado');
             }
 
             modal.classList.remove('hidden');
@@ -2767,6 +3133,37 @@
                     card.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
             }, 30);
+        }
+
+        // Cambia la modalidad activa dentro del modal del día: actualiza el campo oculto,
+        // el estilo de los botones del selector, y repuebla la lista de salidas solo con las
+        // de esa modalidad (tomadas de modalDiaSalidasCompleto, sin pedirlas de nuevo al backend).
+        function setModalDayModalidad(esPrivado) {
+            document.getElementById('modal-es-privado').value = esPrivado ? '1' : '0';
+
+            const btnCompartido = document.getElementById('modal-modalidad-compartido-btn');
+            const btnPrivado = document.getElementById('modal-modalidad-privado-btn');
+            const activo = 'bg-brand-teal text-white';
+            const inactivo = 'text-slate-500 hover:bg-white';
+            btnCompartido.className = `flex-1 h-8 rounded-lg text-[10px] font-black uppercase tracking-wider transition-colors cursor-pointer ${esPrivado ? inactivo : activo}`;
+            btnPrivado.className = `flex-1 h-8 rounded-lg text-[10px] font-black uppercase tracking-wider transition-colors cursor-pointer ${esPrivado ? activo : inactivo}`;
+
+            const salidasModalidad = modalDiaSalidasCompleto.filter(s => !!s.es_privado === esPrivado);
+
+            const checkboxHabilitado = document.getElementById('modal-habilitado');
+            const listContainer = document.getElementById('modal-salidas-list');
+            listContainer.innerHTML = '';
+
+            if (salidasModalidad.length > 0) {
+                checkboxHabilitado.checked = true;
+                document.getElementById('modal-salidas-wrapper').classList.remove('hidden');
+                salidasModalidad.forEach(sal => {
+                    addSalidaRow(sal.horario, sal.cupo_maximo, sal.cupo_reservado);
+                });
+            } else {
+                checkboxHabilitado.checked = false;
+                toggleModalSalidas(false);
+            }
         }
 
         function closeDayModal() {
@@ -2839,7 +3236,8 @@
             const tour_id = document.getElementById('modal-tour-id').value;
             const fecha = document.getElementById('modal-fecha').value;
             const habilitado = document.getElementById('modal-habilitado').checked;
-            
+            const es_privado = document.getElementById('modal-es-privado').value === '1';
+
             const salidas = [];
             let isValid = true;
             
@@ -2878,6 +3276,7 @@
                     tour_id: tour_id,
                     fecha: fecha,
                     habilitado: habilitado,
+                    es_privado: es_privado,
                     salidas: salidas
                 })
             })
@@ -2912,6 +3311,17 @@
             }
             // Pre-poblar el tour_id
             document.getElementById('batch-tour-id').value = currentTourId;
+
+            // Selector de modalidad: solo aplica a tours "Mixtos".
+            const tipoModalidad = getCurrentTourTipoModalidad();
+            const selector = document.getElementById('batch-modalidad-selector');
+            if (tipoModalidad === 'ambos') {
+                selector.classList.remove('hidden');
+                setBatchModalidad(false); // Por defecto abre en Compartido
+            } else {
+                selector.classList.add('hidden');
+                setBatchModalidad(tipoModalidad === 'privado');
+            }
 
             // Inicializar las fechas: inicio = hoy, fin = en 1 mes
             const hoy = new Date();
@@ -2956,6 +3366,17 @@
             document.body.style.overflow = '';
         }
 
+        function setBatchModalidad(esPrivado) {
+            document.getElementById('batch-es-privado').value = esPrivado ? '1' : '0';
+
+            const btnCompartido = document.getElementById('batch-modalidad-compartido-btn');
+            const btnPrivado = document.getElementById('batch-modalidad-privado-btn');
+            const activo = 'bg-brand-teal text-white';
+            const inactivo = 'text-slate-500 hover:bg-white';
+            btnCompartido.className = `flex-1 h-8 rounded-lg text-[10px] font-black uppercase tracking-wider transition-colors cursor-pointer ${esPrivado ? inactivo : activo}`;
+            btnPrivado.className = `flex-1 h-8 rounded-lg text-[10px] font-black uppercase tracking-wider transition-colors cursor-pointer ${esPrivado ? activo : inactivo}`;
+        }
+
         function toggleBatchSalidas(mostrar) {
             const wrapper = document.getElementById('batch-salidas-wrapper');
             if (mostrar) {
@@ -2996,6 +3417,7 @@
             const fecha_inicio = document.getElementById('batch-fecha-inicio').value;
             const fecha_fin = document.getElementById('batch-fecha-fin').value;
             const accion = document.querySelector('input[name="batch_accion"]:checked')?.value || 'habilitar';
+            const es_privado = document.getElementById('batch-es-privado').value === '1';
 
             // Recoger días de la semana
             const diasSeleccionados = [];
@@ -3065,6 +3487,7 @@
                     fecha_fin: fecha_fin,
                     dias_semana: diasSeleccionados,
                     accion: accion,
+                    es_privado: es_privado,
                     salidas: salidas
                 })
             })
@@ -3166,6 +3589,11 @@
             const noIncluye = card.getAttribute('data-no-incluye') || '';
             const tipoModalidad = card.getAttribute('data-tipo-modalidad') || 'compartido';
             const anticipoPorcentaje = card.getAttribute('data-anticipo-porcentaje') || '';
+            const origen = card.getAttribute('data-origen') || 'interno';
+            const syncCalendarioActivo = card.getAttribute('data-sync-calendario-activo') === '1';
+            const apiConexionNombre = card.getAttribute('data-api-conexion-nombre') || 'este proveedor';
+            const nombreEl = document.getElementById('edit-tour-api-conexion-nombre');
+            if (nombreEl) nombreEl.textContent = apiConexionNombre;
             
             let tarifasPrivadas = [];
             try {
@@ -3207,6 +3635,11 @@
                 document.getElementById('edit-tour-galeria').value = galeria;
             }
             document.getElementById('edit-tour-punto-encuentro').value = puntoEncuentro;
+            const puntoLat = card.getAttribute('data-punto-encuentro-lat') || '';
+            const puntoLng = card.getAttribute('data-punto-encuentro-lng') || '';
+            document.getElementById('edit-tour-punto-encuentro-lat').value = puntoLat;
+            document.getElementById('edit-tour-punto-encuentro-lng').value = puntoLng;
+            document.getElementById('edit-punto-encuentro-coords').textContent = (puntoLat && puntoLng) ? `📍 Ubicación seleccionada: ${parseFloat(puntoLat).toFixed(5)}, ${parseFloat(puntoLng).toFixed(5)}` : '';
             document.getElementById('edit-tour-incluye').value = incluye;
             document.getElementById('edit-tour-no-incluye').value = noIncluye;
 
@@ -3224,6 +3657,17 @@
             }
             serializeTarifas('edit');
             toggleModalidadFields('edit');
+
+            // Disponibilidad desde API externa: solo aplica a tours con origen = api_externa
+            const syncBox = document.getElementById('edit-sync-calendario-box');
+            const syncCheckbox = document.getElementById('edit-tour-sync-calendario');
+            if (origen === 'api_externa') {
+                syncBox.style.display = '';
+                syncCheckbox.checked = syncCalendarioActivo;
+            } else {
+                syncBox.style.display = 'none';
+                syncCheckbox.checked = false;
+            }
 
             // Poblar itinerario
             const container = document.getElementById('edit-itinerary-container');
@@ -3585,13 +4029,25 @@
         // --- BUSCADOR DEL LISTADO DE TOURS ---
         function filterTourList() {
             const searchInput = document.getElementById('tour-list-search');
+            const apiFilterSelect = document.getElementById('tour-api-filter');
             if (!searchInput) return;
             const query = searchInput.value.toLowerCase().trim();
+            const apiFilter = apiFilterSelect ? apiFilterSelect.value : '';
             const cards = document.querySelectorAll('.tour-list-card');
-            
+
             cards.forEach(card => {
                 const tourName = card.querySelector('.tour-card-name').textContent.toLowerCase();
-                if (tourName.includes(query)) {
+                const matchesNombre = tourName.includes(query);
+
+                let matchesFuente = true;
+                if (apiFilter === 'interno') {
+                    matchesFuente = card.getAttribute('data-origen') !== 'api_externa';
+                } else if (apiFilter.startsWith('api-')) {
+                    const conexionId = apiFilter.slice('api-'.length);
+                    matchesFuente = card.getAttribute('data-api-conexion-id') === conexionId;
+                }
+
+                if (matchesNombre && matchesFuente) {
                     card.classList.remove('hidden');
                 } else {
                     card.classList.add('hidden');
@@ -3624,6 +4080,17 @@
                 const activeTitleEl = document.getElementById('calendar-active-tour-title');
                 if (activeTitleEl) activeTitleEl.textContent = tourName;
 
+                // Mostrar el botón de sincronización solo si el tour viene de una API externa
+                // con "Sincronizar Calendarios" activo (ver Tour::sync_calendario_activo)
+                const esSyncActivo = selectedCard.getAttribute('data-origen') === 'api_externa'
+                    && selectedCard.getAttribute('data-sync-calendario-activo') === '1';
+                const syncBtn = document.getElementById('sync-disponibilidad-btn');
+                const syncInfo = document.getElementById('sync-disponibilidad-info');
+                if (syncBtn) syncBtn.classList.toggle('hidden', !esSyncActivo);
+                if (syncInfo) syncInfo.classList.toggle('hidden', !esSyncActivo);
+                const syncInfoNombreEl = document.getElementById('sync-disponibilidad-info-nombre');
+                if (syncInfoNombreEl) syncInfoNombreEl.textContent = selectedCard.getAttribute('data-api-conexion-nombre') || 'este proveedor';
+
                 // Mostrar calendario y ocultar empty state
                 const emptyState = document.getElementById('calendar-empty-state');
                 if (emptyState) emptyState.classList.add('hidden');
@@ -3639,6 +4106,40 @@
                     }, 50);
                 }
             }
+        }
+
+        // --- SINCRONIZAR DISPONIBILIDAD EN TIEMPO REAL (tours de API externa) ---
+        function sincronizarDisponibilidadTour() {
+            if (!currentTourId) return;
+
+            const btn = document.getElementById('sync-disponibilidad-btn');
+            const textoOriginal = btn ? btn.textContent : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.classList.add('opacity-50', 'cursor-wait');
+                btn.textContent = '🔄 Sincronizando…';
+            }
+
+            fetch(`/dashboard/tour/${currentTourId}/sincronizar-disponibilidad`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': window.Laravel.csrfToken,
+                    'Accept': 'application/json'
+                }
+            })
+                .then(res => res.json().then(data => ({ ok: res.ok, data })))
+                .then(({ ok, data }) => {
+                    showToast(data.message || (ok ? 'Disponibilidad sincronizada.' : 'Error al sincronizar.'), ok ? 'teal' : 'rose');
+                    if (currentTourId) loadCalendar();
+                })
+                .catch(() => showToast('❌ Error de conexión al sincronizar disponibilidad.', 'rose'))
+                .finally(() => {
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.classList.remove('opacity-50', 'cursor-wait');
+                        btn.textContent = textoOriginal;
+                    }
+                });
         }
         </script>
 

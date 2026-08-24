@@ -38,6 +38,8 @@ class Tour extends Model
         'tarifas_privadas',
         'anticipo_porcentaje',
         'duracion',
+        'punto_encuentro_lat',
+        'punto_encuentro_lng',
         'imagen_destacada',
         'galeria',
         'galeria_experiencias',
@@ -53,7 +55,8 @@ class Tour extends Model
         'api_locacion_id',
         'precio_api_referencia_usd',
         'precio_api_actualizado_at',
-        'api_metadata'
+        'api_metadata',
+        'sync_calendario_activo',
     ];
 
     protected $casts = [
@@ -64,6 +67,8 @@ class Tour extends Model
         'galeria_experiencias' => 'array',
         'tags' => 'array',
         'precio_base_usd' => 'float',
+        'punto_encuentro_lat' => 'float',
+        'punto_encuentro_lng' => 'float',
         'tarifas_privadas' => 'array',
         'anticipo_porcentaje' => 'integer',
         'cupo_maximo' => 'integer',
@@ -73,28 +78,18 @@ class Tour extends Model
         'no_incluye' => 'array',
         'precio_api_referencia_usd' => 'float',
         'precio_api_actualizado_at' => 'datetime',
-        'api_metadata' => 'array'
+        'api_metadata' => 'array',
+        'sync_calendario_activo' => 'boolean',
     ];
 
     /**
-     * Devuelve la lista de fotos de la Galería de Experiencias de viajeros.
-     * Si no hay fotos personalizadas registradas, devuelve una selección de fotos reales.
+     * Devuelve la lista de fotos de la Galería de Experiencias de viajeros. Solo fotos reales
+     * subidas para este tour — vacío si todavía no hay ninguna (la vista oculta la sección
+     * completa en ese caso en vez de rellenar con fotos de stock genéricas).
      */
     public function getExperienciasFotosAttribute(): array
     {
-        if (is_array($this->galeria_experiencias) && count($this->galeria_experiencias) > 0) {
-            return $this->galeria_experiencias;
-        }
-
-        // Fotos reales de experiencias de viajeros por defecto
-        return [
-            'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=80',
-            'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80',
-            'https://images.unsplash.com/photo-1519046904884-53103b34b206?auto=format&fit=crop&w=800&q=80',
-            'https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=800&q=80',
-            'https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?auto=format&fit=crop&w=800&q=80',
-            'https://images.unsplash.com/photo-1506929562872-bb421503ef21?auto=format&fit=crop&w=800&q=80'
-        ];
+        return is_array($this->galeria_experiencias) ? $this->galeria_experiencias : [];
     }
 
     /**
@@ -151,6 +146,14 @@ class Tour extends Model
     public function apiNotificaciones(): HasMany
     {
         return $this->hasMany(TourApiNotificacion::class, 'tour_id');
+    }
+
+    /**
+     * Relación: Historial de sincronizaciones del calendario de disponibilidad de este tour.
+     */
+    public function disponibilidadSyncs(): HasMany
+    {
+        return $this->hasMany(TourDisponibilidadSync::class, 'tour_id');
     }
 
     /**

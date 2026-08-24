@@ -17,8 +17,10 @@ use App\Models\Tour;
 use App\Models\TourApiNotificacion;
 use App\Models\TourCambioPrecioApi;
 use App\Models\TourFecha;
+use App\Models\TourDisponibilidadSync;
 use App\Models\TourImportado;
 use App\Models\User;
+use App\Services\TourAvailabilitySyncService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -29,6 +31,7 @@ use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Illuminate\View\View;
+use Throwable;
 
 class DashboardController extends Controller
 {
@@ -75,13 +78,13 @@ class DashboardController extends Controller
         $netEarnings = $totalSales - $totalCommissions; // Lo que les corresponde a los proveedores
 
         // Historial completo de reservas
-        $reservas = Reserva::with(['detalles.tour.proveedor'])
+        $reservas = Reserva::with(['detalles.tour.proveedor', 'detalles.tour.apiConexion', 'detalles.apiNotificacion'])
             ->orderBy('fecha_reserva', 'desc')
             ->get();
 
         // Datos administrativos adicionales
         $proveedores = Proveedor::withCount('tours')->get();
-        $tours = Tour::with(['proveedor', 'fechas'])->get();
+        $tours = Tour::with(['proveedor', 'fechas', 'apiConexion'])->get();
         $usuarios = User::with(['proveedor'])->get();
         $apiConexiones = ApiConexion::with('proveedor')->withCount('tours')->latest()->get();
         $toursImportadosPendientes = TourImportado::where('estado', 'pendiente')
@@ -93,6 +96,10 @@ class DashboardController extends Controller
             ->latest('detectado_at')
             ->get();
         $notificacionesApi = TourApiNotificacion::with(['tour', 'reserva', 'apiConexion'])
+            ->latest()
+            ->limit(100)
+            ->get();
+        $sincronizacionesDisponibilidad = TourDisponibilidadSync::with(['tour', 'apiConexion'])
             ->latest()
             ->limit(100)
             ->get();
@@ -109,7 +116,8 @@ class DashboardController extends Controller
             'apiConexiones',
             'toursImportadosPendientes',
             'cambiosPrecioPendientes',
-            'notificacionesApi'
+            'notificacionesApi',
+            'sincronizacionesDisponibilidad'
         ));
     }
 
@@ -337,6 +345,8 @@ class DashboardController extends Controller
             'duracion' => 'required|string|max:50',
             'ubicacion' => 'required|string|max:100',
             'punto_encuentro' => 'nullable|string',
+            'punto_encuentro_lat' => 'nullable|numeric|between:-90,90',
+            'punto_encuentro_lng' => 'nullable|numeric|between:-180,180',
             'pais' => 'required|string|max:100',
             'cupo_maximo' => 'nullable|integer|min:1',
             'proveedor_id' => 'required|exists:proveedores,id',
@@ -438,6 +448,8 @@ class DashboardController extends Controller
             ],
             'ubicacion' => $request->input('ubicacion'),
             'punto_encuentro' => $request->input('punto_encuentro'),
+            'punto_encuentro_lat' => $request->filled('punto_encuentro_lat') ? (float)$request->input('punto_encuentro_lat') : null,
+            'punto_encuentro_lng' => $request->filled('punto_encuentro_lng') ? (float)$request->input('punto_encuentro_lng') : null,
             'pais' => $request->input('pais'),
             'precio_base_usd' => (float)$request->input('precio_base_usd'),
             'duracion' => $request->input('duracion'),
@@ -476,6 +488,21 @@ class DashboardController extends Controller
     }
 
     /**
+     * Determina si las fechas que se están habilitando/consultando deben ser de modalidad
+     * privada (exclusiva, ver TourFecha::estaBloqueadoPorReservaPrivada) según el tipo de
+     * modalidad del tour: los "Sólo Privado" siempre son privadas, los "Sólo Compartido" nunca,
+     * y los "Mixtos" dependen de lo que el Admin elija explícitamente en el formulario.
+     */
+    private function resolverModalidadPrivada(Tour $tour, Request $request): bool
+    {
+        return match ($tour->tipo_modalidad) {
+            'privado' => true,
+            'ambos' => $request->boolean('es_privado', false),
+            default => false,
+        };
+    }
+
+    /**
      * Habilita fechas para un tour (Acción de Administrador o Proveedor).
      *
      * @param Request $request
@@ -494,7 +521,8 @@ class DashboardController extends Controller
             'fecha_fin' => 'required|date|after_or_equal:fecha_inicio',
             'operacion' => 'required|in:habilitar,deshabilitar',
             'horarios' => 'nullable|string',
-            'cupo_maximo' => 'required_if:operacion,habilitar|integer|min:1|max:100'
+            'cupo_maximo' => 'required_if:operacion,habilitar|integer|min:1|max:100',
+            'es_privado' => 'nullable|boolean',
         ]);
 
         $tourId = $request->input('tour_id');
@@ -509,6 +537,7 @@ class DashboardController extends Controller
         $fechaFin = \Carbon\Carbon::parse($request->input('fecha_fin'));
         $operacion = $request->input('operacion');
         $cupoMax = (int) $request->input('cupo_maximo', 20);
+        $esPrivado = $this->resolverModalidadPrivada($tour, $request);
 
         // Parsear horarios
         if ($request->filled('horarios')) {
@@ -525,7 +554,7 @@ class DashboardController extends Controller
             foreach ($horarios as $hora) {
                 if ($operacion === 'habilitar') {
                     TourFecha::updateOrCreate(
-                        ['tour_id' => $tourId, 'fecha' => $fechaStr, 'horario' => $hora],
+                        ['tour_id' => $tourId, 'fecha' => $fechaStr, 'horario' => $hora, 'es_privado' => $esPrivado],
                         ['cupo_maximo' => $cupoMax]
                     );
                     $count++;
@@ -533,6 +562,7 @@ class DashboardController extends Controller
                     $deleted = TourFecha::where('tour_id', $tourId)
                         ->where('fecha', $fechaStr)
                         ->where('horario', $hora)
+                        ->where('es_privado', $esPrivado)
                         ->where('cupo_reservado', 0)
                         ->delete();
                     if ($deleted > 0) {
@@ -663,6 +693,7 @@ class DashboardController extends Controller
                 'cupo_maximo' => $fecha->cupo_maximo,
                 'cupo_reservado' => $fecha->cupo_reservado,
                 'cupo_disponible' => $fecha->cupo_disponible,
+                'es_privado' => $fecha->es_privado,
             ];
         }
 
@@ -670,6 +701,78 @@ class DashboardController extends Controller
             'success' => true,
             'fechas' => $resultado
         ]);
+    }
+
+    /**
+     * Dispara manualmente la sincronización del calendario de un tour contra su API externa
+     * (Admin o Proveedor dueño del tour). Solo aplica a tours de origen api_externa con
+     * "Sincronizar Calendarios" activo; el resultado (fechas actualizadas/deshabilitadas o error)
+     * queda registrado en el historial de sincronizaciones.
+     *
+     * @param string $id
+     * @return JsonResponse
+     */
+    public function sincronizarDisponibilidadTour(string $id): JsonResponse
+    {
+        $user = Auth::user();
+        if (!$user || (!$user->isAdmin() && !$user->isProveedor())) {
+            return response()->json(['success' => false, 'message' => 'No autorizado.'], 403);
+        }
+
+        $tour = Tour::findOrFail($id);
+
+        if ($user->isProveedor() && $tour->proveedor_id !== $user->proveedor_id) {
+            return response()->json(['success' => false, 'message' => 'No autorizado para este tour.'], 403);
+        }
+
+        if (!$tour->esApiExterna() || !$tour->sync_calendario_activo) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Este tour no tiene la sincronización de calendario activa.'
+            ], 422);
+        }
+
+        try {
+            $sync = app(TourAvailabilitySyncService::class)->sincronizarCalendario($tour, 'manual');
+        } catch (Throwable $e) {
+            return response()->json(['success' => false, 'message' => 'Error al sincronizar: ' . $e->getMessage()], 500);
+        }
+
+        if ($sync->estado === 'fallido') {
+            return response()->json([
+                'success' => false,
+                'message' => 'No se pudo consultar el calendario del proveedor: ' . $sync->mensaje_error,
+                'fechas' => $this->getFechasDelTour($id)
+            ], 502);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "Calendario sincronizado: {$sync->fechas_actualizadas} fecha(s) actualizada(s), {$sync->fechas_deshabilitadas} deshabilitada(s). Esta sincronización depende de que el proveedor mantenga su propio calendario actualizado — Attitour solo refleja lo que ellos reportan.",
+            'fechas' => $this->getFechasDelTour($id)
+        ]);
+    }
+
+    /**
+     * Helper para obtener todas las fechas próximas de un tour, usado para refrescar el
+     * calendario del Admin/Proveedor tras una sincronización manual.
+     */
+    private function getFechasDelTour(string $tourId)
+    {
+        return TourFecha::where('tour_id', $tourId)
+            ->where('fecha', '>=', now()->format('Y-m-d'))
+            ->orderBy('fecha')
+            ->get()
+            ->map(function ($f) {
+                return [
+                    'id' => $f->id,
+                    'fecha' => $f->fecha->format('Y-m-d'),
+                    'horario' => $f->horario,
+                    'cupo_maximo' => $f->cupo_maximo,
+                    'cupo_reservado' => $f->cupo_reservado,
+                    'cupo_disponible' => $f->cupo_disponible,
+                ];
+            });
     }
 
     /**
@@ -689,6 +792,7 @@ class DashboardController extends Controller
             'tour_id' => 'required|exists:tours,id',
             'fecha' => 'required|date',
             'habilitado' => 'required|boolean',
+            'es_privado' => 'nullable|boolean',
             'salidas' => 'nullable|array',
             'salidas.*.horario' => 'required_if:habilitado,true|string|regex:/^\d{2}:\d{2}$/',
             'salidas.*.cupo_maximo' => 'required_if:habilitado,true|integer|min:1'
@@ -705,14 +809,20 @@ class DashboardController extends Controller
             return response()->json(['error' => __('No autorizado para este tour.')], 403);
         }
 
+        $esPrivado = $this->resolverModalidadPrivada($tour, $request);
+
+        // Solo se opera sobre las salidas de la modalidad que se está editando (compartida o
+        // privada) — así en un tour "Mixto" no se borran/pisan las salidas de la otra modalidad
+        // para ese mismo día.
         $existentes = TourFecha::where('tour_id', $tourId)
             ->where('fecha', $fecha)
+            ->where('es_privado', $esPrivado)
             ->get();
 
         $advertencias = [];
 
         if (!$habilitado) {
-            // Deshabilitar todo el día
+            // Deshabilitar esta modalidad para el día
             // Verificar si hay reservas activas en algún horario de este día
             $conReservas = $existentes->where('cupo_reservado', '>', 0);
             if ($conReservas->isNotEmpty()) {
@@ -721,7 +831,7 @@ class DashboardController extends Controller
                 foreach ($sinReservas as $fechaFecha) {
                     $fechaFecha->delete();
                 }
-                
+
                 $horariosConservados = $conReservas->pluck('horario')->toArray();
                 return response()->json([
                     'success' => true,
@@ -731,12 +841,12 @@ class DashboardController extends Controller
                     'fechas' => $this->getFechasDeDia($tourId, $fecha)
                 ]);
             } else {
-                // Borrar todo
-                TourFecha::where('tour_id', $tourId)->where('fecha', $fecha)->delete();
+                // Borrar todas las de esta modalidad
+                TourFecha::where('tour_id', $tourId)->where('fecha', $fecha)->where('es_privado', $esPrivado)->delete();
                 return response()->json([
                     'success' => true,
                     'message' => __('Día deshabilitado por completo.'),
-                    'fechas' => []
+                    'fechas' => $this->getFechasDeDia($tourId, $fecha)
                 ]);
             }
         }
@@ -774,7 +884,7 @@ class DashboardController extends Controller
             }
 
             TourFecha::updateOrCreate(
-                ['tour_id' => $tourId, 'fecha' => $fecha, 'horario' => $horario],
+                ['tour_id' => $tourId, 'fecha' => $fecha, 'horario' => $horario, 'es_privado' => $esPrivado],
                 ['cupo_maximo' => $cupoMaximo]
             );
         }
@@ -807,6 +917,7 @@ class DashboardController extends Controller
             'dias_semana' => 'required|array',
             'dias_semana.*' => 'integer|between:0,6',
             'accion' => 'required|string|in:habilitar,deshabilitar',
+            'es_privado' => 'nullable|boolean',
             'salidas' => 'nullable|array',
             'salidas.*.horario' => 'required_if:accion,habilitar|string|regex:/^\d{2}:\d{2}$/',
             'salidas.*.cupo_maximo' => 'required_if:accion,habilitar|integer|min:1'
@@ -824,6 +935,8 @@ class DashboardController extends Controller
         if ($user->isProveedor() && $tour->proveedor_id !== $user->proveedor_id) {
             return response()->json(['error' => __('No autorizado para este tour.')], 403);
         }
+
+        $esPrivado = $this->resolverModalidadPrivada($tour, $request);
 
         $inicio = new \DateTime($fechaInicioStr);
         $fin = new \DateTime($fechaFinStr);
@@ -852,6 +965,7 @@ class DashboardController extends Controller
             foreach ($fechasAProcesar as $fecha) {
                 $existentes = TourFecha::where('tour_id', $tourId)
                     ->where('fecha', $fecha)
+                    ->where('es_privado', $esPrivado)
                     ->get();
 
                 if ($existentes->isEmpty()) {
@@ -871,7 +985,7 @@ class DashboardController extends Controller
                         'horarios' => implode(', ', $horariosConservados)
                     ]);
                 } else {
-                    TourFecha::where('tour_id', $tourId)->where('fecha', $fecha)->delete();
+                    TourFecha::where('tour_id', $tourId)->where('fecha', $fecha)->where('es_privado', $esPrivado)->delete();
                 }
                 $contadorFechasModificadas++;
             }
@@ -897,6 +1011,7 @@ class DashboardController extends Controller
         foreach ($fechasAProcesar as $fecha) {
             $existentes = TourFecha::where('tour_id', $tourId)
                 ->where('fecha', $fecha)
+                ->where('es_privado', $esPrivado)
                 ->get();
 
             // 1. Eliminar horarios no enviados si no tienen reservas
@@ -930,7 +1045,7 @@ class DashboardController extends Controller
                 }
 
                 TourFecha::updateOrCreate(
-                    ['tour_id' => $tourId, 'fecha' => $fecha, 'horario' => $horario],
+                    ['tour_id' => $tourId, 'fecha' => $fecha, 'horario' => $horario, 'es_privado' => $esPrivado],
                     ['cupo_maximo' => $cupoMaximo]
                 );
             }
@@ -960,6 +1075,7 @@ class DashboardController extends Controller
                     'cupo_maximo' => $f->cupo_maximo,
                     'cupo_reservado' => $f->cupo_reservado,
                     'cupo_disponible' => $f->cupo_disponible,
+                    'es_privado' => $f->es_privado,
                 ];
             });
     }
@@ -981,6 +1097,8 @@ class DashboardController extends Controller
             'duracion' => 'required|string|max:50',
             'ubicacion' => 'required|string|max:100',
             'punto_encuentro' => 'nullable|string',
+            'punto_encuentro_lat' => 'nullable|numeric|between:-90,90',
+            'punto_encuentro_lng' => 'nullable|numeric|between:-180,180',
             'pais' => 'required|string|max:100',
             'proveedor_id' => 'required|exists:proveedores,id',
             'tags' => 'nullable|string',
@@ -992,6 +1110,7 @@ class DashboardController extends Controller
             'tipo_modalidad' => 'required|in:compartido,privado,ambos',
             'anticipo_porcentaje' => 'nullable|integer|min:0|max:100',
             'tarifas_privadas' => 'nullable|string',
+            'sync_calendario_activo' => 'nullable|boolean',
         ]);
 
         // Parsear tags
@@ -1053,6 +1172,8 @@ class DashboardController extends Controller
             ],
             'ubicacion' => $request->input('ubicacion'),
             'punto_encuentro' => $request->input('punto_encuentro'),
+            'punto_encuentro_lat' => $request->filled('punto_encuentro_lat') ? (float)$request->input('punto_encuentro_lat') : null,
+            'punto_encuentro_lng' => $request->filled('punto_encuentro_lng') ? (float)$request->input('punto_encuentro_lng') : null,
             'pais' => $request->input('pais'),
             'precio_base_usd' => (float)$request->input('precio_base_usd'),
             'duracion' => $request->input('duracion'),
@@ -1063,7 +1184,8 @@ class DashboardController extends Controller
             'no_incluye' => $noIncluye,
             'tipo_modalidad' => $request->input('tipo_modalidad'),
             'anticipo_porcentaje' => $request->filled('anticipo_porcentaje') ? (int)$request->input('anticipo_porcentaje') : null,
-            'tarifas_privadas' => $tarifasPrivadas
+            'tarifas_privadas' => $tarifasPrivadas,
+            'sync_calendario_activo' => $tour->esApiExterna() ? $request->boolean('sync_calendario_activo') : false,
         ]);
 
         return redirect()->route('dashboard')->with('success', __('Tour actualizado exitosamente.'))->with('active_tab', 'tours');

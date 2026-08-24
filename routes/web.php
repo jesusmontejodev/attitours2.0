@@ -120,7 +120,8 @@ Route::middleware(['auth'])->prefix('dashboard')->group(function () {
     Route::get('/tour/{id}/fechas', [DashboardController::class, 'getTourFechasJson'])->name('dashboard.tour.fechas.json');
     Route::post('/dates/update-single-day', [DashboardController::class, 'updateSingleDayAvailability'])->name('dashboard.dates.update-single-day');
     Route::post('/dates/update-batch', [DashboardController::class, 'updateBatchAvailability'])->name('dashboard.dates.update-batch');
-    
+    Route::post('/tour/{id}/sincronizar-disponibilidad', [DashboardController::class, 'sincronizarDisponibilidadTour'])->name('dashboard.tour.sincronizar-disponibilidad');
+
     // Rutas Administrativas Nuevas
     Route::post('/proveedor', [DashboardController::class, 'storeProveedor'])->name('dashboard.proveedor');
     Route::post('/proveedor/{id}/update', [DashboardController::class, 'updateProveedor'])->name('dashboard.proveedor.update');

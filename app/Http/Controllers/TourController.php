@@ -10,6 +10,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Tour;
 use App\Models\TourFecha;
+use App\Services\TourAvailabilitySyncService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -25,7 +26,13 @@ class TourController extends Controller
     public function show(string $id): View
     {
         $tour = Tour::with(['proveedor'])->findOrFail($id);
-        
+
+        // Si el tour proviene de una API externa con sync activo, refrescamos su calendario de
+        // fechas locales antes de mostrarlo (auto-limitado a 1 corrida real cada pocos minutos,
+        // ver TourAvailabilitySyncService::sincronizarCalendarioSiNecesario) para que las fechas
+        // que ofrece el proveedor aparezcan sin que el Admin tenga que sincronizar a mano.
+        app(TourAvailabilitySyncService::class)->sincronizarCalendarioSiNecesario($tour);
+
         // Obtener todas las fechas de salida disponibles (tanto compartidas como privadas)
         $fechas = TourFecha::where('tour_id', $id)
             ->whereColumn('cupo_reservado', '<', 'cupo_maximo')

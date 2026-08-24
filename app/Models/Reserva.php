@@ -84,6 +84,15 @@ class Reserva extends Model
         return $this->hasMany(Mensaje::class, 'reserva_id');
     }
 
+    /**
+     * Relación: Notificaciones enviadas a APIs externas por los tours de esta reserva
+     * (solo existen para detalles cuyo tour tiene origen = api_externa).
+     */
+    public function apiNotificaciones(): HasMany
+    {
+        return $this->hasMany(TourApiNotificacion::class, 'reserva_id');
+    }
+
     // ─── Helpers QR ──────────────────────────────────────────────────────────
 
     /**

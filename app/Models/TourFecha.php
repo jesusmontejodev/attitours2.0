@@ -51,13 +51,28 @@ class TourFecha extends Model
     }
 
     /**
-     * Accesor para calcular los cupos disponibles restantes.
+     * Accesor para calcular los cupos disponibles restantes. Si el tour proviene de una API
+     * externa y su conexión tiene "Sincronizar Calendarios" activo, el cupo mostrado es el
+     * mínimo entre el cupo local y el que reporta la API externa en tiempo real — así nunca se
+     * sobrevende ni de un lado ni del otro (ver TourAvailabilitySyncService).
      */
     public function getCupoDisponibleAttribute(): int
     {
         if ($this->estaBloqueadoPorReservaPrivada()) {
             return 0;
         }
-        return max(0, $this->cupo_maximo - $this->cupo_reservado);
+
+        $local = max(0, $this->cupo_maximo - $this->cupo_reservado);
+
+        if ($this->tour && $this->tour->esApiExterna()) {
+            $externo = app(\App\Services\TourAvailabilitySyncService::class)
+                ->disponibilidadExterna($this->tour, $this->fecha->format('Y-m-d'), $this->horario);
+
+            if ($externo !== null) {
+                return min($local, max(0, $externo));
+            }
+        }
+
+        return $local;
     }
 }

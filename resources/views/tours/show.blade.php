@@ -439,61 +439,85 @@
                             </div>
                         </div>
                         
-                        <!-- Mapa Virtual (Estilo Premium) -->
-                        <div class="relative w-full h-48 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center overflow-hidden group">
-                            <!-- Fondo abstracto simulando mapa con grid y radar -->
-                            <div class="absolute inset-0 bg-white bg-grid-pattern opacity-85"></div>
-                            
-                            <!-- Radar animado -->
-                            <div class="absolute h-32 w-32 rounded-full border border-brand-teal/20 bg-brand-teal/5 animate-ping duration-2000"></div>
-                            <div class="absolute h-16 w-16 rounded-full border border-brand-teal/35 bg-brand-teal/10"></div>
-                            
-                            <!-- Pin de ubicación -->
-                            <div class="relative z-10 flex flex-col items-center gap-1 group-hover:scale-105 transition-transform duration-300">
-                                <div class="h-5 w-5 rounded-full bg-brand-teal border-2 border-white shadow-md flex items-center justify-center animate-bounce">
-                                    <span class="h-2 w-2 rounded-full bg-white"></span>
-                                </div>
-                                <span class="text-[9px] font-bold uppercase tracking-widest text-white bg-brand-teal px-2 py-0.5 rounded border border-brand-teal-hover shadow-md backdrop-blur">
-                                    Punto de Encuentro
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                <!-- GALERÍA DE EXPERIENCIAS DE VIAJEROS (Modificación 3) -->
-                <div class="mt-8 pt-8 border-t border-slate-200">
-                    <div class="flex items-center justify-between mb-4">
-                        <div>
-                            <h2 class="text-lg font-bold text-slate-800">Galería de Experiencias</h2>
-                            <p class="text-xs text-slate-500 font-semibold mt-0.5">Fotos reales capturadas por viajeros que han realizado este tour.</p>
-                        </div>
-                        <button type="button" onclick="openExperienceModal(0)" class="px-3 py-1.5 rounded-xl border border-brand-teal/30 bg-brand-teal/10 hover:bg-brand-teal text-brand-teal hover:text-white text-xs font-bold transition-colors cursor-pointer">
-                            VER MÁS 📸
-                        </button>
-                    </div>
+                        <!-- Mapa real (Leaflet / OpenStreetMap) con la ubicación guardada desde el formulario del Admin -->
+                        @php
+                            $tieneUbicacion = $tour->punto_encuentro_lat !== null && $tour->punto_encuentro_lng !== null;
+                            $mapaLat = $tieneUbicacion ? $tour->punto_encuentro_lat : 21.1619;
+                            $mapaLng = $tieneUbicacion ? $tour->punto_encuentro_lng : -86.8515;
+                        @endphp
+                        <div id="tour-punto-encuentro-map" class="w-full h-48 rounded-xl border border-slate-200 overflow-hidden z-0" data-lat="{{ $mapaLat }}" data-lng="{{ $mapaLng }}" data-tiene-ubicacion="{{ $tieneUbicacion ? '1' : '0' }}"></div>
 
-                    <!-- Mosaico / Grid de 3 Fotos de viajeros -->
-                    @php $expFotos = $tour->experiencias_fotos; @endphp
-                    <div class="grid grid-cols-3 gap-3">
-                        @foreach(array_slice($expFotos, 0, 3) as $idx => $foto)
-                            <div class="relative h-32 sm:h-36 rounded-2xl overflow-hidden group border border-slate-200 shadow-xs bg-slate-100 cursor-pointer" onclick="openExperienceModal({{ $idx }})">
-                                <img src="{{ $foto }}" alt="Experiencia de viajero" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-                                <div class="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors"></div>
-                                @if($idx === 2 && count($expFotos) > 3)
-                                    <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-xs flex flex-col items-center justify-center text-white text-xs font-black uppercase tracking-wider">
-                                        <span>+{{ count($expFotos) - 3 }}</span>
-                                        <span class="text-[9px] font-bold">Ver Más</span>
-                                    </div>
-                                @endif
-                            </div>
-                        @endforeach
+                        @if($tieneUbicacion)
+                            <a href="https://www.google.com/maps/search/?api=1&query={{ $mapaLat }},{{ $mapaLng }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 text-[10px] font-bold text-brand-teal hover:text-brand-teal-hover transition-colors self-start">
+                                🧭 Abrir en Google Maps
+                            </a>
+                        @else
+                            <p class="text-[10px] text-slate-400 italic">Este tour todavía no tiene una ubicación exacta configurada; se muestra el área general de Cancún.</p>
+                        @endif
                     </div>
-                </div>
+                <!-- GALERÍA DE EXPERIENCIAS DE VIAJEROS (solo se muestra si hay fotos reales subidas) -->
+                @php $expFotos = $tour->experiencias_fotos; @endphp
+                @if(count($expFotos) > 0)
+                    <div class="mt-8 pt-8 border-t border-slate-200">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h2 class="text-lg font-bold text-slate-800">Galería de Experiencias</h2>
+                                <p class="text-xs text-slate-500 font-semibold mt-0.5">Fotos reales capturadas por viajeros que han realizado este tour.</p>
+                            </div>
+                            <button type="button" onclick="openExperienceModal(0)" class="px-3 py-1.5 rounded-xl border border-brand-teal/30 bg-brand-teal/10 hover:bg-brand-teal text-brand-teal hover:text-white text-xs font-bold transition-colors cursor-pointer">
+                                VER MÁS 📸
+                            </button>
+                        </div>
+
+                        <!-- Mosaico / Grid de 3 Fotos de viajeros -->
+                        <div class="grid grid-cols-3 gap-3">
+                            @foreach(array_slice($expFotos, 0, 3) as $idx => $foto)
+                                <div class="relative h-32 sm:h-36 rounded-2xl overflow-hidden group border border-slate-200 shadow-xs bg-slate-100 cursor-pointer" onclick="openExperienceModal({{ $idx }})">
+                                    <img src="{{ $foto }}" alt="Experiencia de viajero" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                                    <div class="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors"></div>
+                                    @if($idx === 2 && count($expFotos) > 3)
+                                        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-xs flex flex-col items-center justify-center text-white text-xs font-black uppercase tracking-wider">
+                                            <span>+{{ count($expFotos) - 3 }}</span>
+                                            <span class="text-[9px] font-bold">Ver Más</span>
+                                        </div>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
             </div>
         </div>
     </div>
 
     <!-- SCRIPTS JS DETALLES -->
+    <!-- Leaflet (OpenStreetMap) — mapa de solo lectura del punto de encuentro -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
+        // Renderiza el mapa del punto de encuentro con la ubicación guardada desde el Admin.
+        (function initTourPuntoEncuentroMap() {
+            const contenedor = document.getElementById('tour-punto-encuentro-map');
+            if (!contenedor) return;
+
+            const lat = parseFloat(contenedor.dataset.lat);
+            const lng = parseFloat(contenedor.dataset.lng);
+            const tieneUbicacion = contenedor.dataset.tieneUbicacion === '1';
+
+            const mapa = L.map('tour-punto-encuentro-map', {
+                scrollWheelZoom: false,
+            }).setView([lat, lng], tieneUbicacion ? 15 : 12);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                maxZoom: 19,
+            }).addTo(mapa);
+
+            if (tieneUbicacion) {
+                L.marker([lat, lng]).addTo(mapa);
+            }
+        })();
+
         // Cambiar Imagen de la Galería
         function changeGalleryImage(url, buttonEl) {
             const mainImg = document.getElementById('main-gallery-img');
@@ -1075,6 +1099,7 @@
         }
 
         // --- MODAL LIGHTBOX: GALERÍA DE EXPERIENCIAS DE VIAJEROS ---
+        @if(count($tour->experiencias_fotos) > 0)
         const expPhotosList = @json($tour->experiencias_fotos);
         let currentExpIndex = 0;
 
@@ -1105,9 +1130,11 @@
                 counter.textContent = `${currentExpIndex + 1} de ${expPhotosList.length}`;
             }
         }
+        @endif
     </script>
 
-    <!-- MODAL LIGHTBOX GALERÍA DE EXPERIENCIAS DE VIAJEROS -->
+    <!-- MODAL LIGHTBOX GALERÍA DE EXPERIENCIAS DE VIAJEROS (solo si hay fotos reales) -->
+    @if(count($tour->experiencias_fotos) > 0)
     <div id="exp-modal" class="hidden fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-md animate-fade-in p-4">
         <div class="relative max-w-4xl w-full flex flex-col items-center gap-4">
             <!-- Botón cerrar -->
@@ -1146,5 +1173,6 @@
             </div>
         </div>
     </div>
+    @endif
 @endsection
 
