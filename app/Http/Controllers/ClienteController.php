@@ -118,7 +118,7 @@ class ClienteController extends Controller
             'pais'             => 'nullable|string|max:80',
             'foto_perfil'      => 'nullable|image|mimes:jpeg,png,jpg,webp|max:15360',
             'password'         => 'nullable|string|min:6|confirmed',
-            'current_password' => 'required_with:password|string',
+            'current_password' => 'nullable|required_with:password|string',
         ], [
             'name.required'                  => __('nameRequiredError'),
             'foto_perfil.image'              => __('photoInvalidError'),

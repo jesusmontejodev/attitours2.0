@@ -518,7 +518,7 @@ class DashboardController extends Controller
             'fecha_fin' => 'required|date|after_or_equal:fecha_inicio',
             'operacion' => 'required|in:habilitar,deshabilitar',
             'horarios' => 'nullable|string',
-            'cupo_maximo' => 'required_if:operacion,habilitar|integer|min:1|max:100',
+            'cupo_maximo' => 'nullable|required_if:operacion,habilitar|integer|min:1|max:100',
             'es_privado' => 'nullable|boolean',
         ]);
 
@@ -791,8 +791,8 @@ class DashboardController extends Controller
             'habilitado' => 'required|boolean',
             'es_privado' => 'nullable|boolean',
             'salidas' => 'nullable|array',
-            'salidas.*.horario' => 'required_if:habilitado,true|string|regex:/^\d{2}:\d{2}$/',
-            'salidas.*.cupo_maximo' => 'required_if:habilitado,true|integer|min:1'
+            'salidas.*.horario' => 'nullable|required_if:habilitado,true|string|regex:/^\d{2}:\d{2}$/',
+            'salidas.*.cupo_maximo' => 'nullable|required_if:habilitado,true|integer|min:1'
         ]);
 
         $tourId = $request->input('tour_id');
@@ -916,8 +916,8 @@ class DashboardController extends Controller
             'accion' => 'required|string|in:habilitar,deshabilitar',
             'es_privado' => 'nullable|boolean',
             'salidas' => 'nullable|array',
-            'salidas.*.horario' => 'required_if:accion,habilitar|string|regex:/^\d{2}:\d{2}$/',
-            'salidas.*.cupo_maximo' => 'required_if:accion,habilitar|integer|min:1'
+            'salidas.*.horario' => 'nullable|required_if:accion,habilitar|string|regex:/^\d{2}:\d{2}$/',
+            'salidas.*.cupo_maximo' => 'nullable|required_if:accion,habilitar|integer|min:1'
         ]);
 
         $tourId = $request->input('tour_id');
