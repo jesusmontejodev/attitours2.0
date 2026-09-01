@@ -1,7 +1,7 @@
 <?php
 /**
  * @file CheckoutController.php
- * @description Controlador para el proceso de compra: gestiona el carrito de compras, calcula los montos de anticipos (20%) y saldos en destino (80%) para tours privados, crea transacciones en Stripe Checkout y genera las reservas del cliente.
+ * @description Controlador para el proceso de compra: gestiona el carrito de compras, cobra el 100% en línea (compartidos y privados), crea transacciones en Stripe Checkout y genera las reservas del cliente.
  * @date 2026-07-31
  * @author Antigravity
  */
@@ -105,14 +105,9 @@ class CheckoutController extends Controller
                     $esPrivado = (bool) ($item['es_privado'] ?? false);
                     $itemSubtotal = (float) $item['subtotal'];
 
-                    if ($esPrivado) {
-                        $porcentajeAnticipo = (int) ($tour->anticipo_porcentaje ?? 20);
-                        $itemOnline = $itemSubtotal * ($porcentajeAnticipo / 100);
-                        $itemDestino = $itemSubtotal * ((100 - $porcentajeAnticipo) / 100);
-                    } else {
-                        $itemOnline = $itemSubtotal;
-                        $itemDestino = 0.00;
-                    }
+                    // Attitour cobra siempre el 100% en línea, sin importar la modalidad del tour.
+                    $itemOnline = $itemSubtotal;
+                    $itemDestino = 0.00;
 
                     $itemsAProcesar[] = [
                         'tour' => $tour,
@@ -191,15 +186,11 @@ class CheckoutController extends Controller
                         $pItem['tourFecha']->increment('cupo_reservado', $pItem['cantidad']);
                     }
 
-                    // En Stripe cobramos el monto online (si es privado es el anticipo_porcentaje, si es compartido es el 100%)
-                    if ($pItem['es_privado']) {
-                        $porcentajeAnticipo = (int) ($pItem['tour']->anticipo_porcentaje ?? 20);
-                        $stripeUnitAmount = $pItem['precio_unitario'] * ($porcentajeAnticipo / 100);
-                        $productName = "[Privado - Anticipo {$porcentajeAnticipo}%] " . $pItem['tour']->nombre;
-                    } else {
-                        $stripeUnitAmount = $pItem['precio_unitario'];
-                        $productName = $pItem['tour']->nombre;
-                    }
+                    // En Stripe siempre cobramos el 100% del monto online.
+                    $stripeUnitAmount = $pItem['precio_unitario'];
+                    $productName = $pItem['es_privado']
+                        ? '[Privado] ' . $pItem['tour']->nombre
+                        : $pItem['tour']->nombre;
 
                     $lineItems[] = [
                         'price_data' => [

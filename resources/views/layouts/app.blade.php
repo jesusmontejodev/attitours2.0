@@ -65,8 +65,6 @@
                 @php
                     $langFlags = [
                         'es' => '🇲🇽', 'en' => '🇺🇸', 'zh' => '🇨🇳',
-                        'fr' => '🇫🇷', 'de' => '🇩🇪', 'pt' => '🇧🇷',
-                        'ja' => '🇯🇵', 'ko' => '🇰🇷', 'it' => '🇮🇹', 'ru' => '🇷🇺',
                     ];
                     $currentFlag = $langFlags[app()->getLocale()] ?? '🌐';
                 @endphp
@@ -85,13 +83,6 @@
                             ['code'=>'es','label'=>'Español',    'flag'=>'🇲🇽'],
                             ['code'=>'en','label'=>'English',    'flag'=>'🇺🇸'],
                             ['code'=>'zh','label'=>'中文',       'flag'=>'🇨🇳'],
-                            ['code'=>'fr','label'=>'Français',   'flag'=>'🇫🇷'],
-                            ['code'=>'de','label'=>'Deutsch',    'flag'=>'🇩🇪'],
-                            ['code'=>'pt','label'=>'Português',  'flag'=>'🇧🇷'],
-                            ['code'=>'ja','label'=>'日本語',     'flag'=>'🇯🇵'],
-                            ['code'=>'ko','label'=>'한국어',     'flag'=>'🇰🇷'],
-                            ['code'=>'it','label'=>'Italiano',   'flag'=>'🇮🇹'],
-                            ['code'=>'ru','label'=>'Русский',    'flag'=>'🇷🇺'],
                         ] as $lang)
                             <a href="{{ route('lang.switch', $lang['code']) }}"
                                class="flex items-center justify-between px-3 py-2 rounded-xl text-sm font-semibold hover:bg-slate-50 text-slate-700 transition-colors
@@ -281,21 +272,14 @@
                class="px-3 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-50 text-slate-700 {{ Route::is('catalog') ? 'bg-brand-teal/5 text-brand-teal' : '' }}">
                 {{ __('navTours') }}
             </a>
-            {{-- Selector de idioma en móvil (10 idiomas) --}}
+            {{-- Selector de idioma en móvil --}}
             <div class="border-t border-slate-100 mt-1 py-2">
                 <p class="text-[9px] font-bold uppercase tracking-wider text-slate-400 px-1 mb-2">Idioma</p>
-                <div class="grid grid-cols-5 gap-1.5">
+                <div class="grid grid-cols-3 gap-1.5">
                     @foreach([
                         ['code'=>'es','label'=>'ES','flag'=>'🇲🇽'],
                         ['code'=>'en','label'=>'EN','flag'=>'🇺🇸'],
                         ['code'=>'zh','label'=>'ZH','flag'=>'🇨🇳'],
-                        ['code'=>'fr','label'=>'FR','flag'=>'🇫🇷'],
-                        ['code'=>'de','label'=>'DE','flag'=>'🇩🇪'],
-                        ['code'=>'pt','label'=>'PT','flag'=>'🇧🇷'],
-                        ['code'=>'ja','label'=>'JA','flag'=>'🇯🇵'],
-                        ['code'=>'ko','label'=>'KO','flag'=>'🇰🇷'],
-                        ['code'=>'it','label'=>'IT','flag'=>'🇮🇹'],
-                        ['code'=>'ru','label'=>'RU','flag'=>'🇷🇺'],
                     ] as $lang)
                         <a href="{{ route('lang.switch', $lang['code']) }}"
                            class="flex flex-col items-center gap-0.5 py-1.5 rounded-lg text-[10px] font-bold transition-colors

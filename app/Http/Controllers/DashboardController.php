@@ -337,10 +337,24 @@ class DashboardController extends Controller
             return redirect()->route('home')->with('error', __('Acceso no autorizado.'));
         }
 
+        // Detectar una imagen que PHP descartó antes de llegar a la validación de Laravel
+        // (p. ej. supera upload_max_filesize/post_max_size del servidor) — de lo contrario el
+        // tour se crea "exitosamente" con la imagen por defecto, sin explicar por qué.
+        if ($request->hasFile('imagen_destacada_file') && !$request->file('imagen_destacada_file')->isValid()) {
+            return back()->withInput()
+                ->withErrors(['imagen_destacada_file' => $this->mensajeErrorSubida($request->file('imagen_destacada_file')->getError())]);
+        }
+
         $request->validate([
-            'titulo' => 'required|string|max:150',
-            'descripcion_corta' => 'required|string',
-            'descripcion_larga' => 'required|string',
+            'titulo_es' => 'required|string|max:150',
+            'titulo_en' => 'nullable|string|max:150',
+            'titulo_zh' => 'nullable|string|max:150',
+            'descripcion_corta_es' => 'required|string',
+            'descripcion_corta_en' => 'nullable|string',
+            'descripcion_corta_zh' => 'nullable|string',
+            'descripcion_larga_es' => 'required|string',
+            'descripcion_larga_en' => 'nullable|string',
+            'descripcion_larga_zh' => 'nullable|string',
             'precio_base_usd' => 'required|numeric|min:1',
             'duracion' => 'required|string|max:50',
             'ubicacion' => 'required|string|max:100',
@@ -354,12 +368,10 @@ class DashboardController extends Controller
             'horarios' => 'nullable|string',
             'imagen_destacada_file' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:15360',
             'imagen_destacada_url' => 'nullable|url',
-            'itinerario_titulos' => 'nullable|array',
-            'itinerario_descripciones' => 'nullable|array',
+            'itinerario' => 'nullable|string',
             'incluye' => 'nullable|string',
             'no_incluye' => 'nullable|string',
             'tipo_modalidad' => 'required|in:compartido,privado,ambos',
-            'anticipo_porcentaje' => 'nullable|integer|min:0|max:100',
             'tarifas_privadas' => 'nullable|string',
             'tour_importado_id' => 'nullable|exists:tours_importados,id',
         ]);
@@ -400,20 +412,6 @@ class DashboardController extends Controller
         $galeria = [$imagenDefault];
         $galeriaExperiencias = [];
 
-        // Procesar itinerario
-        $itinerario = [];
-        $itinerarioTitulos = $request->input('itinerario_titulos', []);
-        $itinerarioDesc = $request->input('itinerario_descripciones', []);
-        foreach ($itinerarioTitulos as $index => $tituloVal) {
-            if (!empty(trim($tituloVal))) {
-                $itinerario[] = [
-                    'dia' => $index + 1,
-                    'titulo' => trim($tituloVal),
-                    'descripcion' => trim($itinerarioDesc[$index] ?? '')
-                ];
-            }
-        }
-
         // Procesar incluye y no_incluye
         $incluye = $request->filled('incluye')
             ? array_map('trim', explode(',', $request->input('incluye')))
@@ -432,19 +430,19 @@ class DashboardController extends Controller
             'id' => $id,
             'proveedor_id' => $request->input('proveedor_id'),
             'titulo' => [
-                'es' => $request->input('titulo'),
-                'en' => $request->input('titulo'),
-                'zh' => $request->input('titulo'),
+                'es' => $request->input('titulo_es'),
+                'en' => $request->input('titulo_en', ''),
+                'zh' => $request->input('titulo_zh', ''),
             ],
             'descripcion_corta' => [
-                'es' => $request->input('descripcion_corta'),
-                'en' => $request->input('descripcion_corta'),
-                'zh' => $request->input('descripcion_corta'),
+                'es' => $request->input('descripcion_corta_es'),
+                'en' => $request->input('descripcion_corta_en', ''),
+                'zh' => $request->input('descripcion_corta_zh', ''),
             ],
             'descripcion_larga' => [
-                'es' => $request->input('descripcion_larga'),
-                'en' => $request->input('descripcion_larga'),
-                'zh' => $request->input('descripcion_larga'),
+                'es' => $request->input('descripcion_larga_es'),
+                'en' => $request->input('descripcion_larga_en', ''),
+                'zh' => $request->input('descripcion_larga_zh', ''),
             ],
             'ubicacion' => $request->input('ubicacion'),
             'punto_encuentro' => $request->input('punto_encuentro'),
@@ -459,11 +457,10 @@ class DashboardController extends Controller
             'cupo_maximo' => (int)$request->input('cupo_maximo', 20),
             'tags' => $tags,
             'horarios' => $horarios,
-            'itinerario' => $itinerario,
+            'itinerario' => trim((string) $request->input('itinerario', '')),
             'incluye' => $incluye,
             'no_incluye' => $noIncluye,
             'tipo_modalidad' => $request->input('tipo_modalidad'),
-            'anticipo_porcentaje' => $request->filled('anticipo_porcentaje') ? (int)$request->input('anticipo_porcentaje') : null,
             'tarifas_privadas' => $tarifasPrivadas
         ];
 
@@ -1089,10 +1086,24 @@ class DashboardController extends Controller
 
         $tour = Tour::findOrFail($id);
 
+        // Detectar una imagen que PHP descartó antes de llegar a la validación de Laravel
+        // (p. ej. supera upload_max_filesize/post_max_size del servidor) — de lo contrario el
+        // tour se guarda "exitosamente" con la imagen anterior, sin explicar por qué.
+        if ($request->hasFile('imagen_destacada_file') && !$request->file('imagen_destacada_file')->isValid()) {
+            return back()->withInput()
+                ->withErrors(['imagen_destacada_file' => $this->mensajeErrorSubida($request->file('imagen_destacada_file')->getError())]);
+        }
+
         $request->validate([
-            'titulo' => 'required|string|max:150',
-            'descripcion_corta' => 'required|string',
-            'descripcion_larga' => 'required|string',
+            'titulo_es' => 'required|string|max:150',
+            'titulo_en' => 'nullable|string|max:150',
+            'titulo_zh' => 'nullable|string|max:150',
+            'descripcion_corta_es' => 'required|string',
+            'descripcion_corta_en' => 'nullable|string',
+            'descripcion_corta_zh' => 'nullable|string',
+            'descripcion_larga_es' => 'required|string',
+            'descripcion_larga_en' => 'nullable|string',
+            'descripcion_larga_zh' => 'nullable|string',
             'precio_base_usd' => 'required|numeric|min:1',
             'duracion' => 'required|string|max:50',
             'ubicacion' => 'required|string|max:100',
@@ -1100,17 +1111,17 @@ class DashboardController extends Controller
             'punto_encuentro_lat' => 'nullable|numeric|between:-90,90',
             'punto_encuentro_lng' => 'nullable|numeric|between:-180,180',
             'pais' => 'required|string|max:100',
+            'cupo_maximo' => 'nullable|integer|min:1',
             'proveedor_id' => 'required|exists:proveedores,id',
             'tags' => 'nullable|string',
             'imagen_destacada_file' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:15360',
-            'itinerario_titulos' => 'nullable|array',
-            'itinerario_descripciones' => 'nullable|array',
+            'itinerario' => 'nullable|string',
             'incluye' => 'nullable|string',
             'no_incluye' => 'nullable|string',
             'tipo_modalidad' => 'required|in:compartido,privado,ambos',
-            'anticipo_porcentaje' => 'nullable|integer|min:0|max:100',
             'tarifas_privadas' => 'nullable|string',
             'sync_calendario_activo' => 'nullable|boolean',
+            'incluye_pickup' => 'nullable|boolean',
         ]);
 
         // Parsear tags
@@ -1124,20 +1135,6 @@ class DashboardController extends Controller
 
         // Nota: la galería adicional y la galería de experiencias ya no se tocan aquí,
         // se gestionan una foto a la vez desde el modal de Galería (addGalleryImage/removeGalleryImage).
-
-        // Procesar itinerario
-        $itinerario = [];
-        $itinerarioTitulos = $request->input('itinerario_titulos', []);
-        $itinerarioDesc = $request->input('itinerario_descripciones', []);
-        foreach ($itinerarioTitulos as $index => $tituloVal) {
-            if (!empty(trim($tituloVal))) {
-                $itinerario[] = [
-                    'dia' => $index + 1,
-                    'titulo' => trim($tituloVal),
-                    'descripcion' => trim($itinerarioDesc[$index] ?? '')
-                ];
-            }
-        }
 
         // Procesar incluye y no_incluye
         $incluye = $request->filled('incluye')
@@ -1156,19 +1153,19 @@ class DashboardController extends Controller
         $tour->update([
             'proveedor_id' => $request->input('proveedor_id'),
             'titulo' => [
-                'es' => $request->input('titulo'),
-                'en' => $request->input('titulo'),
-                'zh' => $request->input('titulo'),
+                'es' => $request->input('titulo_es'),
+                'en' => $request->input('titulo_en', ''),
+                'zh' => $request->input('titulo_zh', ''),
             ],
             'descripcion_corta' => [
-                'es' => $request->input('descripcion_corta'),
-                'en' => $request->input('descripcion_corta'),
-                'zh' => $request->input('descripcion_corta'),
+                'es' => $request->input('descripcion_corta_es'),
+                'en' => $request->input('descripcion_corta_en', ''),
+                'zh' => $request->input('descripcion_corta_zh', ''),
             ],
             'descripcion_larga' => [
-                'es' => $request->input('descripcion_larga'),
-                'en' => $request->input('descripcion_larga'),
-                'zh' => $request->input('descripcion_larga'),
+                'es' => $request->input('descripcion_larga_es'),
+                'en' => $request->input('descripcion_larga_en', ''),
+                'zh' => $request->input('descripcion_larga_zh', ''),
             ],
             'ubicacion' => $request->input('ubicacion'),
             'punto_encuentro' => $request->input('punto_encuentro'),
@@ -1176,16 +1173,17 @@ class DashboardController extends Controller
             'punto_encuentro_lng' => $request->filled('punto_encuentro_lng') ? (float)$request->input('punto_encuentro_lng') : null,
             'pais' => $request->input('pais'),
             'precio_base_usd' => (float)$request->input('precio_base_usd'),
+            'cupo_maximo' => (int)$request->input('cupo_maximo', $tour->cupo_maximo),
             'duracion' => $request->input('duracion'),
             'imagen_destacada' => $imagenDefault,
             'tags' => $tags,
-            'itinerario' => $itinerario,
+            'itinerario' => trim((string) $request->input('itinerario', '')),
             'incluye' => $incluye,
             'no_incluye' => $noIncluye,
             'tipo_modalidad' => $request->input('tipo_modalidad'),
-            'anticipo_porcentaje' => $request->filled('anticipo_porcentaje') ? (int)$request->input('anticipo_porcentaje') : null,
             'tarifas_privadas' => $tarifasPrivadas,
             'sync_calendario_activo' => $tour->esApiExterna() ? $request->boolean('sync_calendario_activo') : false,
+            'incluye_pickup' => $tour->esApiExterna() ? $request->boolean('incluye_pickup') : true,
         ]);
 
         return redirect()->route('dashboard')->with('success', __('Tour actualizado exitosamente.'))->with('active_tab', 'tours');
@@ -1199,6 +1197,16 @@ class DashboardController extends Controller
         $user = Auth::user();
         if (!$user || !$user->isAdmin()) {
             return response()->json(['success' => false, 'message' => 'No autorizado.'], 403);
+        }
+
+        // Detectar una imagen que PHP descartó antes de llegar a la validación de Laravel
+        // (p. ej. supera upload_max_filesize/post_max_size del servidor) — de lo contrario el
+        // input simplemente parece no hacer nada, sin explicar por qué (el bug reportado).
+        if ($request->hasFile('imagen') && !$request->file('imagen')->isValid()) {
+            return response()->json([
+                'success' => false,
+                'message' => $this->mensajeErrorSubida($request->file('imagen')->getError()),
+            ], 422);
         }
 
         $request->validate([

@@ -185,19 +185,25 @@
                             </select>
                         </div>
 
-                        <!-- Hotel y hora de recogida -->
-                        <div class="flex flex-col gap-1.5">
-                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Hotel (para tu recogida)</label>
-                            <input type="text" id="reserva-hotel-filtro" placeholder="Escribe para buscar tu hotel…" oninput="filtrarHoteles()" class="w-full h-9 rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs text-slate-700 focus:border-brand-teal focus:ring-0 focus:outline-none">
-                            <select name="hotel_nombre" id="reserva-hotel" required onchange="onHotelSeleccionado()" class="w-full h-10 rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs text-slate-700 focus:border-brand-teal focus:ring-0 focus:outline-none cursor-pointer">
-                                <option value="">Cargando hoteles…</option>
-                            </select>
-                            <select name="hotel_lobby" id="reserva-hotel-lobby" class="hidden w-full h-10 rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs text-slate-700 focus:border-brand-teal focus:ring-0 focus:outline-none cursor-pointer">
-                                <option value="">Selecciona el lobby</option>
-                            </select>
-                            <input type="hidden" name="pickup_horario" id="reserva-pickup-horario">
-                            <p id="reserva-pickup-info" class="hidden text-[10px] text-brand-teal font-bold"></p>
-                        </div>
+                        @if($tour->incluye_pickup)
+                            <!-- Hotel y hora de recogida -->
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Hotel (para tu recogida)</label>
+                                <input type="text" id="reserva-hotel-filtro" placeholder="Escribe para buscar tu hotel…" oninput="filtrarHoteles()" class="w-full h-9 rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs text-slate-700 focus:border-brand-teal focus:ring-0 focus:outline-none">
+                                <select name="hotel_nombre" id="reserva-hotel" required onchange="onHotelSeleccionado()" class="w-full h-10 rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs text-slate-700 focus:border-brand-teal focus:ring-0 focus:outline-none cursor-pointer">
+                                    <option value="">Cargando hoteles…</option>
+                                </select>
+                                <select name="hotel_lobby" id="reserva-hotel-lobby" class="hidden w-full h-10 rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs text-slate-700 focus:border-brand-teal focus:ring-0 focus:outline-none cursor-pointer">
+                                    <option value="">Selecciona el lobby</option>
+                                </select>
+                                <input type="hidden" name="pickup_horario" id="reserva-pickup-horario">
+                                <p id="reserva-pickup-info" class="hidden text-[10px] text-brand-teal font-bold"></p>
+                            </div>
+                        @else
+                            <p class="text-[10px] text-slate-400 leading-relaxed bg-slate-50 border border-slate-200 rounded-lg p-2.5">
+                                📍 Este tour no incluye recogida en hotel. El punto de encuentro se indica más abajo.
+                            </p>
+                        @endif
                     @else
                         <!-- Selector de Personas -->
                         <div class="flex flex-col gap-1.5">
@@ -230,17 +236,6 @@
                             <div class="flex items-center justify-between text-slate-500">
                                 <span>Monto total del tour:</span>
                                 <span id="private-total-raw">$0 USD</span>
-                            </div>
-                            <div class="flex items-center justify-between text-brand-orange font-bold">
-                                <span id="private-deposit-label">Pagar online hoy:</span>
-                                <span class="text-right">
-                                    <span id="private-deposit-val">$0 USD</span>
-                                    <span id="private-deposit-conversion" class="block text-[10px] font-medium text-slate-400 mt-0.5"></span>
-                                </span>
-                            </div>
-                            <div class="flex items-center justify-between text-slate-600">
-                                <span id="private-balance-label">Liquidar en persona:</span>
-                                <span id="private-balance-val">$0 USD</span>
                             </div>
                         </div>
 
@@ -285,67 +280,15 @@
                     </p>
                 </div>
 
-                <!-- ITINERARIO ACORDEÓN INTERACTIVO -->
-                <div>
-                    <h2 class="text-lg font-bold text-slate-800 mb-4">Itinerario del Viaje</h2>
-                    <div class="flex flex-col gap-3">
-                        @if(!empty($tour->itinerario) && is_array($tour->itinerario))
-                            @foreach($tour->itinerario as $index => $paso)
-                                <div class="border border-slate-200 rounded-xl bg-white shadow-xs overflow-hidden">
-                                    <button onclick="toggleAccordion('itinerary-{{ $index }}')" class="w-full flex items-center justify-between p-4 text-left font-bold text-xs uppercase tracking-wider text-slate-700 hover:text-brand-teal transition-colors cursor-pointer">
-                                        <span>Paso {{ $index + 1 }}: {{ $paso['titulo'] }}</span>
-                                        <svg id="icon-itinerary-{{ $index }}" class="h-4 w-4 opacity-70 transform {{ $index === 0 ? 'rotate-180' : '' }} transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                                        </svg>
-                                    </button>
-                                    <div id="content-itinerary-{{ $index }}" class="{{ $index === 0 ? '' : 'hidden' }} p-4 pt-0 text-xs text-slate-500 leading-relaxed font-semibold">
-                                        {{ $paso['descripcion'] }}
-                                    </div>
-                                </div>
-                            @endforeach
-                        @else
-                            <!-- Fallback si no hay itinerario -->
-                            <!-- Punto 1 -->
-                            <div class="border border-slate-200 rounded-xl bg-white shadow-xs overflow-hidden">
-                                <button onclick="toggleAccordion('itinerary-1')" class="w-full flex items-center justify-between p-4 text-left font-bold text-xs uppercase tracking-wider text-slate-700 hover:text-brand-teal transition-colors cursor-pointer">
-                                    <span>Paso 1: Punto de Partida y Registro</span>
-                                    <svg id="icon-itinerary-1" class="h-4 w-4 opacity-70 transform rotate-180 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                                    </svg>
-                                </button>
-                                <div id="content-itinerary-1" class="p-4 pt-0 text-xs text-slate-500 leading-relaxed font-semibold">
-                                    Nos reuniremos en el punto de encuentro seleccionado 30 minutos antes de la hora programada de salida. Tras el registro y firma de exenciones de responsabilidad, conocerás a tus guías y recibirás una sesión informativa sobre seguridad.
-                                </div>
-                            </div>
-
-                            <!-- Punto 2 -->
-                            <div class="border border-slate-200 rounded-xl bg-white shadow-xs overflow-hidden">
-                                <button onclick="toggleAccordion('itinerary-2')" class="w-full flex items-center justify-between p-4 text-left font-bold text-xs uppercase tracking-wider text-slate-700 hover:text-brand-teal transition-colors cursor-pointer">
-                                    <span>Paso 2: Inicio de la Actividad</span>
-                                    <svg id="icon-itinerary-2" class="h-4 w-4 opacity-70 transform transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                                    </svg>
-                                </button>
-                                <div id="content-itinerary-2" class="hidden p-4 pt-0 text-xs text-slate-500 leading-relaxed font-semibold">
-                                    Abordaremos el transporte especializado (embarcación de lujo o van climatizada). Iniciaremos el trayecto disfrutando de paisajes hermosos en el camino. Los guías te compartirán datos históricos sobre la zona.
-                                </div>
-                            </div>
-
-                            <!-- Punto 3 -->
-                            <div class="border border-slate-200 rounded-xl bg-white shadow-xs overflow-hidden">
-                                <button onclick="toggleAccordion('itinerary-3')" class="w-full flex items-center justify-between p-4 text-left font-bold text-xs uppercase tracking-wider text-slate-700 hover:text-brand-teal transition-colors cursor-pointer">
-                                    <span>Paso 3: Almuerzo y Tiempo Libre</span>
-                                    <svg id="icon-itinerary-3" class="h-4 w-4 opacity-70 transform transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                                    </svg>
-                                </button>
-                                <div id="content-itinerary-3" class="hidden p-4 pt-0 text-xs text-slate-500 leading-relaxed font-semibold">
-                                    Disfrutaremos de una deliciosa comida local o buffet (según incluya el tour). Posteriormente, dispondrás de tiempo libre para descansar en los camastros, nadar, hacer fotos del paraíso o comprar souvenirs.
-                                </div>
-                            </div>
-                        @endif
+                <!-- ITINERARIO DE VIAJE (TEXTO LIBRE EN RECUADRO) -->
+                @if(!empty(trim((string) $tour->itinerario)))
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-800 mb-3">Itinerario del Viaje</h2>
+                        <div class="p-5 rounded-xl border border-slate-200 bg-white shadow-xs">
+                            <p class="text-sm text-slate-650 leading-relaxed font-medium whitespace-pre-line">{{ $tour->itinerario }}</p>
+                        </div>
                     </div>
-                </div>
+                @endif
 
                 <!-- QUÉ INCLUYE / QUÉ NO INCLUYE -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -539,25 +482,10 @@
             buttonEl.classList.add('border-brand-teal');
         }
 
-        // Acordeón de Itinerario
-        function toggleAccordion(id) {
-            const content = document.getElementById(`content-${id}`);
-            const icon = document.getElementById(`icon-${id}`);
-            
-            if (content.classList.contains('hidden')) {
-                content.classList.remove('hidden');
-                icon.classList.add('rotate-180');
-            } else {
-                content.classList.add('hidden');
-                icon.classList.remove('rotate-180');
-            }
-        }
-
         // Calculador de Precios en tiempo real
         const basePrice = {{ $tour->precio_base_usd }};
         const tarifasPrivadas = @json($tour->tarifas_privadas ?? []);
         const tipoModalidad = "{{ $tour->tipo_modalidad }}";
-        const anticipoPorcentaje = {{ $tour->anticipo_porcentaje ?? 20 }};
         let esPrivadoSelected = {{ $tour->tipo_modalidad === 'privado' ? 'true' : 'false' }};
 
         // Tasas de cambio de referencia (USD -> MXN/EUR). El cobro real en Stripe siempre es en USD.
@@ -574,7 +502,6 @@
         const summaryTotal = document.getElementById('summary-total');
         const summaryTotalConversion = document.getElementById('summary-total-conversion');
         const priceValueConversion = document.getElementById('price-value-conversion');
-        const privateDepositConversion = document.getElementById('private-deposit-conversion');
 
         function setModalidad(tipo) {
             const btnCompartido = document.getElementById('modalidad-compartido-btn');
@@ -643,10 +570,6 @@
             const sharedDetails = document.getElementById('shared-details');
             const privateDetails = document.getElementById('private-details');
             const privateTotalRaw = document.getElementById('private-total-raw');
-            const privateDepositLabel = document.getElementById('private-deposit-label');
-            const privateDepositVal = document.getElementById('private-deposit-val');
-            const privateBalanceLabel = document.getElementById('private-balance-label');
-            const privateBalanceVal = document.getElementById('private-balance-val');
             const totalPaymentLabel = document.getElementById('total-payment-label');
             const priceValueLabel = document.getElementById('price-value-label');
 
@@ -666,23 +589,14 @@
 
                 if (sharedDetails) sharedDetails.classList.add('hidden');
                 if (privateDetails) privateDetails.classList.remove('hidden');
-                
-                const pct = anticipoPorcentaje;
-                if (totalPaymentLabel) totalPaymentLabel.textContent = `Anticipo online hoy (${pct}%):`;
+
+                if (totalPaymentLabel) totalPaymentLabel.textContent = 'Total a pagar hoy:';
                 if (priceValueLabel) priceValueLabel.textContent = `Desde $${total.toLocaleString()} USD`;
                 if (priceValueConversion) priceValueConversion.textContent = conversionText(total);
 
-                const deposit = total * (pct / 100);
-                const balance = total * ((100 - pct) / 100);
-
                 if (privateTotalRaw) privateTotalRaw.textContent = `$${total.toLocaleString()} USD`;
-                if (privateDepositLabel) privateDepositLabel.textContent = `Pagar online hoy (${pct}%):`;
-                if (privateDepositVal) privateDepositVal.textContent = `$${deposit.toLocaleString()} USD`;
-                if (privateDepositConversion) privateDepositConversion.textContent = conversionText(deposit);
-                if (privateBalanceLabel) privateBalanceLabel.textContent = `Liquidar en persona (${100 - pct}%):`;
-                if (privateBalanceVal) privateBalanceVal.textContent = `$${balance.toLocaleString()} USD`;
-                summaryTotal.textContent = `$${deposit.toLocaleString()} USD`;
-                if (summaryTotalConversion) summaryTotalConversion.textContent = conversionText(deposit);
+                summaryTotal.textContent = `$${total.toLocaleString()} USD`;
+                if (summaryTotalConversion) summaryTotalConversion.textContent = conversionText(total);
             } else {
                 if (privateDetails) privateDetails.classList.add('hidden');
                 if (sharedDetails) sharedDetails.classList.remove('hidden');
@@ -956,7 +870,7 @@
                         return;
                     }
 
-                    if (!hotelSel.value) {
+                    if (hotelSel && !hotelSel.value) {
                         e.preventDefault();
                         statusBox.classList.remove('hidden');
                         statusBox.className = 'text-[10px] p-2.5 rounded-lg border border-rose-250 bg-rose-50 text-rose-700 font-bold animate-pulse';
@@ -972,6 +886,7 @@
         // TOURS DE API EXTERNA: pax por categoría, idioma y hotel/pickup
         // ========================================================
         const esApiExterna = {{ $tour->origen === 'api_externa' ? 'true' : 'false' }};
+        const incluyePickup = {{ $tour->incluye_pickup ? 'true' : 'false' }};
 
         function syncPaxTotal() {
             const adultos = parseInt(document.getElementById('reserva-adultos').value) || 0;
@@ -985,8 +900,6 @@
         }
 
         if (esApiExterna) {
-            let hotelesDisponibles = [];
-
             // Idiomas
             fetch(`/cart/tour-api/idiomas?tour_id={{ $tour->id }}`)
                 .then(r => r.json())
@@ -1004,6 +917,10 @@
                 .catch(() => {
                     document.getElementById('reserva-idioma').innerHTML = '<option value="">No se pudo cargar</option>';
                 });
+        }
+
+        if (esApiExterna && incluyePickup) {
+            let hotelesDisponibles = [];
 
             // Hoteles
             fetch(`/cart/tour-api/hoteles?tour_id={{ $tour->id }}`)

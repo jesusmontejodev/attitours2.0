@@ -45,9 +45,9 @@
             </div>
 
             <div>
-                <span class="text-[10px] font-black uppercase tracking-widest text-brand-teal bg-brand-teal/10 px-2.5 py-1 rounded-md">Mi Cuenta</span>
+                <span class="text-[10px] font-black uppercase tracking-widest text-brand-teal bg-brand-teal/10 px-2.5 py-1 rounded-md">{{ __('myAccountBadge') }}</span>
                 <h1 class="text-2xl sm:text-3xl font-black text-slate-800 mt-1">
-                    ¡Hola, {{ explode(' ', $user->name)[0] }}! 👋
+                    {{ __('helloGreeting', ['name' => explode(' ', $user->name)[0]]) }}
                 </h1>
                 <p class="text-xs font-semibold text-slate-500 mt-0.5">
                     {{ $user->email }}
@@ -58,13 +58,18 @@
 
         <a href="{{ route('catalog') }}" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-brand-teal hover:bg-brand-teal-hover text-xs font-black uppercase tracking-wider text-white shadow-md transition-all hover:scale-[1.02] cursor-pointer">
             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-            Explorar Tours
+            {{ __('exploreToursBtn') }}
         </a>
     </div>
 
     {{-- ===== ESTRUCTURA DUAL: SIDEBAR NAVEGACIÓN + CONTENIDO ===== --}}
     @php
         $activeTab = session('active_tab', 'reservas');
+        $estadoLabels = [
+            'pendiente' => __('statusPending'),
+            'pagada' => __('statusPaid'),
+            'cancelada' => __('statusCancelled'),
+        ];
     @endphp
 
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -98,7 +103,7 @@
                             class="client-tab-btn flex items-center justify-between w-full p-4 rounded-2xl border text-sm font-bold transition-all cursor-pointer">
                         <div class="flex items-center gap-3">
                             <span class="tab-icon text-lg">🎟️</span>
-                            <span>Mis reservas</span>
+                            <span>{{ __('myBookingsNav') }}</span>
                         </div>
                         <span class="px-2.5 py-0.5 rounded-full text-xs font-black bg-brand-teal/10 text-brand-teal">
                             {{ $reservasActivas->count() }}
@@ -111,7 +116,7 @@
                             class="client-tab-btn flex items-center justify-between w-full p-4 rounded-2xl border text-sm font-bold transition-all cursor-pointer">
                         <div class="flex items-center gap-3">
                             <span class="tab-icon text-lg">📜</span>
-                            <span>Tours anteriores</span>
+                            <span>{{ __('previousToursNav') }}</span>
                         </div>
                         <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600">
                             {{ $reservasAnteriores->count() }}
@@ -124,7 +129,7 @@
                             class="client-tab-btn flex items-center justify-between w-full p-4 rounded-2xl border text-sm font-bold transition-all cursor-pointer">
                         <div class="flex items-center gap-3">
                             <span class="tab-icon text-lg">⚙️</span>
-                            <span>Configuración</span>
+                            <span>{{ __('settingsNav') }}</span>
                         </div>
                         <span class="text-slate-400">›</span>
                     </button>
@@ -133,12 +138,12 @@
                 <!-- Resumen rápido de cuenta -->
                 <div class="pt-4 border-t border-slate-100 flex flex-col gap-2.5 text-xs text-slate-500 font-semibold">
                     <div class="flex justify-between items-center">
-                        <span>Total invertido</span>
+                        <span>{{ __('totalInvestedLabel') }}</span>
                         <span class="font-black text-brand-teal">${{ number_format($totalGastado, 2) }} USD</span>
                     </div>
                     <div class="flex justify-between items-center">
-                        <span>Miembro desde</span>
-                        <span class="font-bold text-slate-700">{{ $user->created_at->locale('es')->translatedFormat('M Y') }}</span>
+                        <span>{{ __('memberSinceLabel') }}</span>
+                        <span class="font-bold text-slate-700">{{ $user->created_at->locale(app()->getLocale())->translatedFormat('M Y') }}</span>
                     </div>
                 </div>
 
@@ -157,14 +162,14 @@
                 <div class="flex items-center justify-between border-b border-slate-200 pb-4">
                     <div>
                         <h2 class="text-base font-black uppercase tracking-wider text-slate-800">
-                            Mis Reservas Activas
+                            {{ __('activeBookingsTitle') }}
                         </h2>
                         <p class="text-xs text-slate-500 font-semibold mt-0.5">
-                            Tours programados con código QR de acceso para tu llegada.
+                            {{ __('activeBookingsSubtitle') }}
                         </p>
                     </div>
                     <a href="{{ route('catalog') }}" class="text-xs font-bold text-brand-teal hover:underline flex items-center gap-1">
-                        + Nueva reserva
+                        {{ __('newBookingLink') }}
                     </a>
                 </div>
 
@@ -174,11 +179,11 @@
                         ⛵
                     </div>
                     <div>
-                        <h3 class="text-sm font-bold text-slate-700">No tienes reservas activas</h3>
-                        <p class="text-xs text-slate-500 mt-1 max-w-sm">Explora el catálogo y reserva tu próxima aventura en Cancún o Riviera Maya.</p>
+                        <h3 class="text-sm font-bold text-slate-700">{{ __('noActiveBookingsTitle') }}</h3>
+                        <p class="text-xs text-slate-500 mt-1 max-w-sm">{{ __('noActiveBookingsBody') }}</p>
                     </div>
                     <a href="{{ route('catalog') }}" class="px-5 py-2.5 rounded-xl bg-brand-teal text-white text-xs font-bold uppercase shadow hover:bg-brand-teal-hover transition-all">
-                        Explorar Tours
+                        {{ __('exploreToursBtn') }}
                     </a>
                 </div>
                 @else
@@ -214,7 +219,7 @@
                                                 @if($tourModel)
                                                     {{ is_array($tourModel->nombre) ? ($tourModel->nombre['es'] ?? reset($tourModel->nombre)) : $tourModel->nombre }}
                                                 @else
-                                                    Reserva #{{ $reserva->id }}
+                                                    {{ __('bookingFallbackName', ['id' => $reserva->id]) }}
                                                 @endif
                                             </h3>
                                             @php
@@ -222,28 +227,28 @@
                                             @endphp
                                             @if($contienePrivado)
                                                 <span class="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded bg-brand-orange/10 text-brand-orange border border-brand-orange/20 text-[9px] font-black uppercase tracking-wider">
-                                                    🔒 Tour Privado Exclusivo
+                                                    {{ __('privateTourBadge') }}
                                                 </span>
                                             @else
                                                 <span class="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded bg-brand-teal/10 text-brand-teal border border-brand-teal/20 text-[9px] font-black uppercase tracking-wider">
-                                                    👥 Tour Compartido
+                                                    {{ __('sharedTourBadge') }}
                                                 </span>
                                             @endif
                                         </div>
                                         <span class="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
-                                            ✓ {{ $reserva->estado }}
+                                            ✓ {{ $estadoLabels[strtolower($reserva->estado)] ?? $reserva->estado }}
                                         </span>
                                     </div>
 
                                     @if($primerDetalle)
                                     <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500 mt-2 font-semibold">
                                         <span class="flex items-center gap-1 text-slate-700 font-bold">
-                                            📅 {{ \Carbon\Carbon::parse($primerDetalle->fecha_seleccionada)->locale('es')->translatedFormat('d M, Y') }}
+                                            📅 {{ \Carbon\Carbon::parse($primerDetalle->fecha_seleccionada)->locale(app()->getLocale())->translatedFormat('d M, Y') }}
                                         </span>
                                         @if($primerDetalle->horario)
                                         <span>⏰ {{ $primerDetalle->horario }} hrs</span>
                                         @endif
-                                        <span>👤 {{ $primerDetalle->cantidad_personas }} {{ $primerDetalle->cantidad_personas == 1 ? 'persona' : 'personas' }}</span>
+                                        <span>👤 {{ $primerDetalle->cantidad_personas }} {{ $primerDetalle->cantidad_personas == 1 ? __('person') : __('people') }}</span>
                                     </div>
                                     @endif
                                 </div>
@@ -251,20 +256,20 @@
                                 <div class="pt-3 border-t border-slate-100 flex flex-wrap gap-4 items-center justify-between">
                                     @if($contienePrivado && $reserva->monto_pendiente_destino_usd > 0)
                                         <div>
-                                            <span class="text-[9px] font-bold uppercase tracking-wider text-slate-400 block">Total del viaje</span>
+                                            <span class="text-[9px] font-bold uppercase tracking-wider text-slate-400 block">{{ __('tripTotalLabel') }}</span>
                                             <span class="text-xs font-bold text-slate-700">${{ number_format($reserva->precio_total_usd, 2) }} USD</span>
                                         </div>
                                         <div>
-                                            <span class="text-[9px] font-bold uppercase tracking-wider text-brand-orange block">Pagado online hoy</span>
+                                            <span class="text-[9px] font-bold uppercase tracking-wider text-brand-orange block">{{ __('paidOnlineLabel') }}</span>
                                             <span class="text-xs font-black text-brand-teal">${{ number_format($reserva->monto_pagado_online_usd, 2) }} USD</span>
                                         </div>
                                         <div>
-                                            <span class="text-[9px] font-black uppercase tracking-wider text-slate-500 block">Restante en destino</span>
+                                            <span class="text-[9px] font-black uppercase tracking-wider text-slate-500 block">{{ __('remainingAtDestinationLabel') }}</span>
                                             <span class="text-sm font-black text-slate-800 bg-slate-100 px-2 py-0.5 rounded">${{ number_format($reserva->monto_pendiente_destino_usd, 2) }} USD</span>
                                         </div>
                                     @else
                                         <div>
-                                            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Total pagado</span>
+                                            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">{{ __('totalPaidLabel') }}</span>
                                             <span class="text-sm font-black text-brand-teal">${{ number_format($reserva->precio_total_usd, 2) }} USD</span>
                                         </div>
                                     @endif
@@ -281,15 +286,15 @@
                                     <button type="button"
                                             onclick="openQrModal('{{ $reserva->getQrImageUrl(300) }}', '{{ $reserva->ticket_codigo }}')"
                                             class="text-[10px] font-bold text-brand-teal hover:underline cursor-pointer">
-                                        🔍 Ampliar QR
+                                        {{ __('enlargeQrBtn') }}
                                     </button>
                                 @else
-                                    <span class="text-[10px] text-slate-400 font-semibold">QR no disponible</span>
+                                    <span class="text-[10px] text-slate-400 font-semibold">{{ __('qrNotAvailable') }}</span>
                                 @endif
                                 <button type="button"
                                         onclick="openChatModal({{ $reserva->id }}, '{{ $reserva->ticket_codigo }}')"
                                         class="mt-1 text-[10px] font-bold text-brand-teal hover:underline cursor-pointer flex items-center gap-1">
-                                    💬 Chat con el proveedor
+                                    {{ __('chatWithProviderBtn') }}
                                 </button>
                             </div>
 
@@ -305,18 +310,18 @@
             <div id="tab-content-anteriores" class="tab-pane hidden animate-fade-in space-y-5">
                 <div class="border-b border-slate-200 pb-4">
                     <h2 class="text-base font-black uppercase tracking-wider text-slate-800">
-                        Experiencias Anteriores
+                        {{ __('previousExperiencesTitle') }}
                     </h2>
                     <p class="text-xs text-slate-500 font-semibold mt-0.5">
-                        Historial de tours disfrutados y reservas pasadas.
+                        {{ __('previousExperiencesSubtitle') }}
                     </p>
                 </div>
 
                 @if($reservasAnteriores->isEmpty())
                 <div class="rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center flex flex-col items-center gap-3">
                     <span class="text-4xl">📜</span>
-                    <h3 class="text-sm font-bold text-slate-700">No tienes historial de tours pasados</h3>
-                    <p class="text-xs text-slate-500">Aquí aparecerán los tours una vez que la fecha de realización haya concluido.</p>
+                    <h3 class="text-sm font-bold text-slate-700">{{ __('noPreviousToursTitle') }}</h3>
+                    <p class="text-xs text-slate-500">{{ __('noPreviousToursBody') }}</p>
                 </div>
                 @else
                 <div class="space-y-4">
@@ -343,26 +348,26 @@
                                 <div class="flex items-center justify-between gap-2">
                                     <span class="text-[10px] font-bold text-slate-400 font-mono">CODE: {{ $reserva->ticket_codigo }}</span>
                                     <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider {{ strtolower($reserva->estado) === 'cancelada' ? 'bg-rose-50 text-rose-600 border border-rose-200' : 'bg-slate-100 text-slate-600' }}">
-                                        {{ $reserva->estado }}
+                                        {{ $estadoLabels[strtolower($reserva->estado)] ?? $reserva->estado }}
                                     </span>
                                 </div>
                                 <h3 class="text-sm font-bold text-slate-800 truncate">
                                     @if($tourModel)
                                         {{ is_array($tourModel->nombre) ? ($tourModel->nombre['es'] ?? reset($tourModel->nombre)) : $tourModel->nombre }}
                                     @else
-                                        Reserva #{{ $reserva->id }}
+                                        {{ __('bookingFallbackName', ['id' => $reserva->id]) }}
                                     @endif
                                 </h3>
                                 @if($primerDetalle)
                                 <p class="text-xs text-slate-500 font-semibold">
-                                    Tomado el: <span class="text-slate-700 font-bold">{{ \Carbon\Carbon::parse($primerDetalle->fecha_seleccionada)->locale('es')->translatedFormat('d M, Y') }}</span>
-                                    · {{ $primerDetalle->cantidad_personas }} pax
+                                    {{ __('takenOnLabel') }} <span class="text-slate-700 font-bold">{{ \Carbon\Carbon::parse($primerDetalle->fecha_seleccionada)->locale(app()->getLocale())->translatedFormat('d M, Y') }}</span>
+                                    · {{ $primerDetalle->cantidad_personas }} {{ __('paxShort') }}
                                 </p>
                                 @endif
                             </div>
 
                             <div class="text-right shrink-0">
-                                <span class="text-[10px] text-slate-400 uppercase font-bold block">Total</span>
+                                <span class="text-[10px] text-slate-400 uppercase font-bold block">{{ __('totalLabel') }}</span>
                                 <span class="text-sm font-bold text-slate-700">${{ number_format($reserva->precio_total_usd, 2) }} USD</span>
                             </div>
                         </div>
@@ -377,10 +382,10 @@
             <div id="tab-content-configuracion" class="tab-pane hidden animate-fade-in space-y-6">
                 <div class="border-b border-slate-200 pb-4">
                     <h2 class="text-base font-black uppercase tracking-wider text-slate-800">
-                        Configuración de la Cuenta
+                        {{ __('accountSettingsTitle') }}
                     </h2>
                     <p class="text-xs text-slate-500 font-semibold mt-0.5">
-                        Actualiza tu información personal, foto de perfil y contraseña.
+                        {{ __('accountSettingsSubtitle') }}
                     </p>
                 </div>
 
@@ -400,10 +405,10 @@
                                 @endif
                             </div>
                             <div class="space-y-1.5 flex-1">
-                                <label class="text-xs font-bold text-slate-800 block">Foto de perfil</label>
-                                <p class="text-[11px] text-slate-500">Sube una imagen JPG o PNG de máximo 4MB.</p>
+                                <label class="text-xs font-bold text-slate-800 block">{{ __('profilePhotoLabel') }}</label>
+                                <p class="text-[11px] text-slate-500">{{ __('profilePhotoHelper') }}</p>
                                 <label for="foto_perfil" class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl border border-brand-teal/40 bg-brand-teal/10 hover:bg-brand-teal hover:text-white text-xs font-bold text-brand-teal transition-colors cursor-pointer shadow-xs">
-                                    📷 Cambiar Foto
+                                    {{ __('changePhotoBtn') }}
                                 </label>
                                 <input type="file" id="foto_perfil" name="foto_perfil" accept="image/*" class="hidden" onchange="previewAvatar(this)">
                             </div>
@@ -412,29 +417,39 @@
                         <!-- Campos Personales -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div class="space-y-1.5">
-                                <label class="text-xs font-bold text-slate-700">Nombre Completo</label>
+                                <label class="text-xs font-bold text-slate-700">{{ __('fullNameLabel') }}</label>
                                 <input type="text" name="name" value="{{ old('name', $user->name) }}" required
                                        class="w-full h-11 rounded-xl border border-slate-300 bg-white px-3.5 text-xs text-slate-800 font-semibold focus:border-brand-teal focus:ring-1 focus:ring-brand-teal focus:outline-none transition-colors">
                             </div>
 
                             <div class="space-y-1.5">
-                                <label class="text-xs font-bold text-slate-700">Correo Electrónico</label>
+                                <label class="text-xs font-bold text-slate-700">{{ __('emailLabel') }}</label>
                                 <input type="email" value="{{ $user->email }}" disabled
                                        class="w-full h-11 rounded-xl border border-slate-200 bg-slate-100 px-3.5 text-xs text-slate-500 font-semibold cursor-not-allowed">
                             </div>
 
                             <div class="space-y-1.5">
-                                <label class="text-xs font-bold text-slate-700">Teléfono</label>
+                                <label class="text-xs font-bold text-slate-700">{{ __('phoneLabel') }}</label>
                                 <input type="text" name="telefono" value="{{ old('telefono', $user->telefono) }}" placeholder="+52 999 123 4567"
                                        class="w-full h-11 rounded-xl border border-slate-300 bg-white px-3.5 text-xs text-slate-800 font-semibold focus:border-brand-teal focus:ring-1 focus:ring-brand-teal focus:outline-none transition-colors">
                             </div>
 
                             <div class="space-y-1.5">
-                                <label class="text-xs font-bold text-slate-700">País</label>
+                                <label class="text-xs font-bold text-slate-700">{{ __('countryLabel') }}</label>
                                 <select name="pais" class="w-full h-11 rounded-xl border border-slate-300 bg-white px-3.5 text-xs text-slate-800 font-semibold focus:border-brand-teal focus:ring-1 focus:ring-brand-teal focus:outline-none transition-colors cursor-pointer">
-                                    <option value="">Seleccionar...</option>
-                                    @foreach(['México','Estados Unidos','Canadá','España','Colombia','Argentina','Brasil','Chile','Otro'] as $p)
-                                        <option value="{{ $p }}" {{ old('pais', $user->pais) === $p ? 'selected' : '' }}>{{ $p }}</option>
+                                    <option value="">{{ __('countrySelectPlaceholder') }}</option>
+                                    @foreach([
+                                        'México' => __('countryMexico'),
+                                        'Estados Unidos' => __('countryUSA'),
+                                        'Canadá' => __('countryCanada'),
+                                        'España' => __('countrySpain'),
+                                        'Colombia' => __('countryColombia'),
+                                        'Argentina' => __('countryArgentina'),
+                                        'Brasil' => __('countryBrazil'),
+                                        'Chile' => __('countryChile'),
+                                        'Otro' => __('countryOther'),
+                                    ] as $valorPais => $etiquetaPais)
+                                        <option value="{{ $valorPais }}" {{ old('pais', $user->pais) === $valorPais ? 'selected' : '' }}>{{ $etiquetaPais }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -443,23 +458,23 @@
                         <!-- Cambiar Contraseña -->
                         <div class="pt-4 border-t border-slate-100 space-y-4">
                             <h3 class="text-xs font-black uppercase tracking-wider text-slate-700">
-                                Cambiar Contraseña <span class="text-slate-400 font-normal lowercase">(opcional)</span>
+                                {{ __('changePasswordTitle') }} <span class="text-slate-400 font-normal lowercase">{{ __('optionalLabel') }}</span>
                             </h3>
 
                             <div class="space-y-1.5">
-                                <label class="text-xs font-semibold text-slate-600">Contraseña Actual</label>
+                                <label class="text-xs font-semibold text-slate-600">{{ __('currentPasswordLabel') }}</label>
                                 <input type="password" name="current_password" placeholder="••••••••"
                                        class="w-full h-11 rounded-xl border border-slate-300 bg-white px-3.5 text-xs text-slate-800 focus:border-brand-teal focus:ring-1 focus:ring-brand-teal focus:outline-none transition-colors">
                             </div>
 
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div class="space-y-1.5">
-                                    <label class="text-xs font-semibold text-slate-600">Nueva Contraseña</label>
+                                    <label class="text-xs font-semibold text-slate-600">{{ __('newPasswordLabel') }}</label>
                                     <input type="password" name="password" placeholder="••••••••"
                                            class="w-full h-11 rounded-xl border border-slate-300 bg-white px-3.5 text-xs text-slate-800 focus:border-brand-teal focus:ring-1 focus:ring-brand-teal focus:outline-none transition-colors">
                                 </div>
                                 <div class="space-y-1.5">
-                                    <label class="text-xs font-semibold text-slate-600">Confirmar Nueva Contraseña</label>
+                                    <label class="text-xs font-semibold text-slate-600">{{ __('confirmNewPasswordLabel') }}</label>
                                     <input type="password" name="password_confirmation" placeholder="••••••••"
                                            class="w-full h-11 rounded-xl border border-slate-300 bg-white px-3.5 text-xs text-slate-800 focus:border-brand-teal focus:ring-1 focus:ring-brand-teal focus:outline-none transition-colors">
                                 </div>
@@ -470,7 +485,7 @@
                         <div class="pt-2">
                             <button type="submit"
                                     class="w-full h-12 inline-flex items-center justify-center gap-2 rounded-xl bg-brand-teal hover:bg-brand-teal-hover text-xs font-black uppercase tracking-wider text-white shadow-md transition-all hover:scale-[1.01] cursor-pointer">
-                                💾 GUARDAR CAMBIOS
+                                {{ __('saveChangesBtn') }}
                             </button>
                         </div>
                     </form>
@@ -479,13 +494,13 @@
                 <!-- ZONA PELIGROSA: BORRAR CUENTA -->
                 <div class="rounded-3xl border border-rose-200 bg-rose-50/50 p-6 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
                     <div>
-                        <h4 class="text-xs font-black uppercase tracking-wider text-rose-700">Borrar Cuenta</h4>
-                        <p class="text-xs text-slate-600 mt-0.5">Se eliminarán tus datos personales de la plataforma. Esta acción no se puede deshacer.</p>
+                        <h4 class="text-xs font-black uppercase tracking-wider text-rose-700">{{ __('deleteAccountTitle') }}</h4>
+                        <p class="text-xs text-slate-600 mt-0.5">{{ __('deleteAccountWarning') }}</p>
                     </div>
                     <button type="button"
                             onclick="openDeleteAccountModal()"
                             class="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-black uppercase tracking-wider shadow transition-colors cursor-pointer shrink-0">
-                        BORRAR CUENTA
+                        {{ __('deleteAccountBtn') }}
                     </button>
                 </div>
 
@@ -503,12 +518,12 @@
 <div id="qr-modal" class="hidden fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in">
     <div class="w-full max-w-sm mx-4 p-6 rounded-3xl border border-slate-200 bg-white shadow-2xl relative text-center space-y-4">
         <button onclick="closeQrModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 text-lg cursor-pointer">✕</button>
-        <span class="text-xs font-black tracking-widest text-brand-teal uppercase block">Ticket Virtual</span>
+        <span class="text-xs font-black tracking-widest text-brand-teal uppercase block">{{ __('virtualTicketLabel') }}</span>
         <h3 id="qr-modal-code" class="text-sm font-bold text-slate-800"></h3>
         <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl inline-block shadow-inner">
             <img id="qr-modal-img" src="" alt="QR" class="w-56 h-56 block">
         </div>
-        <p class="text-[11px] text-slate-500 font-semibold">Muestra este código al guía al momento de abordar el tour.</p>
+        <p class="text-[11px] text-slate-500 font-semibold">{{ __('qrModalHelper') }}</p>
     </div>
 </div>
 
@@ -519,7 +534,7 @@
     <div class="w-full max-w-md mx-4 p-6 rounded-3xl border border-slate-200 bg-white shadow-2xl relative flex flex-col gap-4" style="max-height: 85vh;">
         <button onclick="closeChatModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 text-lg cursor-pointer">✕</button>
         <div>
-            <span class="text-xs font-black tracking-widest text-brand-teal uppercase block">Chat con tu operador</span>
+            <span class="text-xs font-black tracking-widest text-brand-teal uppercase block">{{ __('chatWithOperatorLabel') }}</span>
             <h3 id="chat-modal-code" class="text-sm font-bold text-slate-800"></h3>
         </div>
 
@@ -528,11 +543,11 @@
         <div id="chat-mensajes" class="flex-1 flex flex-col gap-2 overflow-y-auto min-h-[180px] max-h-[40vh] pr-1"></div>
 
         <div class="flex gap-2 border-t border-slate-100 pt-3">
-            <input type="text" id="chat-input-cuerpo" placeholder="Escribe tu mensaje..."
+            <input type="text" id="chat-input-cuerpo" placeholder="{{ __('chatInputPlaceholder') }}"
                    class="flex-1 h-10 rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs text-slate-800 placeholder-slate-400 focus:border-brand-teal focus:bg-white focus:outline-none transition-colors">
             <button onclick="enviarMensajeChat()"
                     class="px-4 h-10 rounded-xl bg-brand-teal text-white text-xs font-bold hover:bg-brand-teal-hover cursor-pointer transition-all">
-                Enviar
+                {{ __('sendBtn') }}
             </button>
         </div>
     </div>
@@ -545,21 +560,21 @@
     <div class="w-full max-w-md mx-4 p-6 rounded-3xl border border-rose-200 bg-white shadow-2xl space-y-4">
         <div class="flex items-center gap-3 text-rose-600">
             <span class="text-2xl">⚠️</span>
-            <h3 class="text-sm font-black uppercase tracking-wider text-rose-700">Eliminar Cuenta Definitivamente</h3>
+            <h3 class="text-sm font-black uppercase tracking-wider text-rose-700">{{ __('deleteAccountModalTitle') }}</h3>
         </div>
         <p class="text-xs text-slate-600 leading-relaxed">
-            ¿Estás completamente seguro de borrar tu cuenta en Attitour? Perderás el acceso a tu perfil. Escribe <strong>eliminar</strong> a continuación para confirmar.
+            {!! __('deleteAccountConfirmText', ['word' => '<strong>' . __('deleteConfirmWord') . '</strong>']) !!}
         </p>
         <form action="{{ route('cliente.cuenta.delete') }}" method="POST" class="space-y-4">
             @csrf
-            <input type="text" name="confirm_delete" placeholder='Escribe "eliminar"' required
+            <input type="text" name="confirm_delete" placeholder="{{ __('typeWordPlaceholder', ['word' => __('deleteConfirmWord')]) }}" required
                    class="w-full h-11 rounded-xl border border-rose-300 bg-rose-50/50 px-3.5 text-xs text-rose-900 font-bold focus:outline-none focus:border-rose-600">
             <div class="flex gap-3">
                 <button type="button" onclick="closeDeleteAccountModal()" class="flex-1 h-10 rounded-xl border border-slate-200 hover:bg-slate-100 text-xs font-bold text-slate-600">
-                    Cancelar
+                    {{ __('cancelBtn') }}
                 </button>
                 <button type="submit" class="flex-1 h-10 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-black uppercase shadow">
-                    Sí, Borrar Cuenta
+                    {{ __('confirmDeleteBtn') }}
                 </button>
             </div>
         </form>
@@ -571,6 +586,7 @@
 <!-- ====================================================================== -->
 <script>
 let currentTab = "{{ $activeTab }}";
+const i18nNoChatMessages = @json(__('noChatMessages'));
 
 function switchClientTab(tabName) {
     currentTab = tabName;
@@ -637,7 +653,7 @@ function cargarMensajesChat() {
 
         const mensajesEl = document.getElementById('chat-mensajes');
         if (data.mensajes.length === 0) {
-            mensajesEl.innerHTML = '<p class="text-[11px] text-slate-400 font-semibold text-center py-6">Aún no hay mensajes. Escribe el primero.</p>';
+            mensajesEl.innerHTML = `<p class="text-[11px] text-slate-400 font-semibold text-center py-6">${i18nNoChatMessages}</p>`;
         } else {
             mensajesEl.innerHTML = data.mensajes.map(m => {
                 const esCliente = m.remitente_tipo === 'cliente';

@@ -148,7 +148,6 @@ class CartController extends Controller
                 'horario' => $horario,
                 'cantidad' => $cantidad,
                 'es_privado' => $esPrivado,
-                'anticipo_porcentaje' => $tour->anticipo_porcentaje ?? 20,
                 'precio_unitario' => $precioUnitario,
                 'subtotal' => $subtotal
             ];

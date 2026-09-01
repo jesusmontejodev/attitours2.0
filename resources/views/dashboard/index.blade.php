@@ -714,10 +714,11 @@
                                     <div id="tour-card-{{ $t->id }}" 
                                          onclick="selectTourForCalendar('{{ $t->id }}')" 
                                          class="{{ $cardClasses }}"
-                                         data-titulo="{{ $t->nombre }}"
-                                         data-resumen="{{ $t->resumen }}"
-                                         data-detalle="{{ $t->detalle }}"
+                                         data-titulo-idiomas="{{ json_encode($t->titulo ?: []) }}"
+                                         data-resumen-idiomas="{{ json_encode($t->descripcion_corta ?: []) }}"
+                                         data-detalle-idiomas="{{ json_encode($t->descripcion_larga ?: []) }}"
                                          data-precio="{{ $t->precio_base_usd }}"
+                                         data-cupo-maximo="{{ $t->cupo_maximo }}"
                                          data-duracion="{{ $t->duracion }}"
                                          data-ubicacion="{{ $t->ubicacion }}"
                                          data-pais="{{ $t->pais }}"
@@ -727,16 +728,16 @@
                                          data-galeria="{{ implode(', ', array_slice($t->galeria ?: [], 1)) }}"
                                          data-galeria-experiencias="{{ implode(', ', $t->galeria_experiencias ?: []) }}"
                                          data-punto-encuentro="{{ $t->punto_encuentro }}"
-                                         data-itinerario="{{ json_encode($t->itinerario ?: []) }}"
+                                         data-itinerario="{{ $t->itinerario }}"
                                          data-incluye="{{ implode(', ', $t->incluye ?: []) }}"
                                          data-no-incluye="{{ implode(', ', $t->no_incluye ?: []) }}"
                                          data-tipo-modalidad="{{ $t->tipo_modalidad }}"
-                                         data-anticipo-porcentaje="{{ $t->anticipo_porcentaje }}"
                                          data-tarifas-privadas="{{ json_encode($t->tarifas_privadas ?? []) }}"
                                          data-origen="{{ $t->origen }}"
                                          data-api-conexion-id="{{ $t->api_conexion_id }}"
                                          data-api-conexion-nombre="{{ $t->apiConexion->nombre ?? '' }}"
                                          data-sync-calendario-activo="{{ $t->sync_calendario_activo ? '1' : '0' }}"
+                                         data-incluye-pickup="{{ $t->incluye_pickup ? '1' : '0' }}"
                                          data-punto-encuentro-lat="{{ $t->punto_encuentro_lat }}"
                                          data-punto-encuentro-lng="{{ $t->punto_encuentro_lng }}">
                                         
@@ -1551,26 +1552,66 @@
                             </select>
                         </div>
 
-                        <!-- Título del Tour -->
+                        <!-- Título del Tour (por idioma) -->
                         <div class="flex flex-col gap-1.5">
                             <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Título del Tour</label>
-                            <input type="text" name="titulo" required placeholder="Ej. Excursión a Chichén Itzá Premium" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-[9px] font-bold text-slate-400">🇲🇽 Español</span>
+                                    <input type="text" name="titulo_es" required placeholder="Ej. Excursión a Chichén Itzá Premium" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                                </div>
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-[9px] font-bold text-slate-400">🇺🇸 English</span>
+                                    <input type="text" name="titulo_en" placeholder="Ej. Chichén Itzá Premium Excursion" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                                </div>
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-[9px] font-bold text-slate-400">🇨🇳 中文</span>
+                                    <input type="text" name="titulo_zh" placeholder="例如：奇琴伊察高级游览" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                                </div>
+                            </div>
+                            <p class="text-[9px] text-slate-400">English y 中文 son opcionales — si los dejas vacíos, se mostrará el texto en español.</p>
                         </div>
 
-                        <!-- Resumen del Tour -->
+                        <!-- Resumen del Tour (por idioma) -->
                         <div class="flex flex-col gap-1.5">
                             <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Resumen (Descripción Corta)</label>
-                            <input type="text" name="descripcion_corta" required placeholder="Ej. Vive una experiencia inolvidable visitando una de las maravillas..." class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-[9px] font-bold text-slate-400">🇲🇽 Español</span>
+                                    <input type="text" name="descripcion_corta_es" required placeholder="Ej. Vive una experiencia inolvidable..." class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                                </div>
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-[9px] font-bold text-slate-400">🇺🇸 English</span>
+                                    <input type="text" name="descripcion_corta_en" placeholder="Ej. Live an unforgettable experience..." class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                                </div>
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-[9px] font-bold text-slate-400">🇨🇳 中文</span>
+                                    <input type="text" name="descripcion_corta_zh" placeholder="例如：难忘的体验..." class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                                </div>
+                            </div>
                         </div>
 
-                        <!-- Descripción Larga -->
+                        <!-- Descripción Larga (por idioma) -->
                         <div class="flex flex-col gap-1.5">
                             <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Descripción Detallada (Larga)</label>
-                            <textarea name="descripcion_larga" required placeholder="Describe paso a paso el itinerario y detalles del tour..." rows="4" class="w-full rounded-lg border border-slate-200 bg-white p-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white"></textarea>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-[9px] font-bold text-slate-400">🇲🇽 Español</span>
+                                    <textarea name="descripcion_larga_es" required placeholder="Describe paso a paso el itinerario y detalles del tour..." rows="4" class="w-full rounded-lg border border-slate-200 bg-white p-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white"></textarea>
+                                </div>
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-[9px] font-bold text-slate-400">🇺🇸 English</span>
+                                    <textarea name="descripcion_larga_en" placeholder="Describe the tour step by step..." rows="4" class="w-full rounded-lg border border-slate-200 bg-white p-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white"></textarea>
+                                </div>
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-[9px] font-bold text-slate-400">🇨🇳 中文</span>
+                                    <textarea name="descripcion_larga_zh" placeholder="逐步描述行程和详情..." rows="4" class="w-full rounded-lg border border-slate-200 bg-white p-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white"></textarea>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Condiciones Financieras y Logística -->
-                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        <div class="grid grid-cols-2 sm:grid-cols-5 gap-4">
                             <div class="flex flex-col gap-1.5">
                                 <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Precio USD</label>
                                 <input type="number" name="precio_base_usd" required min="1" placeholder="1200" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
@@ -1586,6 +1627,10 @@
                             <div class="flex flex-col gap-1.5">
                                 <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">País</label>
                                 <input type="text" name="pais" required value="México" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                            </div>
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Cupo Máximo</label>
+                                <input type="number" name="cupo_maximo" min="1" value="20" placeholder="20" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
                             </div>
                         </div>
 
@@ -1646,10 +1691,6 @@
                                         <option value="ambos">👥🔒 Compartido y Privado (Mixto)</option>
                                     </select>
                                 </div>
-                                <div class="flex flex-col gap-1.5" id="create-anticipo-box" style="display: none;">
-                                    <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Porcentaje de Anticipo Online (%)</label>
-                                    <input type="number" name="anticipo_porcentaje" id="create-tour-anticipo" min="0" max="100" value="20" placeholder="Ej. 20" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal">
-                                </div>
                             </div>
 
                             <!-- Panel de Tarifas Privadas -->
@@ -1676,16 +1717,10 @@
                         </div>
 
                         <!-- Itinerario de Viaje -->
-                        <div class="flex flex-col gap-3 border-t border-slate-200 pt-4">
-                            <div class="flex items-center justify-between">
-                                <h4 class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Itinerario de Viaje (Pasos)</h4>
-                                <button type="button" onclick="addItineraryRow('create')" class="px-2 py-1 rounded bg-slate-50 hover:bg-slate-100 border border-slate-200 text-[9px] font-bold text-slate-600 transition-colors cursor-pointer">
-                                    + Añadir Paso
-                                </button>
-                            </div>
-                            <div id="create-itinerary-container" class="flex flex-col gap-3 max-h-[200px] overflow-y-auto pr-1">
-                                <!-- Filas de itinerario dinámicas -->
-                            </div>
+                        <div class="flex flex-col gap-1.5 border-t border-slate-200 pt-4">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Itinerario de Viaje</label>
+                            <textarea name="itinerario" placeholder="Ej. 5:00 AM: Salida del hotel...&#10;6:00 AM: Llegada al punto de encuentro...&#10;10:00 AM: Inicio de la actividad..." rows="5" class="w-full rounded-lg border border-slate-200 bg-white p-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white"></textarea>
+                            <span class="text-[9px] text-slate-400 font-semibold">Se mostrará tal cual lo escribas (respetando los saltos de línea) dentro de un recuadro en la ficha del tour.</span>
                         </div>
 
                         <!-- Botones de Acción -->
@@ -1726,26 +1761,66 @@
                             </select>
                         </div>
 
-                        <!-- Título del Tour -->
+                        <!-- Título del Tour (por idioma) -->
                         <div class="flex flex-col gap-1.5">
                             <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Título del Tour</label>
-                            <input type="text" name="titulo" id="edit-tour-titulo" required class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-[9px] font-bold text-slate-400">🇲🇽 Español</span>
+                                    <input type="text" name="titulo_es" id="edit-tour-titulo-es" required class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                                </div>
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-[9px] font-bold text-slate-400">🇺🇸 English</span>
+                                    <input type="text" name="titulo_en" id="edit-tour-titulo-en" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                                </div>
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-[9px] font-bold text-slate-400">🇨🇳 中文</span>
+                                    <input type="text" name="titulo_zh" id="edit-tour-titulo-zh" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                                </div>
+                            </div>
+                            <p class="text-[9px] text-slate-400">English y 中文 son opcionales — si los dejas vacíos, se mostrará el texto en español.</p>
                         </div>
 
-                        <!-- Resumen del Tour -->
+                        <!-- Resumen del Tour (por idioma) -->
                         <div class="flex flex-col gap-1.5">
                             <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Resumen (Descripción Corta)</label>
-                            <input type="text" name="descripcion_corta" id="edit-tour-resumen" required class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-[9px] font-bold text-slate-400">🇲🇽 Español</span>
+                                    <input type="text" name="descripcion_corta_es" id="edit-tour-resumen-es" required class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                                </div>
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-[9px] font-bold text-slate-400">🇺🇸 English</span>
+                                    <input type="text" name="descripcion_corta_en" id="edit-tour-resumen-en" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                                </div>
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-[9px] font-bold text-slate-400">🇨🇳 中文</span>
+                                    <input type="text" name="descripcion_corta_zh" id="edit-tour-resumen-zh" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                                </div>
+                            </div>
                         </div>
 
-                        <!-- Descripción Larga -->
+                        <!-- Descripción Larga (por idioma) -->
                         <div class="flex flex-col gap-1.5">
                             <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Descripción Detallada (Larga)</label>
-                            <textarea name="descripcion_larga" id="edit-tour-detalle" required rows="4" class="w-full rounded-lg border border-slate-200 bg-white p-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white"></textarea>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-[9px] font-bold text-slate-400">🇲🇽 Español</span>
+                                    <textarea name="descripcion_larga_es" id="edit-tour-detalle-es" required rows="4" class="w-full rounded-lg border border-slate-200 bg-white p-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white"></textarea>
+                                </div>
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-[9px] font-bold text-slate-400">🇺🇸 English</span>
+                                    <textarea name="descripcion_larga_en" id="edit-tour-detalle-en" rows="4" class="w-full rounded-lg border border-slate-200 bg-white p-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white"></textarea>
+                                </div>
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-[9px] font-bold text-slate-400">🇨🇳 中文</span>
+                                    <textarea name="descripcion_larga_zh" id="edit-tour-detalle-zh" rows="4" class="w-full rounded-lg border border-slate-200 bg-white p-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white"></textarea>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Condiciones Financieras y Logística -->
-                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        <div class="grid grid-cols-2 sm:grid-cols-5 gap-4">
                             <div class="flex flex-col gap-1.5">
                                 <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Precio USD</label>
                                 <input type="number" name="precio_base_usd" id="edit-tour-precio" required min="1" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
@@ -1761,6 +1836,10 @@
                             <div class="flex flex-col gap-1.5">
                                 <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">País</label>
                                 <input type="text" name="pais" id="edit-tour-pais" required class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                            </div>
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Cupo Máximo</label>
+                                <input type="number" name="cupo_maximo" id="edit-tour-cupo-maximo" min="1" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
                             </div>
                         </div>
 
@@ -1830,10 +1909,6 @@
                                         <option value="ambos">👥🔒 Compartido y Privado (Mixto)</option>
                                     </select>
                                 </div>
-                                <div class="flex flex-col gap-1.5" id="edit-anticipo-box" style="display: none;">
-                                    <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Porcentaje de Anticipo Online (%)</label>
-                                    <input type="number" name="anticipo_porcentaje" id="edit-tour-anticipo" min="0" max="100" placeholder="Ej. 20" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal">
-                                </div>
                             </div>
 
                             <!-- Panel de Tarifas Privadas -->
@@ -1872,19 +1947,21 @@
                             <p id="edit-tour-api-purchase-alert" class="text-[10px] text-violet-600 bg-violet-50 border border-violet-200 rounded-lg px-3 py-2 leading-relaxed">
                                 🔔 Cada vez que un cliente compre este tour, se actualiza automáticamente la disponibilidad en la API de <strong id="edit-tour-api-conexion-nombre">este proveedor</strong>.
                             </p>
+
+                            <label class="flex items-center gap-2 cursor-pointer select-none mt-2">
+                                <input type="checkbox" name="incluye_pickup" id="edit-tour-incluye-pickup" value="1" checked class="h-4 w-4 rounded border-slate-300 text-brand-teal focus:ring-brand-teal cursor-pointer">
+                                <span class="text-xs font-semibold text-slate-600">🚐 Este tour incluye recogida en hotel</span>
+                            </label>
+                            <p class="text-[10px] text-slate-400 leading-relaxed">
+                                Desactívalo si el proveedor no ofrece pickup para este tour — el cliente no verá el campo de hotel y deberá llegar por su cuenta al punto de encuentro.
+                            </p>
                         </div>
 
                         <!-- Itinerario de Viaje -->
-                        <div class="flex flex-col gap-3 border-t border-slate-200 pt-4">
-                            <div class="flex items-center justify-between">
-                                <h4 class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Itinerario de Viaje (Pasos)</h4>
-                                <button type="button" onclick="addItineraryRow('edit')" class="px-2 py-1 rounded bg-slate-50 hover:bg-slate-100 border border-slate-200 text-[9px] font-bold text-slate-600 transition-colors cursor-pointer">
-                                    + Añadir Paso
-                                </button>
-                            </div>
-                            <div id="edit-itinerary-container" class="flex flex-col gap-3 max-h-[200px] overflow-y-auto pr-1">
-                                <!-- Filas de itinerario dinámicas -->
-                            </div>
+                        <div class="flex flex-col gap-1.5 border-t border-slate-200 pt-4">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Itinerario de Viaje</label>
+                            <textarea name="itinerario" id="edit-tour-itinerario" placeholder="Ej. 5:00 AM: Salida del hotel...&#10;6:00 AM: Llegada al punto de encuentro...&#10;10:00 AM: Inicio de la actividad..." rows="5" class="w-full rounded-lg border border-slate-200 bg-white p-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white"></textarea>
+                            <span class="text-[9px] text-slate-400 font-semibold">Se mostrará tal cual lo escribas (respetando los saltos de línea) dentro de un recuadro en la ficha del tour.</span>
                         </div>
 
                         <!-- Botones de Acción -->
@@ -3527,43 +3604,6 @@
             });
         });
 
-        // --- DINÁMICA DE PASOS DE ITINERARIO ---
-
-        function addItineraryRow(type, titulo = '', descripcion = '') {
-            const container = document.getElementById(`${type}-itinerary-container`);
-            if (!container) return;
-
-            const row = document.createElement('div');
-            row.className = 'itinerary-row flex gap-2.5 items-start p-3 rounded-xl border border-slate-200 bg-slate-50';
-            
-            row.innerHTML = `
-                <div class="flex-grow flex flex-col gap-2">
-                    <div class="flex gap-2">
-                        <span class="step-num text-[10px] font-mono text-brand-teal mt-2 font-bold"></span>
-                        <input type="text" name="itinerario_titulos[]" placeholder="Título del paso (Ej. Punto de partida)" class="w-full h-8 rounded-lg border border-slate-800 bg-slate-50 px-2.5 text-xs text-slate-800 border-slate-200 focus:border-brand-teal" value="${titulo}" required>
-                    </div>
-                    <textarea name="itinerario_descripciones[]" placeholder="Descripción detallada de lo que se realiza en este paso..." rows="2" class="w-full rounded-lg border border-slate-800 bg-slate-50 p-2 text-xs text-slate-800 border-slate-200 focus:border-brand-teal" required>${descripcion}</textarea>
-                </div>
-                <div class="pt-1.5">
-                    <button type="button" class="text-red-500 hover:text-red-400 text-lg font-bold px-1 transition-colors cursor-pointer" onclick="this.closest('.itinerary-row').remove(); updateStepNumbers('${type}');">
-                        &times;
-                    </button>
-                </div>
-            `;
-
-            container.appendChild(row);
-            updateStepNumbers(type);
-        }
-
-        function updateStepNumbers(type) {
-            const container = document.getElementById(`${type}-itinerary-container`);
-            if (!container) return;
-            const rows = container.querySelectorAll('.itinerary-row');
-            rows.forEach((row, index) => {
-                row.querySelector('.step-num').textContent = `#${index + 1}`;
-            });
-        }
-
         // --- MANEJO DEL MODAL DE EDICIÓN DE TOUR ---
         function openEditTourModal(id) {
             const modal = document.getElementById('edit-tour-modal');
@@ -3573,10 +3613,14 @@
             if (!card || !modal) return;
 
             // Leer todos los atributos de la tarjeta
-            const titulo = card.getAttribute('data-titulo') || '';
-            const resumen = card.getAttribute('data-resumen') || '';
-            const detalle = card.getAttribute('data-detalle') || '';
+            let tituloIdiomas = {};
+            let resumenIdiomas = {};
+            let detalleIdiomas = {};
+            try { tituloIdiomas = JSON.parse(card.getAttribute('data-titulo-idiomas') || '{}'); } catch(e) {}
+            try { resumenIdiomas = JSON.parse(card.getAttribute('data-resumen-idiomas') || '{}'); } catch(e) {}
+            try { detalleIdiomas = JSON.parse(card.getAttribute('data-detalle-idiomas') || '{}'); } catch(e) {}
             const precio = card.getAttribute('data-precio') || '';
+            const cupoMaximo = card.getAttribute('data-cupo-maximo') || '20';
             const duracion = card.getAttribute('data-duracion') || '';
             const ubicacion = card.getAttribute('data-ubicacion') || '';
             const pais = card.getAttribute('data-pais') || '';
@@ -3588,9 +3632,9 @@
             const incluye = card.getAttribute('data-incluye') || '';
             const noIncluye = card.getAttribute('data-no-incluye') || '';
             const tipoModalidad = card.getAttribute('data-tipo-modalidad') || 'compartido';
-            const anticipoPorcentaje = card.getAttribute('data-anticipo-porcentaje') || '';
             const origen = card.getAttribute('data-origen') || 'interno';
             const syncCalendarioActivo = card.getAttribute('data-sync-calendario-activo') === '1';
+            const incluyePickup = card.getAttribute('data-incluye-pickup') !== '0';
             const apiConexionNombre = card.getAttribute('data-api-conexion-nombre') || 'este proveedor';
             const nombreEl = document.getElementById('edit-tour-api-conexion-nombre');
             if (nombreEl) nombreEl.textContent = apiConexionNombre;
@@ -3602,18 +3646,20 @@
                 console.error("Error al parsear tarifas privadas", e);
             }
             
-            let itinerario = [];
-            try {
-                itinerario = JSON.parse(card.getAttribute('data-itinerario') || '[]');
-            } catch(e) {
-                console.error("Error al parsear itinerario", e);
-            }
+            const itinerario = card.getAttribute('data-itinerario') || '';
 
             // Población de campos estándar
-            document.getElementById('edit-tour-titulo').value = titulo;
-            document.getElementById('edit-tour-resumen').value = resumen;
-            document.getElementById('edit-tour-detalle').value = detalle;
+            document.getElementById('edit-tour-titulo-es').value = tituloIdiomas.es || '';
+            document.getElementById('edit-tour-titulo-en').value = tituloIdiomas.en || '';
+            document.getElementById('edit-tour-titulo-zh').value = tituloIdiomas.zh || '';
+            document.getElementById('edit-tour-resumen-es').value = resumenIdiomas.es || '';
+            document.getElementById('edit-tour-resumen-en').value = resumenIdiomas.en || '';
+            document.getElementById('edit-tour-resumen-zh').value = resumenIdiomas.zh || '';
+            document.getElementById('edit-tour-detalle-es').value = detalleIdiomas.es || '';
+            document.getElementById('edit-tour-detalle-en').value = detalleIdiomas.en || '';
+            document.getElementById('edit-tour-detalle-zh').value = detalleIdiomas.zh || '';
             document.getElementById('edit-tour-precio').value = precio;
+            document.getElementById('edit-tour-cupo-maximo').value = cupoMaximo;
             document.getElementById('edit-tour-duracion').value = duracion;
             document.getElementById('edit-tour-ubicacion').value = ubicacion;
             document.getElementById('edit-tour-pais').value = pais;
@@ -3645,8 +3691,7 @@
 
             // Población de modalidad y tarifas
             document.getElementById('edit-tour-modalidad').value = tipoModalidad;
-            document.getElementById('edit-tour-anticipo').value = anticipoPorcentaje;
-            
+
             const tarifasContainer = document.getElementById('edit-tarifas-privadas-container');
             tarifasContainer.innerHTML = '';
             
@@ -3661,25 +3706,19 @@
             // Disponibilidad desde API externa: solo aplica a tours con origen = api_externa
             const syncBox = document.getElementById('edit-sync-calendario-box');
             const syncCheckbox = document.getElementById('edit-tour-sync-calendario');
+            const pickupCheckbox = document.getElementById('edit-tour-incluye-pickup');
             if (origen === 'api_externa') {
                 syncBox.style.display = '';
                 syncCheckbox.checked = syncCalendarioActivo;
+                pickupCheckbox.checked = incluyePickup;
             } else {
                 syncBox.style.display = 'none';
                 syncCheckbox.checked = false;
+                pickupCheckbox.checked = true;
             }
 
             // Poblar itinerario
-            const container = document.getElementById('edit-itinerary-container');
-            container.innerHTML = '';
-            
-            if (itinerario.length > 0) {
-                itinerario.forEach(paso => {
-                    addItineraryRow('edit', paso.titulo, paso.descripcion);
-                });
-            } else {
-                addItineraryRow('edit'); // uno vacío por defecto
-            }
+            document.getElementById('edit-tour-itinerario').value = itinerario;
 
             form.action = `/dashboard/tour/${id}/update`;
             modal.dataset.tourId = id;
@@ -3693,18 +3732,15 @@
         // --- GESTIÓN DE CONFIGURACIÓN DE MODALIDADES Y TARIFAS PRIVADAS ---
         function toggleModalidadFields(context) {
             const modalidad = document.getElementById(`${context}-tour-modalidad`).value;
-            const anticipoBox = document.getElementById(`${context}-anticipo-box`);
             const panelTarifas = document.getElementById(`${context}-tarifas-privadas-panel`);
-            
+
             if (modalidad === 'privado' || modalidad === 'ambos') {
-                if (anticipoBox) anticipoBox.style.display = 'flex';
                 if (panelTarifas) panelTarifas.style.display = 'flex';
                 const container = document.getElementById(`${context}-tarifas-privadas-container`);
                 if (container && container.children.length === 0) {
                     addTarifaPrivadaRow(context);
                 }
             } else {
-                if (anticipoBox) anticipoBox.style.display = 'none';
                 if (panelTarifas) panelTarifas.style.display = 'none';
             }
         }
@@ -3767,19 +3803,36 @@
                 editContainer.addEventListener('input', () => serializeTarifas('edit'));
             }
 
-            // Registrar serialización en el submit del formulario
-            const forms = document.querySelectorAll('form');
-            forms.forEach(form => {
-                const action = form.getAttribute('action') || '';
-                if (action.includes('/dashboard/tour')) {
-                    form.addEventListener('submit', () => {
-                        if (action.includes('/update')) {
-                            serializeTarifas('edit');
-                        } else {
-                            serializeTarifas('create');
-                        }
-                    });
-                }
+            // Registrar serialización de tarifas + validación visible en el submit de cada
+            // formulario de tour. Antes esto se enganchaba comparando form.action contra un
+            // string ('/dashboard/tour') leído una sola vez al cargar la página — como el action
+            // del formulario de edición se asigna dinámicamente por JS recién al abrir el modal
+            // (después de este DOMContentLoaded), la comparación siempre fallaba y el submit real
+            // nunca reserializaba las tarifas ni limpiaba las de una modalidad ya no privada.
+            ['create', 'edit'].forEach(context => {
+                const form = document.getElementById(`${context}-tour-form`);
+                if (!form) return;
+
+                form.addEventListener('submit', (e) => {
+                    const modalidad = document.getElementById(`${context}-tour-modalidad`)?.value;
+                    const hiddenInput = document.getElementById(`${context}-tarifas-privadas-hidden`);
+
+                    if (modalidad === 'privado' || modalidad === 'ambos') {
+                        serializeTarifas(context);
+                    } else if (hiddenInput) {
+                        // Modalidad compartido: no debe guardarse un precio privado obsoleto.
+                        hiddenInput.value = '[]';
+                    }
+
+                    // Si el formulario tiene algún campo inválido (p. ej. uno oculto por un
+                    // toggle que sigue siendo required), el navegador bloquea el envío en
+                    // silencio. Esto lo hace visible en vez de que el botón "no reaccione".
+                    if (!form.checkValidity()) {
+                        e.preventDefault();
+                        showToast('⚠️ Revisa los campos marcados en el formulario antes de guardar.', 'rose');
+                        form.reportValidity();
+                    }
+                });
             });
         });
 
@@ -3973,9 +4026,6 @@
                 document.getElementById('create-tour-imagen-url').value = '';
                 document.getElementById('create-tour-import-banner').classList.add('hidden');
 
-                // Limpiar itinerario
-                document.getElementById('create-itinerary-container').innerHTML = '';
-                addItineraryRow('create'); // Añadir un paso inicial vacío
                 tagInputInit('create-tags-box', 'create-tags-hidden', '');
                 modal.classList.remove('hidden');
             }
@@ -3999,9 +4049,9 @@
                     openCreateTourModal();
                     const form = document.getElementById('create-tour-form');
 
-                    form.querySelector('[name="titulo"]').value = imp.titulo_preview || '';
-                    form.querySelector('[name="descripcion_corta"]').value = imp.descripcion_corta_preview || '';
-                    form.querySelector('[name="descripcion_larga"]').value = imp.descripcion_larga_preview || '';
+                    form.querySelector('[name="titulo_es"]').value = imp.titulo_preview || '';
+                    form.querySelector('[name="descripcion_corta_es"]').value = imp.descripcion_corta_preview || '';
+                    form.querySelector('[name="descripcion_larga_es"]').value = imp.descripcion_larga_preview || '';
                     if (imp.precio_preview) {
                         form.querySelector('[name="precio_base_usd"]').value = imp.precio_preview;
                     }

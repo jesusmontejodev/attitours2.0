@@ -103,6 +103,15 @@ class ClienteController extends Controller
             return redirect()->route('home')->with('error', 'Acceso no autorizado.');
         }
 
+        // Detectar una subida de foto que PHP descartó antes de llegar a la validación de Laravel
+        // (p. ej. supera upload_max_filesize/post_max_size del servidor) — sin esto, el perfil se
+        // guarda "exitosamente" pero la foto simplemente nunca cambia, sin ninguna explicación.
+        if ($request->hasFile('foto_perfil') && !$request->file('foto_perfil')->isValid()) {
+            return back()
+                ->withErrors(['foto_perfil' => $this->mensajeErrorSubida($request->file('foto_perfil')->getError())])
+                ->with('active_tab', 'configuracion');
+        }
+
         $validated = $request->validate([
             'name'             => 'required|string|max:100',
             'telefono'         => 'nullable|string|max:30',
@@ -111,18 +120,18 @@ class ClienteController extends Controller
             'password'         => 'nullable|string|min:6|confirmed',
             'current_password' => 'required_with:password|string',
         ], [
-            'name.required'                  => 'El nombre es obligatorio.',
-            'foto_perfil.image'              => 'El archivo de foto de perfil debe ser una imagen válida (JPG, PNG, WEBP).',
-            'foto_perfil.max'                => 'La imagen no debe pesar más de 15MB.',
-            'password.min'                   => 'La nueva contraseña debe tener al menos 6 caracteres.',
-            'password.confirmed'             => 'Las contraseñas no coinciden.',
-            'current_password.required_with' => 'Escribe tu contraseña actual para cambiarla.',
+            'name.required'                  => __('nameRequiredError'),
+            'foto_perfil.image'              => __('photoInvalidError'),
+            'foto_perfil.max'                => __('photoTooLargeError'),
+            'password.min'                   => __('passwordMinError'),
+            'password.confirmed'             => __('passwordMismatchError'),
+            'current_password.required_with' => __('currentPasswordRequiredError'),
         ]);
 
         // Si quiere cambiar contraseña, verificar la actual
         if (!empty($validated['password'])) {
             if (!Hash::check($validated['current_password'], $user->password)) {
-                return back()->withErrors(['current_password' => 'La contraseña actual es incorrecta.'])->with('active_tab', 'configuracion');
+                return back()->withErrors(['current_password' => __('currentPasswordIncorrectError')])->with('active_tab', 'configuracion');
             }
         }
 
@@ -144,7 +153,7 @@ class ClienteController extends Controller
         $user->update($updateData);
 
         return redirect()->route('cliente.dashboard')
-            ->with('success', 'Perfil actualizado correctamente.')
+            ->with('success', __('profileUpdateSuccess'))
             ->with('active_tab', 'configuracion');
     }
 
@@ -166,8 +175,11 @@ class ClienteController extends Controller
             'confirm_delete' => 'required|string',
         ]);
 
-        if (strtolower(trim($request->input('confirm_delete'))) !== 'eliminar') {
-            return back()->withErrors(['confirm_delete' => 'Debes escribir "eliminar" para confirmar.'])->with('active_tab', 'configuracion');
+        $palabrasValidas = ['eliminar', 'delete', '删除'];
+        if (!in_array(strtolower(trim($request->input('confirm_delete'))), $palabrasValidas, true)) {
+            return back()
+                ->withErrors(['confirm_delete' => __('deleteConfirmError', ['word' => __('deleteConfirmWord')])])
+                ->with('active_tab', 'configuracion');
         }
 
         // Desvincular usuario de sus reservas para mantener historial contable pero liberar la cuenta
@@ -179,6 +191,6 @@ class ClienteController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('home')->with('success', 'Tu cuenta ha sido eliminada correctamente.');
+        return redirect()->route('home')->with('success', __('accountDeletedSuccess'));
     }
 }

@@ -57,6 +57,7 @@ class Tour extends Model
         'precio_api_actualizado_at',
         'api_metadata',
         'sync_calendario_activo',
+        'incluye_pickup',
     ];
 
     protected $casts = [
@@ -73,13 +74,13 @@ class Tour extends Model
         'anticipo_porcentaje' => 'integer',
         'cupo_maximo' => 'integer',
         'horarios' => 'array',
-        'itinerario' => 'array',
         'incluye' => 'array',
         'no_incluye' => 'array',
         'precio_api_referencia_usd' => 'float',
         'precio_api_actualizado_at' => 'datetime',
         'api_metadata' => 'array',
         'sync_calendario_activo' => 'boolean',
+        'incluye_pickup' => 'boolean',
     ];
 
     /**
@@ -200,8 +201,17 @@ class Tour extends Model
             return '';
         }
 
-        // Retornar en el locale actual, o fallback al español, o el primer idioma disponible
-        return $arrayData[$locale] ?? $arrayData['es'] ?? reset($arrayData) ?? '';
+        // Retornar en el locale actual, o fallback al español, o el primer idioma disponible con
+        // contenido — una cadena vacía (idioma no traducido aún por el Admin) cuenta como ausente.
+        foreach ([$locale, 'es'] as $intento) {
+            if (!empty($arrayData[$intento])) {
+                return $arrayData[$intento];
+            }
+        }
+
+        $conContenido = array_filter($arrayData);
+
+        return $conContenido ? reset($conContenido) : '';
     }
 
     /**

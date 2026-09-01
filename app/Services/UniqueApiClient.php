@@ -174,6 +174,28 @@ class UniqueApiClient
             throw new RuntimeException("Error llamando a Unique [{$method} {$path}]: HTTP {$response->status()} - " . $response->body());
         }
 
-        return $response->json() ?? [];
+        return $this->corregirDobleCodificacion($response->json() ?? []);
+    }
+
+    /**
+     * Unique devuelve algunos textos (p. ej. "ESPAÃ‘OL" en vez de "ESPAÑOL") con doble
+     * codificación UTF-8 — un bug del lado de su API, no algo que Attitour controle. Se detecta
+     * por la presencia de "Ã" (la marca característica de UTF-8 re-codificado por error) y se
+     * revierte reinterpretando los bytes como Latin-1 antes de volver a decodificarlos.
+     */
+    private function corregirDobleCodificacion(mixed $valor): mixed
+    {
+        if (is_array($valor)) {
+            return array_map(fn ($v) => $this->corregirDobleCodificacion($v), $valor);
+        }
+
+        if (is_string($valor) && str_contains($valor, 'Ã')) {
+            $corregido = mb_convert_encoding($valor, 'ISO-8859-1', 'UTF-8');
+            if (mb_check_encoding($corregido, 'UTF-8')) {
+                return $corregido;
+            }
+        }
+
+        return $valor;
     }
 }
