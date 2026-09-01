@@ -116,11 +116,15 @@
                         <button id="user-btn"
                                 class="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 transition-all cursor-pointer shadow-xs group"
                                 title="{{ Auth::user()->name }}">
-                            {{-- Avatar con color según rol --}}
-                            <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-black text-white shadow-sm
-                                {{ Auth::user()->isCliente() ? 'bg-emerald-500' : (Auth::user()->isAdmin() ? 'bg-brand-teal' : 'bg-brand-orange') }}">
-                                {{ Str::upper(Str::substr(Auth::user()->name, 0, 2)) }}
-                            </span>
+                            {{-- Avatar: foto real si el usuario ya subió una, si no iniciales con color según rol --}}
+                            @if(Auth::user()->foto_perfil)
+                                <img src="{{ Auth::user()->foto_perfil }}" alt="{{ Auth::user()->name }}" class="h-8 w-8 shrink-0 rounded-full object-cover shadow-sm">
+                            @else
+                                <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-black text-white shadow-sm
+                                    {{ Auth::user()->isCliente() ? 'bg-emerald-500' : (Auth::user()->isAdmin() ? 'bg-brand-teal' : 'bg-brand-orange') }}">
+                                    {{ Str::upper(Str::substr(Auth::user()->name, 0, 2)) }}
+                                </span>
+                            @endif
                             {{-- Texto "Mi cuenta" en desktop --}}
                             <span class="hidden sm:block text-sm font-bold text-slate-700 group-hover:text-brand-teal transition-colors">
                                 Mi cuenta
@@ -134,10 +138,14 @@
                              class="absolute right-0 mt-2 w-56 origin-top-right rounded-2xl border border-slate-200 bg-white p-1.5 shadow-2xl opacity-0 scale-95 pointer-events-none transition-all duration-200 z-50">
                             {{-- Cabecera con info del usuario --}}
                             <div class="px-3 py-3 border-b border-slate-100 mb-1 flex items-center gap-3">
-                                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-black text-white
-                                    {{ Auth::user()->isCliente() ? 'bg-emerald-500' : (Auth::user()->isAdmin() ? 'bg-brand-teal' : 'bg-brand-orange') }}">
-                                    {{ Str::upper(Str::substr(Auth::user()->name, 0, 2)) }}
-                                </span>
+                                @if(Auth::user()->foto_perfil)
+                                    <img src="{{ Auth::user()->foto_perfil }}" alt="{{ Auth::user()->name }}" class="h-10 w-10 shrink-0 rounded-full object-cover">
+                                @else
+                                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-black text-white
+                                        {{ Auth::user()->isCliente() ? 'bg-emerald-500' : (Auth::user()->isAdmin() ? 'bg-brand-teal' : 'bg-brand-orange') }}">
+                                        {{ Str::upper(Str::substr(Auth::user()->name, 0, 2)) }}
+                                    </span>
+                                @endif
                                 <div class="min-w-0">
                                     <p class="text-xs font-bold text-slate-800 truncate">{{ Auth::user()->name }}</p>
                                     <p class="text-[10px] text-slate-500 truncate mt-0.5">{{ Auth::user()->email }}</p>
