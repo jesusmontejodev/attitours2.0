@@ -35,7 +35,7 @@
                             {{ __('searchLocation') }}
                         </label>
                         <select name="location" class="w-full bg-transparent border-0 p-0 text-sm font-semibold text-slate-700 focus:ring-0 focus:outline-none cursor-pointer">
-                            <option value="all">Todos los destinos</option>
+                            <option value="all">{{ __('allDestinations') }}</option>
                             @foreach($destinos as $dest)
                                 <option value="{{ $dest }}">{{ $dest }}</option>
                             @endforeach
@@ -47,7 +47,7 @@
                         <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">
                             {{ __('searchDate') }}
                         </label>
-                        <input type="text" id="filter-date-display" readonly placeholder="¿Cuándo viajas?" class="w-full bg-transparent border-0 p-0 text-sm font-semibold text-slate-700 focus:ring-0 focus:outline-none cursor-pointer">
+                        <input type="text" id="filter-date-display" readonly placeholder="{{ __('whenTravelPlaceholder') }}" class="w-full bg-transparent border-0 p-0 text-sm font-semibold text-slate-700 focus:ring-0 focus:outline-none cursor-pointer">
                         <input type="hidden" name="date" id="filter-date-value">
                         <input type="hidden" name="flexibility" id="filter-flexibility-value" value="0">
                         <input type="hidden" name="flexible_months" id="filter-flexible-months-value" value="">
@@ -58,10 +58,10 @@
                             <div class="flex justify-center mb-5">
                                 <div class="inline-flex bg-slate-100 p-1 rounded-full border border-slate-200">
                                     <button type="button" id="tab-fechas" class="px-5 py-1.5 rounded-full text-xs font-bold text-slate-800 bg-white shadow-xs transition-all duration-200 cursor-pointer">
-                                        Fechas
+                                        {{ __('datesLabel') }}
                                     </button>
                                     <button type="button" id="tab-flexible" class="px-5 py-1.5 rounded-full text-xs font-semibold text-slate-500 hover:text-slate-800 transition-all duration-200 cursor-pointer">
-                                        Flexible
+                                        {{ __('flexibleLabel') }}
                                     </button>
                                 </div>
                             </div>
@@ -83,7 +83,7 @@
                                             <div class="w-7 hidden md:block"></div> <!-- Spacer en desktop -->
                                         </div>
                                         <div class="grid grid-cols-7 gap-1 text-center text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-3">
-                                            <div>D</div><div>L</div><div>M</div><div>M</div><div>J</div><div>V</div><div>S</div>
+                                            @foreach(__('dayHeadersShort') as $dayHeader)<div>{{ $dayHeader }}</div>@endforeach
                                         </div>
                                         <div id="grid-month-1" class="grid grid-cols-7 gap-1"></div>
                                     </div>
@@ -98,7 +98,7 @@
                                             </button>
                                         </div>
                                         <div class="grid grid-cols-7 gap-1 text-center text-[9px] font-bold text-slate-455 uppercase tracking-widest mb-3">
-                                            <div>D</div><div>L</div><div>M</div><div>M</div><div>J</div><div>V</div><div>S</div>
+                                            @foreach(__('dayHeadersShort') as $dayHeader)<div>{{ $dayHeader }}</div>@endforeach
                                         </div>
                                         <div id="grid-month-2" class="grid grid-cols-7 gap-1"></div>
                                     </div>
@@ -106,36 +106,36 @@
 
                                 <!-- Tira de Flexibilidad -->
                                 <div class="mt-6 pt-4 border-t border-slate-100">
-                                    <span class="text-[9px] font-black uppercase tracking-widest text-slate-450 block mb-2">Tolerancia de fechas</span>
+                                    <span class="text-[9px] font-black uppercase tracking-widest text-slate-450 block mb-2">{{ __('toleranceLabel') }}</span>
                                     <div class="flex flex-wrap gap-1.5">
-                                        <button type="button" data-flex="0" class="flexibility-btn active text-[10px] font-bold border border-slate-200 bg-white px-3 py-1.5 rounded-full hover:border-slate-800 cursor-pointer">Fechas exactas</button>
-                                        <button type="button" data-flex="1" class="flexibility-btn text-[10px] font-bold border border-slate-200 bg-white px-3 py-1.5 rounded-full hover:border-slate-800 cursor-pointer">± 1 día</button>
-                                        <button type="button" data-flex="2" class="flexibility-btn text-[10px] font-bold border border-slate-200 bg-white px-3 py-1.5 rounded-full hover:border-slate-800 cursor-pointer">± 2 días</button>
-                                        <button type="button" data-flex="3" class="flexibility-btn text-[10px] font-bold border border-slate-200 bg-white px-3 py-1.5 rounded-full hover:border-slate-800 cursor-pointer">± 3 días</button>
-                                        <button type="button" data-flex="7" class="flexibility-btn text-[10px] font-bold border border-slate-200 bg-white px-3 py-1.5 rounded-full hover:border-slate-800 cursor-pointer">± 7 días</button>
-                                        <button type="button" data-flex="14" class="flexibility-btn text-[10px] font-bold border border-slate-200 bg-white px-3 py-1.5 rounded-full hover:border-slate-800 cursor-pointer">± 14 días</button>
+                                        <button type="button" data-flex="0" class="flexibility-btn active text-[10px] font-bold border border-slate-200 bg-white px-3 py-1.5 rounded-full hover:border-slate-800 cursor-pointer">{{ __('toleranceExact') }}</button>
+                                        <button type="button" data-flex="1" class="flexibility-btn text-[10px] font-bold border border-slate-200 bg-white px-3 py-1.5 rounded-full hover:border-slate-800 cursor-pointer">{{ __('tolerance1Day') }}</button>
+                                        <button type="button" data-flex="2" class="flexibility-btn text-[10px] font-bold border border-slate-200 bg-white px-3 py-1.5 rounded-full hover:border-slate-800 cursor-pointer">{{ __('tolerance2Days') }}</button>
+                                        <button type="button" data-flex="3" class="flexibility-btn text-[10px] font-bold border border-slate-200 bg-white px-3 py-1.5 rounded-full hover:border-slate-800 cursor-pointer">{{ __('tolerance3Days') }}</button>
+                                        <button type="button" data-flex="7" class="flexibility-btn text-[10px] font-bold border border-slate-200 bg-white px-3 py-1.5 rounded-full hover:border-slate-800 cursor-pointer">{{ __('tolerance7Days') }}</button>
+                                        <button type="button" data-flex="14" class="flexibility-btn text-[10px] font-bold border border-slate-200 bg-white px-3 py-1.5 rounded-full hover:border-slate-800 cursor-pointer">{{ __('tolerance14Days') }}</button>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Pestaña Flexible (Selección de Meses Completos) -->
                             <div id="content-flexible" class="hidden">
-                                <span class="text-[9px] font-black uppercase tracking-widest text-slate-450 block text-center mb-3">¿Cuándo quieres viajar?</span>
+                                <span class="text-[9px] font-black uppercase tracking-widest text-slate-450 block text-center mb-3">{{ __('whenTravelQuestion') }}</span>
                                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-5" id="flexible-months-container">
                                     <!-- Se generará dinámicamente con JS para los próximos 6 meses -->
                                 </div>
                                 <div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl text-[10px] text-slate-500 font-semibold text-center leading-relaxed">
-                                    ✈️ Selecciona uno o más meses para explorar todos los viajes programados de ese período.
+                                    {{ __('flexibleHelpText') }}
                                 </div>
                             </div>
 
                             <!-- Botones de Acción del Calendario -->
                             <div class="flex items-center justify-between border-t border-slate-150 pt-4 mt-5">
                                 <button type="button" id="clear-airbnb-calendar" class="text-xs font-bold text-slate-500 hover:text-slate-800 hover:underline cursor-pointer">
-                                    Limpiar
+                                    {{ __('clearLabel') }}
                                 </button>
                                 <button type="button" id="apply-airbnb-calendar" class="h-9 px-5 rounded-xl bg-slate-900 text-xs font-bold text-white hover:bg-slate-800 transition-colors shadow-md shadow-slate-950/15 cursor-pointer">
-                                    Aplicar
+                                    {{ __('applyLabel') }}
                                 </button>
                             </div>
                         </div>
@@ -147,10 +147,10 @@
                             {{ __('searchPrice') }}
                         </label>
                         <select name="price" class="w-full bg-transparent border-0 p-0 text-sm font-semibold text-slate-700 focus:ring-0 focus:outline-none cursor-pointer">
-                            <option value="">Cualquier precio</option>
-                            <option value="1000">Hasta $1,000 USD</option>
-                            <option value="2000">Hasta $2,000 USD</option>
-                            <option value="3000">Hasta $3,000 USD</option>
+                            <option value="">{{ __('anyPrice') }}</option>
+                            <option value="1000">{{ __('upToAmountUsd', ['amount' => '1,000']) }}</option>
+                            <option value="2000">{{ __('upToAmountUsd', ['amount' => '2,000']) }}</option>
+                            <option value="3000">{{ __('upToAmountUsd', ['amount' => '3,000']) }}</option>
                         </select>
                     </div>
 
@@ -170,8 +170,8 @@
     <section class="py-16 bg-slate-100/50 border-y border-slate-200/60">
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-12">
-                <h2 class="text-2xl font-bold tracking-tight sm:text-3xl text-slate-800">Explora Destinos Increíbles</h2>
-                <p class="mt-2 text-xs uppercase tracking-widest font-bold text-brand-teal">Elige tu propia aventura</p>
+                <h2 class="text-2xl font-bold tracking-tight sm:text-3xl text-slate-800">{{ __('exploreDestinationsTitle') }}</h2>
+                <p class="mt-2 text-xs uppercase tracking-widest font-bold text-brand-teal">{{ __('chooseAdventureSubtitle') }}</p>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -210,6 +210,11 @@
                             
                             <!-- Badges flotantes -->
                             <div class="absolute top-4 left-4 flex gap-2">
+                                {{-- ubicacion NO está traducido a propósito (a diferencia de duracion_mostrar
+                                     abajo): se usa tal cual como filtro exacto en WHERE y como parámetro de
+                                     ruta (route('catalog', ['location' => ...])), así que convertirlo a JSON
+                                     multi-idioma requeriría separar "código de filtro" de "etiqueta a mostrar",
+                                     un cambio aparte fuera del alcance de la localización de este card. --}}
                                 <span class="px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider rounded-md bg-white/95 backdrop-blur-xs text-brand-teal border border-slate-200/80 shadow-xs">
                                     {{ $tour->ubicacion }}
                                 </span>
@@ -229,7 +234,7 @@
                                     <svg class="h-3.5 w-3.5 text-brand-teal" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
-                                    {{ $tour->duracion }}
+                                    {{ $tour->duracion_mostrar }}
                                 </span>
                                 <span>&bull;</span>
                                 <span class="flex items-center gap-1">
@@ -278,9 +283,9 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                         </svg>
                     </div>
-                    <h3 class="text-sm font-bold text-slate-800">Reserva Flexible</h3>
+                    <h3 class="text-sm font-bold text-slate-800">{{ __('flexBookingTitle') }}</h3>
                     <p class="text-xs text-slate-600 mt-2 leading-relaxed font-semibold">
-                        Modifica o cancela tu itinerario sin cargos ocultos hasta 24 horas antes del tour.
+                        {{ __('flexBookingDesc') }}
                     </p>
                 </div>
 
@@ -292,9 +297,9 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
                     </div>
-                    <h3 class="text-sm font-bold text-slate-800">Guías Expertos</h3>
+                    <h3 class="text-sm font-bold text-slate-800">{{ __('expertGuidesTitle') }}</h3>
                     <p class="text-xs text-slate-600 mt-2 leading-relaxed font-semibold">
-                        Explora la cultura, historia y bellezas naturales con guías expertos bilingües.
+                        {{ __('expertGuidesDesc') }}
                     </p>
                 </div>
 
@@ -305,9 +310,9 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                     </div>
-                    <h3 class="text-sm font-bold text-slate-800">Mejor Precio Garantizado</h3>
+                    <h3 class="text-sm font-bold text-slate-800">{{ __('bestPriceTitle') }}</h3>
                     <p class="text-xs text-slate-600 mt-2 leading-relaxed font-semibold">
-                        Operamos directamente nuestros tours de forma local, ofreciendo las mejores tarifas del mercado.
+                        {{ __('bestPriceDesc') }}
                     </p>
                 </div>
             </div>
@@ -318,8 +323,8 @@
     <section class="py-16">
         <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-12">
-                <h2 class="text-2xl font-bold tracking-tight sm:text-3xl text-slate-800 font-black">Lo que Dicen Nuestros Viajeros</h2>
-                <p class="mt-2 text-xs uppercase tracking-widest font-bold text-brand-orange">Opiniones Reales</p>
+                <h2 class="text-2xl font-bold tracking-tight sm:text-3xl text-slate-800 font-black">{{ __('travelersReviewsTitle') }}</h2>
+                <p class="mt-2 text-xs uppercase tracking-widest font-bold text-brand-orange">{{ __('realReviewsSubtitle') }}</p>
             </div>
 
             <!-- Contenedor del Testimonio Activo -->
@@ -328,7 +333,7 @@
                 
                 <div id="testimonial-container" class="transition-all duration-300">
                     <p id="t-text" class="text-sm md:text-base text-slate-650 italic leading-relaxed font-semibold">
-                        "El tour de snorkel en Cancún fue extraordinario. Los instructores fueron súper pacientes y pudimos ver tres tortugas marinas gigantescas de cerca. El catamarán e Isla Mujeres también son un sueño. ¡Volveré seguro con Attitour!"
+                        {{ __('testimonial1Text') }}
                     </p>
                     <div class="mt-8 flex items-center gap-4">
                         <div class="h-10 w-10 rounded-full bg-brand-teal/10 text-brand-teal border border-brand-teal/20 flex items-center justify-center font-bold text-xs">
@@ -336,7 +341,7 @@
                         </div>
                         <div>
                             <p id="t-author" class="text-xs font-bold text-slate-800">María Prieto</p>
-                            <p id="t-location" class="text-[9px] text-slate-500 uppercase tracking-wider font-bold">España</p>
+                            <p id="t-location" class="text-[9px] text-slate-500 uppercase tracking-wider font-bold">{{ __('testimonial1Location') }}</p>
                         </div>
                     </div>
                 </div>
@@ -359,26 +364,30 @@
     </section>
 
     <!-- SCRIPT DEL CAROUSEL NATIVO -->
+    {{-- Los datos que va a leer el JS de abajo se arman aquí en variables PHP y no directo dentro
+         de @json([...]) porque la directiva @json() de Blade separa su argumento con
+         explode(',', ...) sin respetar paréntesis ni arrays — un array literal con comas internas
+         (como estos) rompe la compilación o corrompe los flags de escape en silencio. --}}
+    @php
+        $i18nTestimonialsData = [
+            ['text' => __('testimonial1Text'), 'location' => __('testimonial1Location')],
+            ['text' => __('testimonial2Text'), 'location' => __('testimonial2Location')],
+            ['text' => __('testimonial3Text'), 'location' => __('testimonial3Location')],
+        ];
+        $i18nCalData = [
+            'months' => __('monthNames'),
+            'monthsShort' => __('monthNamesShort'),
+            'flexibleLabel' => __('flexibleLabel'),
+            'flexibleResultPrefix' => __('flexibleResultPrefix'),
+        ];
+    @endphp
     <script>
+        const i18nTestimonials = @json($i18nTestimonialsData);
+
         const testimonials = [
-            {
-                text: '"El tour de snorkel en Cancún fue extraordinario. Los instructores fueron súper pacientes y pudimos ver tres tortugas marinas gigantescas de cerca. El catamarán e Isla Mujeres también son un sueño. ¡Volveré seguro con Attitour!"',
-                author: 'María Prieto',
-                location: 'España',
-                initials: 'MP'
-            },
-            {
-                text: '"图伦古城和圣井的行程太棒了！导游讲解非常详细，午餐自助非常美味。我们还在神秘的天然井中游泳，这是一次超凡的体验。强烈推荐 Attitour！"',
-                author: 'Chen Wei',
-                location: 'China',
-                initials: 'CW'
-            },
-            {
-                text: '"Contoy Island is an absolute paradise! It is completely untouched and wild. The number of nesting birds was incredible to see. Big thanks to the biologist guide for explaining the ecosystem so well. Worth every dollar."',
-                author: 'John Miller',
-                location: 'Estados Unidos',
-                initials: 'JM'
-            }
+            { author: 'María Prieto', initials: 'MP', ...i18nTestimonials[0] },
+            { author: 'Chen Wei', initials: 'CW', ...i18nTestimonials[1] },
+            { author: 'John Miller', initials: 'JM', ...i18nTestimonials[2] }
         ];
 
         let currentIndex = 0;
@@ -424,6 +433,8 @@
         // Autor: Antigravity
         // Última modificación: 2026-07-24
         
+        const i18nCal = @json($i18nCalData);
+
         let filterActiveTab = 'fechas'; // 'fechas' o 'flexible'
         let filterSelectedDate = null;  // Objeto Date o string Y-m-d
         let filterFlexibility = 0;      // En días
@@ -512,12 +523,8 @@
         
         function renderSingleCalendar(year, month, gridEl, labelEl) {
             gridEl.innerHTML = '';
-            
-            const monthNames = [
-                'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-                'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
-            ];
-            labelEl.textContent = `${monthNames[month - 1]} ${year}`;
+
+            labelEl.textContent = `${i18nCal.months[month - 1]} ${year}`;
             
             const totalDays = new Date(year, month, 0).getDate();
             const startDay = new Date(year, month - 1, 1).getDay(); // Domingo = 0
@@ -599,19 +606,14 @@
         function renderFlexibleMonths() {
             const container = document.getElementById('flexible-months-container');
             container.innerHTML = '';
-            
-            const monthNames = [
-                'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
-                'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'
-            ];
-            
+
             const hoy = new Date();
             for (let i = 0; i < 6; i++) {
                 const tempDate = new Date(hoy.getFullYear(), hoy.getMonth() + i, 1);
                 const yearVal = tempDate.getFullYear();
                 const monthVal = tempDate.getMonth() + 1;
                 const dateKey = `${yearVal}-${String(monthVal).padStart(2, '0')}`;
-                const labelStr = `${monthNames[monthVal - 1]} ${yearVal}`;
+                const labelStr = `${i18nCal.monthsShort[monthVal - 1]} ${yearVal}`;
                 
                 const card = document.createElement('div');
                 card.className = 'flexible-month-card p-3 rounded-2xl border text-center cursor-pointer select-none';
@@ -671,8 +673,7 @@
                     hiddenMonths.value = '';
                     
                     const partes = filterSelectedDate.split('-');
-                    const mesesCortos = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
-                    const labelMes = mesesCortos[parseInt(partes[1]) - 1];
+                    const labelMes = i18nCal.monthsShort[parseInt(partes[1]) - 1].toLowerCase();
                     
                     let displayText = `${partes[2]} ${labelMes}`;
                     if (filterFlexibility > 0) {
@@ -692,12 +693,11 @@
                     hiddenFlex.value = '0';
                     hiddenMonths.value = filterFlexibleMonths.join(',');
                     
-                    const mesesNombres = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
                     const labels = filterFlexibleMonths.map(m => {
                         const p = m.split('-');
-                        return mesesNombres[parseInt(p[1]) - 1];
+                        return i18nCal.monthsShort[parseInt(p[1]) - 1];
                     });
-                    filterDisplay.value = `Flexible: ${labels.join(', ')}`;
+                    filterDisplay.value = `${i18nCal.flexibleResultPrefix}${labels.join(', ')}`;
                 } else {
                     hiddenDate.value = '';
                     hiddenFlex.value = '0';

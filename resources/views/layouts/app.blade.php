@@ -68,7 +68,7 @@
                     ];
                     $currentFlag = $langFlags[app()->getLocale()] ?? '🌐';
                 @endphp
-                <div class="relative hidden sm:block">
+                <div class="relative hidden sm:block notranslate" translate="no">
                     <button id="lang-btn"
                             class="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 text-sm font-bold uppercase tracking-wider text-slate-600 transition-all cursor-pointer shadow-xs">
                         <span class="text-base leading-none">{{ $currentFlag }}</span>
@@ -85,6 +85,7 @@
                             ['code'=>'zh','label'=>'中文',       'flag'=>'🇨🇳'],
                         ] as $lang)
                             <a href="{{ route('lang.switch', $lang['code']) }}"
+                               onclick="setGoogleTranslateLang('{{ $lang['code'] }}')"
                                class="flex items-center justify-between px-3 py-2 rounded-xl text-sm font-semibold hover:bg-slate-50 text-slate-700 transition-colors
                                       {{ app()->getLocale() === $lang['code'] ? 'bg-brand-teal/5 text-brand-teal font-bold' : '' }}">
                                 <span>{{ $lang['label'] }}</span>
@@ -127,7 +128,7 @@
                             @endif
                             {{-- Texto "Mi cuenta" en desktop --}}
                             <span class="hidden sm:block text-sm font-bold text-slate-700 group-hover:text-brand-teal transition-colors">
-                                Mi cuenta
+                                {{ __('myAccountBadge') }}
                             </span>
                             <svg class="hidden sm:block h-3 w-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
@@ -150,11 +151,11 @@
                                     <p class="text-xs font-bold text-slate-800 truncate">{{ Auth::user()->name }}</p>
                                     <p class="text-[10px] text-slate-500 truncate mt-0.5">{{ Auth::user()->email }}</p>
                                     @if(Auth::user()->isCliente())
-                                        <span class="mt-1 inline-block text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">Cliente</span>
+                                        <span class="mt-1 inline-block text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">{{ __('roleClientBadge') }}</span>
                                     @elseif(Auth::user()->isAdmin())
-                                        <span class="mt-1 inline-block text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-brand-teal/10 text-brand-teal border border-brand-teal/20">Administrador</span>
+                                        <span class="mt-1 inline-block text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-brand-teal/10 text-brand-teal border border-brand-teal/20">{{ __('roleAdminBadge') }}</span>
                                     @else
-                                        <span class="mt-1 inline-block text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-brand-orange/10 text-brand-orange border border-brand-orange/20">Proveedor</span>
+                                        <span class="mt-1 inline-block text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-brand-orange/10 text-brand-orange border border-brand-orange/20">{{ __('providerLabel') }}</span>
                                     @endif
                                 </div>
                             </div>
@@ -165,7 +166,7 @@
                                     <svg class="h-4 w-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                                     </svg>
-                                    Mi Cuenta
+                                    {{ __('myAccountBadge') }}
                                     @if(($mensajesNoLeidosCliente ?? 0) > 0)
                                         <span class="ml-auto px-1.5 py-0.5 rounded-full bg-rose-500 text-white text-[9px] font-black">{{ $mensajesNoLeidosCliente }}</span>
                                     @endif
@@ -175,7 +176,7 @@
                                     <svg class="h-4 w-4 text-brand-teal" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                                     </svg>
-                                    Explorar Tours
+                                    {{ __('exploreToursBtn') }}
                                 </a>
                             @else
                                 <a href="{{ route('dashboard') }}"
@@ -183,14 +184,14 @@
                                     <svg class="h-4 w-4 text-brand-teal" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2m0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                                     </svg>
-                                    Panel de Control
+                                    {{ __('dashboardPanelLabel') }}
                                 </a>
                                 <a href="{{ route('dashboard.qr.scanner') }}"
                                    class="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold hover:bg-slate-50 text-slate-700 transition-colors">
                                     <svg class="h-4 w-4 text-brand-teal" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/>
                                     </svg>
-                                    Lector QR
+                                    {{ __('qrScannerLabel') }}
                                 </a>
                                 @if(Auth::user()->isAdmin())
                                     <a href="{{ route('dashboard.mensajes.index') }}"
@@ -198,7 +199,7 @@
                                         <svg class="h-4 w-4 text-brand-teal" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
                                         </svg>
-                                        Mensajes
+                                        {{ __('messagesNavLabel') }}
                                         @if(($mensajesNoLeidosAdmin ?? 0) > 0)
                                             <span class="ml-auto px-1.5 py-0.5 rounded-full bg-rose-500 text-white text-[9px] font-black">{{ $mensajesNoLeidosAdmin }}</span>
                                         @endif
@@ -233,7 +234,7 @@
                         <div id="guest-menu"
                              class="absolute right-0 mt-2 w-52 origin-top-right rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl opacity-0 scale-95 pointer-events-none transition-all duration-200 z-50">
                             <p class="px-3 pt-1 pb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 mb-2">
-                                Acceso
+                                {{ __('accessLabel') }}
                             </p>
                             <a href="{{ route('login') }}"
                                class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold text-slate-700 hover:bg-brand-teal/5 hover:text-brand-teal transition-colors">
@@ -253,7 +254,7 @@
                                               d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
                                     </svg>
                                 </span>
-                                Crear cuenta
+                                {{ __('registerTab') }}
                             </a>
                         </div>
                     </div>
@@ -281,7 +282,7 @@
                 {{ __('navTours') }}
             </a>
             {{-- Selector de idioma en móvil --}}
-            <div class="border-t border-slate-100 mt-1 py-2">
+            <div class="border-t border-slate-100 mt-1 py-2 notranslate" translate="no">
                 <p class="text-[9px] font-bold uppercase tracking-wider text-slate-400 px-1 mb-2">Idioma</p>
                 <div class="grid grid-cols-3 gap-1.5">
                     @foreach([
@@ -290,6 +291,7 @@
                         ['code'=>'zh','label'=>'ZH','flag'=>'🇨🇳'],
                     ] as $lang)
                         <a href="{{ route('lang.switch', $lang['code']) }}"
+                           onclick="setGoogleTranslateLang('{{ $lang['code'] }}')"
                            class="flex flex-col items-center gap-0.5 py-1.5 rounded-lg text-[10px] font-bold transition-colors
                                   {{ app()->getLocale() === $lang['code'] ? 'bg-brand-teal/10 text-brand-teal ring-1 ring-brand-teal/30' : 'bg-slate-50 text-slate-600 hover:bg-slate-100' }}">
                             <span class="text-base leading-none">{{ $lang['flag'] }}</span>
@@ -302,7 +304,7 @@
                 @if(Auth::user()->isCliente())
                     <a href="{{ route('cliente.dashboard') }}"
                        class="px-3 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-50 text-slate-700 flex items-center justify-between {{ Route::is('cliente.dashboard') ? 'bg-brand-teal/5 text-brand-teal' : '' }}">
-                        Mi Cuenta
+                        {{ __('myAccountBadge') }}
                         @if(($mensajesNoLeidosCliente ?? 0) > 0)
                             <span class="px-1.5 py-0.5 rounded-full bg-rose-500 text-white text-[9px] font-black">{{ $mensajesNoLeidosCliente }}</span>
                         @endif
@@ -314,12 +316,12 @@
                     </a>
                     <a href="{{ route('dashboard.qr.scanner') }}"
                        class="px-3 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-50 text-slate-700">
-                        Lector QR
+                        {{ __('qrScannerLabel') }}
                     </a>
                     @if(Auth::user()->isAdmin())
                         <a href="{{ route('dashboard.mensajes.index') }}"
                            class="px-3 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-50 text-slate-700 flex items-center justify-between">
-                            Mensajes
+                            {{ __('messagesNavLabel') }}
                             @if(($mensajesNoLeidosAdmin ?? 0) > 0)
                                 <span class="px-1.5 py-0.5 rounded-full bg-rose-500 text-white text-[9px] font-black">{{ $mensajesNoLeidosAdmin }}</span>
                             @endif
@@ -341,7 +343,7 @@
                     </a>
                     <a href="{{ route('register') }}"
                        class="flex-1 py-2.5 rounded-xl text-sm font-bold text-center bg-brand-teal text-white hover:opacity-90 transition-colors">
-                        Crear cuenta
+                        {{ __('registerTab') }}
                     </a>
                 </div>
             @endauth
@@ -398,14 +400,14 @@
                     </ul>
                 </div>
                 <div>
-                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700 mb-4">Ayuda</h3>
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700 mb-4">{{ __('helpLabel') }}</h3>
                     <ul class="flex flex-col gap-2 text-xs font-semibold text-slate-500">
                         <li><a href="#" class="hover:text-brand-teal transition-colors">{{ __('faq') }}</a></li>
                         <li><a href="#" class="hover:text-brand-teal transition-colors">{{ __('aboutUs') }}</a></li>
                     </ul>
                 </div>
                 <div>
-                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700 mb-4">Legal</h3>
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700 mb-4">{{ __('legalLabel') }}</h3>
                     <ul class="flex flex-col gap-2 text-xs font-semibold text-slate-500">
                         <li><a href="#" class="hover:text-brand-teal transition-colors">{{ __('terms') }}</a></li>
                         <li><a href="#" class="hover:text-brand-teal transition-colors">{{ __('privacy') }}</a></li>
@@ -414,7 +416,7 @@
             </div>
 
             <div class="border-t border-slate-200 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-[10px] text-slate-400 font-bold uppercase tracking-wider">
-                <span>&copy; {{ date('Y') }} <strong>Attitour</strong>. All rights reserved.</span>
+                <span>&copy; {{ date('Y') }} <strong>Attitour</strong>. {{ __('allRightsReservedLabel') }}</span>
                 <div class="flex gap-5 items-center">
                     {{-- Facebook --}}
                     <a href="#" class="text-slate-400 hover:text-brand-teal transition-colors" aria-label="Facebook">
@@ -503,5 +505,70 @@
             }, 3500);
         });
     </script>
+
+    {{-- ====================================================================
+         GOOGLE TRANSLATE (widget nativo, como capa extra sobre el selector propio)
+         Los botones de idioma ya cambian el locale de la app (__() y campos
+         titulo_es/en/zh). Además de eso, forzamos aquí la traducción nativa
+         de Google para cubrir cualquier texto que el sistema propio no traduzca.
+    ===================================================================== --}}
+    <div id="google_translate_element" style="display:none;"></div>
+    <script>
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: 'es',
+                includedLanguages: 'es,en,zh-CN',
+                autoDisplay: false
+            }, 'google_translate_element');
+
+            // Si ya se había pedido un idioma antes de que el widget terminara de cargar, aplicarlo ahora
+            applyPendingGoogleTranslate();
+        }
+
+        function getCookie(name) {
+            const match = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
+            return match ? decodeURIComponent(match[1]) : null;
+        }
+
+        // Google Translate lee la cookie "googtrans" (formato "/es/en") al cargar
+        // la página para saber a qué idioma traducir automáticamente.
+        function setGoogleTranslateLang(code) {
+            const map = { es: 'es', en: 'en', zh: 'zh-CN' };
+            const target = map[code] || code;
+            const domain = window.location.hostname;
+            const expired = 'expires=Thu, 01 Jan 1970 00:00:00 UTC';
+
+            document.cookie = `googtrans=; path=/; ${expired}`;
+            document.cookie = `googtrans=; path=/; domain=${domain}; ${expired}`;
+
+            if (target !== 'es') {
+                document.cookie = `googtrans=/es/${target}; path=/`;
+                document.cookie = `googtrans=/es/${target}; path=/; domain=${domain}`;
+            }
+
+            // Si el widget ya está cargado en esta página (sin recarga aún), aplicar de inmediato
+            applyPendingGoogleTranslate();
+        }
+
+        function applyPendingGoogleTranslate(attemptsLeft = 15) {
+            const raw = getCookie('googtrans'); // ej. "/es/en"
+            if (!raw) return;
+            const target = raw.split('/').filter(Boolean)[1];
+            if (!target || target === 'es') return;
+
+            const select = document.querySelector('.goog-te-combo');
+            if (select) {
+                if (select.value !== target) {
+                    select.value = target;
+                    select.dispatchEvent(new Event('change'));
+                }
+            } else if (attemptsLeft > 0) {
+                setTimeout(() => applyPendingGoogleTranslate(attemptsLeft - 1), 300);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => applyPendingGoogleTranslate());
+    </script>
+    <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" async></script>
 </body>
 </html>

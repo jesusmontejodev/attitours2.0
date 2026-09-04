@@ -64,6 +64,7 @@ class Tour extends Model
         'titulo' => 'array',
         'descripcion_corta' => 'array',
         'descripcion_larga' => 'array',
+        'duracion' => 'array',
         'galeria' => 'array',
         'galeria_experiencias' => 'array',
         'tags' => 'array',
@@ -187,6 +188,14 @@ class Tour extends Model
     public function getDetalleAttribute(): string
     {
         return $this->getLocalizedField('descripcion_larga');
+    }
+
+    /**
+     * Accesor para obtener la duración en el idioma actual de la aplicación.
+     */
+    public function getDuracionMostrarAttribute(): string
+    {
+        return $this->getLocalizedField('duracion');
     }
 
     /**

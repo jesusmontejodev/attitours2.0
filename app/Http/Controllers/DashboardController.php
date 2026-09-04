@@ -356,7 +356,9 @@ class DashboardController extends Controller
             'descripcion_larga_en' => 'nullable|string',
             'descripcion_larga_zh' => 'nullable|string',
             'precio_base_usd' => 'required|numeric|min:1',
-            'duracion' => 'required|string|max:50',
+            'duracion_es' => 'required|string|max:50',
+            'duracion_en' => 'nullable|string|max:50',
+            'duracion_zh' => 'nullable|string|max:50',
             'ubicacion' => 'required|string|max:100',
             'punto_encuentro' => 'nullable|string',
             'punto_encuentro_lat' => 'nullable|numeric|between:-90,90',
@@ -389,7 +391,7 @@ class DashboardController extends Controller
         }
 
         // Generar ID único
-        $slug = \Illuminate\Support\Str::slug($request->input('titulo'), '_');
+        $slug = \Illuminate\Support\Str::slug($request->input('titulo_es'), '_');
         $id = 'tour_' . $slug;
 
         if (Tour::where('id', $id)->exists()) {
@@ -450,7 +452,11 @@ class DashboardController extends Controller
             'punto_encuentro_lng' => $request->filled('punto_encuentro_lng') ? (float)$request->input('punto_encuentro_lng') : null,
             'pais' => $request->input('pais'),
             'precio_base_usd' => (float)$request->input('precio_base_usd'),
-            'duracion' => $request->input('duracion'),
+            'duracion' => [
+                'es' => $request->input('duracion_es'),
+                'en' => $request->input('duracion_en', ''),
+                'zh' => $request->input('duracion_zh', ''),
+            ],
             'imagen_destacada' => $imagenDefault,
             'galeria' => $galeria,
             'galeria_experiencias' => $galeriaExperiencias,
@@ -1105,7 +1111,9 @@ class DashboardController extends Controller
             'descripcion_larga_en' => 'nullable|string',
             'descripcion_larga_zh' => 'nullable|string',
             'precio_base_usd' => 'required|numeric|min:1',
-            'duracion' => 'required|string|max:50',
+            'duracion_es' => 'required|string|max:50',
+            'duracion_en' => 'nullable|string|max:50',
+            'duracion_zh' => 'nullable|string|max:50',
             'ubicacion' => 'required|string|max:100',
             'punto_encuentro' => 'nullable|string',
             'punto_encuentro_lat' => 'nullable|numeric|between:-90,90',
@@ -1174,7 +1182,11 @@ class DashboardController extends Controller
             'pais' => $request->input('pais'),
             'precio_base_usd' => (float)$request->input('precio_base_usd'),
             'cupo_maximo' => (int)$request->input('cupo_maximo', $tour->cupo_maximo),
-            'duracion' => $request->input('duracion'),
+            'duracion' => [
+                'es' => $request->input('duracion_es'),
+                'en' => $request->input('duracion_en', ''),
+                'zh' => $request->input('duracion_zh', ''),
+            ],
             'imagen_destacada' => $imagenDefault,
             'tags' => $tags,
             'itinerario' => trim((string) $request->input('itinerario', '')),

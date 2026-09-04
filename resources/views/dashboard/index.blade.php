@@ -72,13 +72,28 @@
 
         {{-- Pestaña activa desde sesión (enviada por el controlador tras un POST) --}}
         @php
+            // Lista completa de campos validados por storeTour()/updateTour() en DashboardController,
+            // usada tanto para inferir la pestaña activa como para decidir si hay que reabrir el
+            // modal de "Crear Tour" (ver más abajo). Se calcula siempre (no solo cuando falta
+            // $initialTab de sesión) para que ambos usos la tengan disponible de forma consistente.
+            $tourFields = [
+                'titulo_es','titulo_en','titulo_zh',
+                'descripcion_corta_es','descripcion_corta_en','descripcion_corta_zh',
+                'descripcion_larga_es','descripcion_larga_en','descripcion_larga_zh',
+                'precio_base_usd','duracion_es','duracion_en','duracion_zh',
+                'ubicacion','punto_encuentro','punto_encuentro_lat','punto_encuentro_lng','pais',
+                'cupo_maximo','proveedor_id','tags','horarios',
+                'imagen_destacada_file','imagen_destacada_url',
+                'itinerario','incluye','no_incluye','tipo_modalidad','tarifas_privadas',
+                'tour_importado_id','sync_calendario_activo','incluye_pickup',
+            ];
+
             $initialTab = session('active_tab', null);
             // Si hay errores de validación, inferir la pestaña según el campo
             if (!$initialTab && $errors->any()) {
                 $allFields = $errors->keys();
                 $apiFields = ['base_url','uniqid_empresa','modo'];
                 $provFields = ['nombre_empresa','descripcion','rfc','correo','representante_nombre','representante_telefono','contacto_visible_cliente','comision_porcentaje','password','foto_url'];
-                $tourFields = ['titulo','descripcion_tour','duracion','precio_adulto','precio_nino','destino','proveedor_id'];
                 if (array_intersect($allFields, $apiFields)) $initialTab = 'apis';
                 elseif (array_intersect($allFields, $provFields)) $initialTab = 'proveedores';
                 elseif (array_intersect($allFields, $tourFields)) $initialTab = 'tours';
@@ -719,7 +734,7 @@
                                          data-detalle-idiomas="{{ json_encode($t->descripcion_larga ?: []) }}"
                                          data-precio="{{ $t->precio_base_usd }}"
                                          data-cupo-maximo="{{ $t->cupo_maximo }}"
-                                         data-duracion="{{ $t->duracion }}"
+                                         data-duracion-idiomas="{{ json_encode($t->duracion ?: []) }}"
                                          data-ubicacion="{{ $t->ubicacion }}"
                                          data-pais="{{ $t->pais }}"
                                          data-proveedor-id="{{ $t->proveedor_id }}"
@@ -1531,8 +1546,11 @@
 
                     <form id="create-tour-form" action="{{ route('dashboard.tour') }}" method="POST" enctype="multipart/form-data" class="flex flex-col gap-5">
                         @csrf
-                        <input type="hidden" name="tour_importado_id" id="create-tour-importado-id">
-                        <input type="hidden" name="imagen_destacada_url" id="create-tour-imagen-url">
+                        {{-- Marca este envío como "crear", para distinguirlo de una edición fallida
+                             al decidir más abajo si hay que reabrir este modal tras un error. --}}
+                        <input type="hidden" name="form_context" value="create">
+                        <input type="hidden" name="tour_importado_id" id="create-tour-importado-id" value="{{ old('tour_importado_id') }}">
+                        <input type="hidden" name="imagen_destacada_url" id="create-tour-imagen-url" value="{{ old('imagen_destacada_url') }}">
 
                         <!-- Banner: publicando desde una API externa -->
                         <div id="create-tour-import-banner" class="hidden p-3 rounded-xl border border-brand-teal/30 bg-brand-teal/5 text-[10px] text-slate-700">
@@ -1547,7 +1565,7 @@
                             <select name="proveedor_id" required class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal cursor-pointer">
                                 <option value="">-- Selecciona Operador --</option>
                                 @foreach($proveedores as $prov)
-                                    <option value="{{ $prov->id }}">{{ $prov->nombre_empresa }}</option>
+                                    <option value="{{ $prov->id }}" @selected(old('proveedor_id') == $prov->id)>{{ $prov->nombre_empresa }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -1558,15 +1576,15 @@
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
                                 <div class="flex flex-col gap-1">
                                     <span class="text-[9px] font-bold text-slate-400">🇲🇽 Español</span>
-                                    <input type="text" name="titulo_es" required placeholder="Ej. Excursión a Chichén Itzá Premium" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                                    <input type="text" name="titulo_es" required value="{{ old('titulo_es') }}" placeholder="Ej. Excursión a Chichén Itzá Premium" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
                                 </div>
                                 <div class="flex flex-col gap-1">
                                     <span class="text-[9px] font-bold text-slate-400">🇺🇸 English</span>
-                                    <input type="text" name="titulo_en" placeholder="Ej. Chichén Itzá Premium Excursion" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                                    <input type="text" name="titulo_en" value="{{ old('titulo_en') }}" placeholder="Ej. Chichén Itzá Premium Excursion" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
                                 </div>
                                 <div class="flex flex-col gap-1">
                                     <span class="text-[9px] font-bold text-slate-400">🇨🇳 中文</span>
-                                    <input type="text" name="titulo_zh" placeholder="例如：奇琴伊察高级游览" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                                    <input type="text" name="titulo_zh" value="{{ old('titulo_zh') }}" placeholder="例如：奇琴伊察高级游览" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
                                 </div>
                             </div>
                             <p class="text-[9px] text-slate-400">English y 中文 son opcionales — si los dejas vacíos, se mostrará el texto en español.</p>
@@ -1578,15 +1596,15 @@
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
                                 <div class="flex flex-col gap-1">
                                     <span class="text-[9px] font-bold text-slate-400">🇲🇽 Español</span>
-                                    <input type="text" name="descripcion_corta_es" required placeholder="Ej. Vive una experiencia inolvidable..." class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                                    <input type="text" name="descripcion_corta_es" required value="{{ old('descripcion_corta_es') }}" placeholder="Ej. Vive una experiencia inolvidable..." class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
                                 </div>
                                 <div class="flex flex-col gap-1">
                                     <span class="text-[9px] font-bold text-slate-400">🇺🇸 English</span>
-                                    <input type="text" name="descripcion_corta_en" placeholder="Ej. Live an unforgettable experience..." class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                                    <input type="text" name="descripcion_corta_en" value="{{ old('descripcion_corta_en') }}" placeholder="Ej. Live an unforgettable experience..." class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
                                 </div>
                                 <div class="flex flex-col gap-1">
                                     <span class="text-[9px] font-bold text-slate-400">🇨🇳 中文</span>
-                                    <input type="text" name="descripcion_corta_zh" placeholder="例如：难忘的体验..." class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                                    <input type="text" name="descripcion_corta_zh" value="{{ old('descripcion_corta_zh') }}" placeholder="例如：难忘的体验..." class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
                                 </div>
                             </div>
                         </div>
@@ -1597,40 +1615,56 @@
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
                                 <div class="flex flex-col gap-1">
                                     <span class="text-[9px] font-bold text-slate-400">🇲🇽 Español</span>
-                                    <textarea name="descripcion_larga_es" required placeholder="Describe paso a paso el itinerario y detalles del tour..." rows="4" class="w-full rounded-lg border border-slate-200 bg-white p-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white"></textarea>
+                                    <textarea name="descripcion_larga_es" required placeholder="Describe paso a paso el itinerario y detalles del tour..." rows="4" class="w-full rounded-lg border border-slate-200 bg-white p-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">{{ old('descripcion_larga_es') }}</textarea>
                                 </div>
                                 <div class="flex flex-col gap-1">
                                     <span class="text-[9px] font-bold text-slate-400">🇺🇸 English</span>
-                                    <textarea name="descripcion_larga_en" placeholder="Describe the tour step by step..." rows="4" class="w-full rounded-lg border border-slate-200 bg-white p-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white"></textarea>
+                                    <textarea name="descripcion_larga_en" placeholder="Describe the tour step by step..." rows="4" class="w-full rounded-lg border border-slate-200 bg-white p-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">{{ old('descripcion_larga_en') }}</textarea>
                                 </div>
                                 <div class="flex flex-col gap-1">
                                     <span class="text-[9px] font-bold text-slate-400">🇨🇳 中文</span>
-                                    <textarea name="descripcion_larga_zh" placeholder="逐步描述行程和详情..." rows="4" class="w-full rounded-lg border border-slate-200 bg-white p-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white"></textarea>
+                                    <textarea name="descripcion_larga_zh" placeholder="逐步描述行程和详情..." rows="4" class="w-full rounded-lg border border-slate-200 bg-white p-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">{{ old('descripcion_larga_zh') }}</textarea>
                                 </div>
                             </div>
                         </div>
 
+                        <!-- Duración (por idioma) -->
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Duración</label>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-[9px] font-bold text-slate-400">🇲🇽 Español</span>
+                                    <input type="text" name="duracion_es" required value="{{ old('duracion_es') }}" placeholder="Ej. 12 horas" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                                </div>
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-[9px] font-bold text-slate-400">🇺🇸 English</span>
+                                    <input type="text" name="duracion_en" value="{{ old('duracion_en') }}" placeholder="Ej. 12 hours" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                                </div>
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-[9px] font-bold text-slate-400">🇨🇳 中文</span>
+                                    <input type="text" name="duracion_zh" value="{{ old('duracion_zh') }}" placeholder="例如：12小时" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                                </div>
+                            </div>
+                            <p class="text-[9px] text-slate-400">English y 中文 son opcionales — si los dejas vacíos, se mostrará el texto en español.</p>
+                        </div>
+
                         <!-- Condiciones Financieras y Logística -->
-                        <div class="grid grid-cols-2 sm:grid-cols-5 gap-4">
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
                             <div class="flex flex-col gap-1.5">
                                 <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Precio USD</label>
-                                <input type="number" name="precio_base_usd" required min="1" placeholder="1200" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
-                            </div>
-                            <div class="flex flex-col gap-1.5">
-                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Duración</label>
-                                <input type="text" name="duracion" required placeholder="Ej. 12 horas" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                                <input type="number" name="precio_base_usd" required min="1" value="{{ old('precio_base_usd') }}" placeholder="1200" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
                             </div>
                             <div class="flex flex-col gap-1.5">
                                 <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Ubicación</label>
-                                <input type="text" name="ubicacion" required placeholder="Ej. Chichén Itzá" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                                <input type="text" name="ubicacion" required value="{{ old('ubicacion') }}" placeholder="Ej. Chichén Itzá" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
                             </div>
                             <div class="flex flex-col gap-1.5">
                                 <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">País</label>
-                                <input type="text" name="pais" required value="México" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                                <input type="text" name="pais" required value="{{ old('pais', 'México') }}" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
                             </div>
                             <div class="flex flex-col gap-1.5">
                                 <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Cupo Máximo</label>
-                                <input type="number" name="cupo_maximo" min="1" value="20" placeholder="20" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                                <input type="number" name="cupo_maximo" min="1" value="{{ old('cupo_maximo', 20) }}" placeholder="20" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
                             </div>
                         </div>
 
@@ -1819,15 +1853,30 @@
                             </div>
                         </div>
 
+                        <!-- Duración (por idioma) -->
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Duración</label>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-[9px] font-bold text-slate-400">🇲🇽 Español</span>
+                                    <input type="text" name="duracion_es" id="edit-tour-duracion-es" required class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                                </div>
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-[9px] font-bold text-slate-400">🇺🇸 English</span>
+                                    <input type="text" name="duracion_en" id="edit-tour-duracion-en" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                                </div>
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-[9px] font-bold text-slate-400">🇨🇳 中文</span>
+                                    <input type="text" name="duracion_zh" id="edit-tour-duracion-zh" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Condiciones Financieras y Logística -->
-                        <div class="grid grid-cols-2 sm:grid-cols-5 gap-4">
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
                             <div class="flex flex-col gap-1.5">
                                 <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Precio USD</label>
                                 <input type="number" name="precio_base_usd" id="edit-tour-precio" required min="1" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
-                            </div>
-                            <div class="flex flex-col gap-1.5">
-                                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Duración</label>
-                                <input type="text" name="duracion" id="edit-tour-duracion" required class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
                             </div>
                             <div class="flex flex-col gap-1.5">
                                 <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Ubicación</label>
@@ -2393,6 +2442,29 @@
             if (newTourId) {
                 openTourGalleryModal(newTourId);
             }
+
+            // Si el envío del modal "Crear Tour" falló la validación, reabrirlo con los datos
+            // que ya se habían llenado (old()) en vez de perderlos silenciosamente. Se exige
+            // form_context === 'create' (campo oculto solo presente en este formulario) para no
+            // reabrir este modal cuando el error viene en realidad de editar un tour existente
+            // (updateTour valida los mismos nombres de campo que storeTour).
+            @if($errors->any() && old('form_context') === 'create' && array_intersect($errors->keys(), $tourFields))
+                @php
+                    // @json() de Blade separa su argumento por comas sin respetar paréntesis/arrays,
+                    // así que cualquier expresión con una coma interna (como old('tags', '')) hay
+                    // que resolverla primero en PHP y pasar solo la variable resultante.
+                    $oldTags = old('tags', '');
+                @endphp
+                const reopenModal = document.getElementById('create-tour-modal');
+                if (reopenModal) {
+                    reopenModal.classList.remove('hidden');
+                    const importBanner = document.getElementById('create-tour-import-banner');
+                    if (importBanner && document.getElementById('create-tour-importado-id').value) {
+                        importBanner.classList.remove('hidden');
+                    }
+                    tagInputInit('create-tags-box', 'create-tags-hidden', @json($oldTags));
+                }
+            @endif
 
             // Auto-dismiss flash messages
             ['flash-success','flash-error','flash-validation'].forEach(id => {
@@ -3621,7 +3693,8 @@
             try { detalleIdiomas = JSON.parse(card.getAttribute('data-detalle-idiomas') || '{}'); } catch(e) {}
             const precio = card.getAttribute('data-precio') || '';
             const cupoMaximo = card.getAttribute('data-cupo-maximo') || '20';
-            const duracion = card.getAttribute('data-duracion') || '';
+            let duracionIdiomas = {};
+            try { duracionIdiomas = JSON.parse(card.getAttribute('data-duracion-idiomas') || '{}'); } catch(e) {}
             const ubicacion = card.getAttribute('data-ubicacion') || '';
             const pais = card.getAttribute('data-pais') || '';
             const proveedorId = card.getAttribute('data-proveedor-id') || '';
@@ -3660,7 +3733,9 @@
             document.getElementById('edit-tour-detalle-zh').value = detalleIdiomas.zh || '';
             document.getElementById('edit-tour-precio').value = precio;
             document.getElementById('edit-tour-cupo-maximo').value = cupoMaximo;
-            document.getElementById('edit-tour-duracion').value = duracion;
+            document.getElementById('edit-tour-duracion-es').value = duracionIdiomas.es || '';
+            document.getElementById('edit-tour-duracion-en').value = duracionIdiomas.en || '';
+            document.getElementById('edit-tour-duracion-zh').value = duracionIdiomas.zh || '';
             document.getElementById('edit-tour-ubicacion').value = ubicacion;
             document.getElementById('edit-tour-pais').value = pais;
             document.getElementById('edit-tour-proveedor').value = proveedorId;

@@ -264,7 +264,7 @@
                 <div class="grid grid-cols-2 gap-4 p-2 rounded-2xl border border-slate-200 bg-slate-100/50 backdrop-blur-xs">
                     <div class="text-center py-4 border-r border-slate-200">
                         <p class="text-[8px] font-bold text-slate-500 uppercase tracking-widest">{{ __('duration') }}</p>
-                        <p class="text-sm font-bold text-slate-800 mt-1">{{ $tour->duracion }}</p>
+                        <p class="text-sm font-bold text-slate-800 mt-1">{{ $tour->duracion_mostrar }}</p>
                     </div>
                     <div class="text-center py-4">
                         <p class="text-[8px] font-bold text-slate-500 uppercase tracking-widest">{{ __('maxCapacity') }}</p>

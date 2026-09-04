@@ -61,7 +61,7 @@ class DemoDataSeeder extends Seeder
                 'ubicacion' => 'CANCUN',
                 'pais' => 'México',
                 'precio_base_usd' => 1180.00,
-                'duracion' => '4 horas',
+                'duracion' => ['es' => '4 horas', 'en' => '4 hours', 'zh' => '4小时'],
                 'imagen_destacada' => 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=800&q=80',
                 'galeria' => [
                     'https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=800&q=80',
@@ -97,7 +97,7 @@ class DemoDataSeeder extends Seeder
                 'ubicacion' => 'RIVIERA MAYA',
                 'pais' => 'México',
                 'precio_base_usd' => 1780.00,
-                'duracion' => '8 horas',
+                'duracion' => ['es' => '8 horas', 'en' => '8 hours', 'zh' => '8小时'],
                 'imagen_destacada' => 'https://images.unsplash.com/photo-1504198453319-5ce911bafcde?auto=format&fit=crop&w=800&q=80',
                 'galeria' => [
                     'https://images.unsplash.com/photo-1504198453319-5ce911bafcde?auto=format&fit=crop&w=800&q=80',
@@ -133,7 +133,7 @@ class DemoDataSeeder extends Seeder
                 'ubicacion' => 'ISLA MUJERES',
                 'pais' => 'México',
                 'precio_base_usd' => 1580.00,
-                'duracion' => '7 horas',
+                'duracion' => ['es' => '7 horas', 'en' => '7 hours', 'zh' => '7小时'],
                 'imagen_destacada' => 'https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?auto=format&fit=crop&w=800&q=80',
                 'galeria' => [
                     'https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?auto=format&fit=crop&w=800&q=80',
@@ -169,7 +169,7 @@ class DemoDataSeeder extends Seeder
                 'ubicacion' => 'CONTOY',
                 'pais' => 'México',
                 'precio_base_usd' => 2580.00,
-                'duracion' => '9 horas',
+                'duracion' => ['es' => '9 horas', 'en' => '9 hours', 'zh' => '9小时'],
                 'imagen_destacada' => 'https://images.unsplash.com/photo-1526392060635-9d6019884377?auto=format&fit=crop&w=800&q=80',
                 'galeria' => [
                     'https://images.unsplash.com/photo-1526392060635-9d6019884377?auto=format&fit=crop&w=800&q=80',

@@ -41,8 +41,12 @@ return new class extends Migration
         }
 
         // 2. Cambiar el tipo de columna de json a text (MODIFY vía SQL crudo para no depender de
-        //    doctrine/dbal, que Laravel 11+ ya no requiere para esto en otros drivers).
-        DB::statement('ALTER TABLE tours MODIFY itinerario TEXT NULL');
+        //    doctrine/dbal, que Laravel 11+ ya no requiere para esto en otros drivers). SQLite no
+        //    soporta ALTER ... MODIFY y tampoco distingue tipos de columna de forma estricta (type
+        //    affinity), así que ahí no hace falta: el texto plano ya cabe en la columna existente.
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement('ALTER TABLE tours MODIFY itinerario TEXT NULL');
+        }
 
         // 3. Ahora que la columna es texto plano, quitar las comillas JSON que le puso el paso 1
         //    (json_encode('hola') guarda "hola" con comillas; sin el cast 'array' del modelo, ya
@@ -69,6 +73,8 @@ return new class extends Migration
             DB::table('tours')->where('id', $tour->id)->update(['itinerario' => json_encode($pasos)]);
         }
 
-        DB::statement('ALTER TABLE tours MODIFY itinerario JSON NULL');
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement('ALTER TABLE tours MODIFY itinerario JSON NULL');
+        }
     }
 };
