@@ -390,8 +390,10 @@ class DashboardController extends Controller
             }
         }
 
-        // Generar ID único
+        // Generar ID único (se trunca el slug para no exceder la columna 'id' varchar(191),
+        // dejando margen para el prefijo "tour_" y el sufijo de desambiguación "_XXX").
         $slug = \Illuminate\Support\Str::slug($request->input('titulo_es'), '_');
+        $slug = \Illuminate\Support\Str::limit($slug, 150, '');
         $id = 'tour_' . $slug;
 
         if (Tour::where('id', $id)->exists()) {
