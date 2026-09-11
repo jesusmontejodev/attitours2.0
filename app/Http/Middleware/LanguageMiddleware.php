@@ -24,7 +24,7 @@ class LanguageMiddleware
     {
         if (session()->has('locale')) {
             $locale = session()->get('locale');
-            if (in_array($locale, ['es', 'en', 'zh'])) {
+            if (in_array($locale, config('app.supported_locales'))) {
                 App::setLocale($locale);
             }
         } else {

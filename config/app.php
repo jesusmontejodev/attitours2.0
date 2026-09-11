@@ -82,6 +82,19 @@ return [
 
     'fallback_locale' => env('APP_FALLBACK_LOCALE', 'en'),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Idiomas soportados por Attitour
+    |--------------------------------------------------------------------------
+    |
+    | Idiomas disponibles para el selector de idioma del sitio (LanguageController,
+    | LanguageMiddleware) y para las traducciones del contenido de los tours
+    | (TranslationService). Cada código debe tener su archivo lang/{codigo}.json.
+    |
+    */
+
+    'supported_locales' => ['es', 'en', 'zh', 'ko', 'pt', 'fr', 'de'],
+
     'faker_locale' => env('APP_FAKER_LOCALE', 'en_US'),
 
     /*

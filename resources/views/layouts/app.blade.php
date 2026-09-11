@@ -83,6 +83,10 @@
                             ['code'=>'es','label'=>'Español',    'flag'=>'🇲🇽'],
                             ['code'=>'en','label'=>'English',    'flag'=>'🇺🇸'],
                             ['code'=>'zh','label'=>'中文',       'flag'=>'🇨🇳'],
+                            ['code'=>'ko','label'=>'한국어',      'flag'=>'🇰🇷'],
+                            ['code'=>'pt','label'=>'Português',  'flag'=>'🇵🇹'],
+                            ['code'=>'fr','label'=>'Français',   'flag'=>'🇫🇷'],
+                            ['code'=>'de','label'=>'Deutsch',    'flag'=>'🇩🇪'],
                         ] as $lang)
                             <a href="{{ route('lang.switch', $lang['code']) }}"
                                onclick="setGoogleTranslateLang('{{ $lang['code'] }}')"
@@ -284,11 +288,15 @@
             {{-- Selector de idioma en móvil --}}
             <div class="border-t border-slate-100 mt-1 py-2 notranslate" translate="no">
                 <p class="text-[9px] font-bold uppercase tracking-wider text-slate-400 px-1 mb-2">Idioma</p>
-                <div class="grid grid-cols-3 gap-1.5">
+                <div class="grid grid-cols-4 gap-1.5">
                     @foreach([
                         ['code'=>'es','label'=>'ES','flag'=>'🇲🇽'],
                         ['code'=>'en','label'=>'EN','flag'=>'🇺🇸'],
                         ['code'=>'zh','label'=>'ZH','flag'=>'🇨🇳'],
+                        ['code'=>'ko','label'=>'KO','flag'=>'🇰🇷'],
+                        ['code'=>'pt','label'=>'PT','flag'=>'🇵🇹'],
+                        ['code'=>'fr','label'=>'FR','flag'=>'🇫🇷'],
+                        ['code'=>'de','label'=>'DE','flag'=>'🇩🇪'],
                     ] as $lang)
                         <a href="{{ route('lang.switch', $lang['code']) }}"
                            onclick="setGoogleTranslateLang('{{ $lang['code'] }}')"
@@ -517,7 +525,7 @@
         function googleTranslateElementInit() {
             new google.translate.TranslateElement({
                 pageLanguage: 'es',
-                includedLanguages: 'es,en,zh-CN',
+                includedLanguages: 'es,en,zh-CN,ko,pt,fr,de',
                 autoDisplay: false
             }, 'google_translate_element');
 
@@ -533,7 +541,7 @@
         // Google Translate lee la cookie "googtrans" (formato "/es/en") al cargar
         // la página para saber a qué idioma traducir automáticamente.
         function setGoogleTranslateLang(code) {
-            const map = { es: 'es', en: 'en', zh: 'zh-CN' };
+            const map = { es: 'es', en: 'en', zh: 'zh-CN', ko: 'ko', pt: 'pt', fr: 'fr', de: 'de' };
             const target = map[code] || code;
             const domain = window.location.hostname;
             const expired = 'expires=Thu, 01 Jan 1970 00:00:00 UTC';

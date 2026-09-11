@@ -1,7 +1,7 @@
 <?php
 /**
  * @file LanguageController.php
- * @description Controlador para cambiar de forma dinámica el idioma de la aplicación (español, inglés, chino) y guardarlo en la sesión.
+ * @description Controlador para cambiar de forma dinámica el idioma de la aplicación (ver config('app.supported_locales')) y guardarlo en la sesión.
  * @date 2026-06-08
  * @author Antigravity
  */
@@ -21,7 +21,7 @@ class LanguageController extends Controller
      */
     public function switchLanguage(string $locale): RedirectResponse
     {
-        if (in_array($locale, ['es', 'en', 'zh'])) {
+        if (in_array($locale, config('app.supported_locales'))) {
             session()->put('locale', $locale);
         }
 
