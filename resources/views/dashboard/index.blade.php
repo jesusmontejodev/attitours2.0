@@ -77,10 +77,10 @@
             // modal de "Crear Tour" (ver más abajo). Se calcula siempre (no solo cuando falta
             // $initialTab de sesión) para que ambos usos la tengan disponible de forma consistente.
             $tourFields = [
-                'titulo_es','titulo_en','titulo_zh',
-                'descripcion_corta_es','descripcion_corta_en','descripcion_corta_zh',
-                'descripcion_larga_es','descripcion_larga_en','descripcion_larga_zh',
-                'precio_base_usd','duracion_es','duracion_en','duracion_zh',
+                'titulo_es',
+                'descripcion_corta_es',
+                'descripcion_larga_es',
+                'precio_base_usd','duracion_es',
                 'ubicacion','punto_encuentro','punto_encuentro_lat','punto_encuentro_lng','pais',
                 'cupo_maximo','proveedor_id','tags','horarios',
                 'imagen_destacada_file','imagen_destacada_url',
@@ -1570,82 +1570,32 @@
                             </select>
                         </div>
 
-                        <!-- Título del Tour (por idioma) -->
+                        <!-- Título del Tour -->
                         <div class="flex flex-col gap-1.5">
                             <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Título del Tour</label>
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                                <div class="flex flex-col gap-1">
-                                    <span class="text-[9px] font-bold text-slate-400">🇲🇽 Español</span>
-                                    <input type="text" name="titulo_es" required value="{{ old('titulo_es') }}" placeholder="Ej. Excursión a Chichén Itzá Premium" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
-                                </div>
-                                <div class="flex flex-col gap-1">
-                                    <span class="text-[9px] font-bold text-slate-400">🇺🇸 English</span>
-                                    <input type="text" name="titulo_en" value="{{ old('titulo_en') }}" placeholder="Ej. Chichén Itzá Premium Excursion" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
-                                </div>
-                                <div class="flex flex-col gap-1">
-                                    <span class="text-[9px] font-bold text-slate-400">🇨🇳 中文</span>
-                                    <input type="text" name="titulo_zh" value="{{ old('titulo_zh') }}" placeholder="例如：奇琴伊察高级游览" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
-                                </div>
-                            </div>
-                            <p class="text-[9px] text-slate-400">English y 中文 son opcionales — si los dejas vacíos, se mostrará el texto en español.</p>
+                            <input type="text" name="titulo_es" required value="{{ old('titulo_es') }}" placeholder="Ej. Excursión a Chichén Itzá Premium" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                            <p class="text-[9px] text-slate-400">Se traducirá automáticamente a inglés, chino, coreano, portugués, francés y alemán al guardar.</p>
                         </div>
 
-                        <!-- Resumen del Tour (por idioma) -->
+                        <!-- Resumen del Tour -->
                         <div class="flex flex-col gap-1.5">
                             <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Resumen (Descripción Corta)</label>
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                                <div class="flex flex-col gap-1">
-                                    <span class="text-[9px] font-bold text-slate-400">🇲🇽 Español</span>
-                                    <input type="text" name="descripcion_corta_es" required value="{{ old('descripcion_corta_es') }}" placeholder="Ej. Vive una experiencia inolvidable..." class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
-                                </div>
-                                <div class="flex flex-col gap-1">
-                                    <span class="text-[9px] font-bold text-slate-400">🇺🇸 English</span>
-                                    <input type="text" name="descripcion_corta_en" value="{{ old('descripcion_corta_en') }}" placeholder="Ej. Live an unforgettable experience..." class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
-                                </div>
-                                <div class="flex flex-col gap-1">
-                                    <span class="text-[9px] font-bold text-slate-400">🇨🇳 中文</span>
-                                    <input type="text" name="descripcion_corta_zh" value="{{ old('descripcion_corta_zh') }}" placeholder="例如：难忘的体验..." class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
-                                </div>
-                            </div>
+                            <input type="text" name="descripcion_corta_es" required value="{{ old('descripcion_corta_es') }}" placeholder="Ej. Vive una experiencia inolvidable..." class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                            <p class="text-[9px] text-slate-400">Se traducirá automáticamente a inglés, chino, coreano, portugués, francés y alemán al guardar.</p>
                         </div>
 
-                        <!-- Descripción Larga (por idioma) -->
+                        <!-- Descripción Larga -->
                         <div class="flex flex-col gap-1.5">
                             <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Descripción Detallada (Larga)</label>
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                                <div class="flex flex-col gap-1">
-                                    <span class="text-[9px] font-bold text-slate-400">🇲🇽 Español</span>
-                                    <textarea name="descripcion_larga_es" required placeholder="Describe paso a paso el itinerario y detalles del tour..." rows="4" class="w-full rounded-lg border border-slate-200 bg-white p-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">{{ old('descripcion_larga_es') }}</textarea>
-                                </div>
-                                <div class="flex flex-col gap-1">
-                                    <span class="text-[9px] font-bold text-slate-400">🇺🇸 English</span>
-                                    <textarea name="descripcion_larga_en" placeholder="Describe the tour step by step..." rows="4" class="w-full rounded-lg border border-slate-200 bg-white p-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">{{ old('descripcion_larga_en') }}</textarea>
-                                </div>
-                                <div class="flex flex-col gap-1">
-                                    <span class="text-[9px] font-bold text-slate-400">🇨🇳 中文</span>
-                                    <textarea name="descripcion_larga_zh" placeholder="逐步描述行程和详情..." rows="4" class="w-full rounded-lg border border-slate-200 bg-white p-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">{{ old('descripcion_larga_zh') }}</textarea>
-                                </div>
-                            </div>
+                            <textarea name="descripcion_larga_es" required placeholder="Describe paso a paso el itinerario y detalles del tour..." rows="4" class="w-full rounded-lg border border-slate-200 bg-white p-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">{{ old('descripcion_larga_es') }}</textarea>
+                            <p class="text-[9px] text-slate-400">Se traducirá automáticamente a inglés, chino, coreano, portugués, francés y alemán al guardar.</p>
                         </div>
 
-                        <!-- Duración (por idioma) -->
+                        <!-- Duración -->
                         <div class="flex flex-col gap-1.5">
                             <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Duración</label>
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                                <div class="flex flex-col gap-1">
-                                    <span class="text-[9px] font-bold text-slate-400">🇲🇽 Español</span>
-                                    <input type="text" name="duracion_es" required value="{{ old('duracion_es') }}" placeholder="Ej. 12 horas" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
-                                </div>
-                                <div class="flex flex-col gap-1">
-                                    <span class="text-[9px] font-bold text-slate-400">🇺🇸 English</span>
-                                    <input type="text" name="duracion_en" value="{{ old('duracion_en') }}" placeholder="Ej. 12 hours" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
-                                </div>
-                                <div class="flex flex-col gap-1">
-                                    <span class="text-[9px] font-bold text-slate-400">🇨🇳 中文</span>
-                                    <input type="text" name="duracion_zh" value="{{ old('duracion_zh') }}" placeholder="例如：12小时" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
-                                </div>
-                            </div>
-                            <p class="text-[9px] text-slate-400">English y 中文 son opcionales — si los dejas vacíos, se mostrará el texto en español.</p>
+                            <input type="text" name="duracion_es" required value="{{ old('duracion_es') }}" placeholder="Ej. 12 horas" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                            <p class="text-[9px] text-slate-400">Se traducirá automáticamente a inglés, chino, coreano, portugués, francés y alemán al guardar.</p>
                         </div>
 
                         <!-- Condiciones Financieras y Logística -->
@@ -1795,81 +1745,32 @@
                             </select>
                         </div>
 
-                        <!-- Título del Tour (por idioma) -->
+                        <!-- Título del Tour -->
                         <div class="flex flex-col gap-1.5">
                             <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Título del Tour</label>
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                                <div class="flex flex-col gap-1">
-                                    <span class="text-[9px] font-bold text-slate-400">🇲🇽 Español</span>
-                                    <input type="text" name="titulo_es" id="edit-tour-titulo-es" required class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
-                                </div>
-                                <div class="flex flex-col gap-1">
-                                    <span class="text-[9px] font-bold text-slate-400">🇺🇸 English</span>
-                                    <input type="text" name="titulo_en" id="edit-tour-titulo-en" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
-                                </div>
-                                <div class="flex flex-col gap-1">
-                                    <span class="text-[9px] font-bold text-slate-400">🇨🇳 中文</span>
-                                    <input type="text" name="titulo_zh" id="edit-tour-titulo-zh" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
-                                </div>
-                            </div>
-                            <p class="text-[9px] text-slate-400">English y 中文 son opcionales — si los dejas vacíos, se mostrará el texto en español.</p>
+                            <input type="text" name="titulo_es" id="edit-tour-titulo-es" required class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                            <p class="text-[9px] text-slate-400">Se re-traducirá automáticamente a inglés, chino, coreano, portugués, francés y alemán al guardar.</p>
                         </div>
 
-                        <!-- Resumen del Tour (por idioma) -->
+                        <!-- Resumen del Tour -->
                         <div class="flex flex-col gap-1.5">
                             <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Resumen (Descripción Corta)</label>
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                                <div class="flex flex-col gap-1">
-                                    <span class="text-[9px] font-bold text-slate-400">🇲🇽 Español</span>
-                                    <input type="text" name="descripcion_corta_es" id="edit-tour-resumen-es" required class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
-                                </div>
-                                <div class="flex flex-col gap-1">
-                                    <span class="text-[9px] font-bold text-slate-400">🇺🇸 English</span>
-                                    <input type="text" name="descripcion_corta_en" id="edit-tour-resumen-en" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
-                                </div>
-                                <div class="flex flex-col gap-1">
-                                    <span class="text-[9px] font-bold text-slate-400">🇨🇳 中文</span>
-                                    <input type="text" name="descripcion_corta_zh" id="edit-tour-resumen-zh" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
-                                </div>
-                            </div>
+                            <input type="text" name="descripcion_corta_es" id="edit-tour-resumen-es" required class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                            <p class="text-[9px] text-slate-400">Se re-traducirá automáticamente a inglés, chino, coreano, portugués, francés y alemán al guardar.</p>
                         </div>
 
-                        <!-- Descripción Larga (por idioma) -->
+                        <!-- Descripción Larga -->
                         <div class="flex flex-col gap-1.5">
                             <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Descripción Detallada (Larga)</label>
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                                <div class="flex flex-col gap-1">
-                                    <span class="text-[9px] font-bold text-slate-400">🇲🇽 Español</span>
-                                    <textarea name="descripcion_larga_es" id="edit-tour-detalle-es" required rows="4" class="w-full rounded-lg border border-slate-200 bg-white p-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white"></textarea>
-                                </div>
-                                <div class="flex flex-col gap-1">
-                                    <span class="text-[9px] font-bold text-slate-400">🇺🇸 English</span>
-                                    <textarea name="descripcion_larga_en" id="edit-tour-detalle-en" rows="4" class="w-full rounded-lg border border-slate-200 bg-white p-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white"></textarea>
-                                </div>
-                                <div class="flex flex-col gap-1">
-                                    <span class="text-[9px] font-bold text-slate-400">🇨🇳 中文</span>
-                                    <textarea name="descripcion_larga_zh" id="edit-tour-detalle-zh" rows="4" class="w-full rounded-lg border border-slate-200 bg-white p-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white"></textarea>
-                                </div>
-                            </div>
+                            <textarea name="descripcion_larga_es" id="edit-tour-detalle-es" required rows="4" class="w-full rounded-lg border border-slate-200 bg-white p-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white"></textarea>
+                            <p class="text-[9px] text-slate-400">Se re-traducirá automáticamente a inglés, chino, coreano, portugués, francés y alemán al guardar.</p>
                         </div>
 
-                        <!-- Duración (por idioma) -->
+                        <!-- Duración -->
                         <div class="flex flex-col gap-1.5">
                             <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Duración</label>
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                                <div class="flex flex-col gap-1">
-                                    <span class="text-[9px] font-bold text-slate-400">🇲🇽 Español</span>
-                                    <input type="text" name="duracion_es" id="edit-tour-duracion-es" required class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
-                                </div>
-                                <div class="flex flex-col gap-1">
-                                    <span class="text-[9px] font-bold text-slate-400">🇺🇸 English</span>
-                                    <input type="text" name="duracion_en" id="edit-tour-duracion-en" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
-                                </div>
-                                <div class="flex flex-col gap-1">
-                                    <span class="text-[9px] font-bold text-slate-400">🇨🇳 中文</span>
-                                    <input type="text" name="duracion_zh" id="edit-tour-duracion-zh" class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
-                                </div>
-                            </div>
+                            <input type="text" name="duracion_es" id="edit-tour-duracion-es" required class="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 focus:border-brand-teal focus:bg-white">
+                            <p class="text-[9px] text-slate-400">Se re-traducirá automáticamente a inglés, chino, coreano, portugués, francés y alemán al guardar.</p>
                         </div>
 
                         <!-- Condiciones Financieras y Logística -->
@@ -3723,19 +3624,11 @@
 
             // Población de campos estándar
             document.getElementById('edit-tour-titulo-es').value = tituloIdiomas.es || '';
-            document.getElementById('edit-tour-titulo-en').value = tituloIdiomas.en || '';
-            document.getElementById('edit-tour-titulo-zh').value = tituloIdiomas.zh || '';
             document.getElementById('edit-tour-resumen-es').value = resumenIdiomas.es || '';
-            document.getElementById('edit-tour-resumen-en').value = resumenIdiomas.en || '';
-            document.getElementById('edit-tour-resumen-zh').value = resumenIdiomas.zh || '';
             document.getElementById('edit-tour-detalle-es').value = detalleIdiomas.es || '';
-            document.getElementById('edit-tour-detalle-en').value = detalleIdiomas.en || '';
-            document.getElementById('edit-tour-detalle-zh').value = detalleIdiomas.zh || '';
             document.getElementById('edit-tour-precio').value = precio;
             document.getElementById('edit-tour-cupo-maximo').value = cupoMaximo;
             document.getElementById('edit-tour-duracion-es').value = duracionIdiomas.es || '';
-            document.getElementById('edit-tour-duracion-en').value = duracionIdiomas.en || '';
-            document.getElementById('edit-tour-duracion-zh').value = duracionIdiomas.zh || '';
             document.getElementById('edit-tour-ubicacion').value = ubicacion;
             document.getElementById('edit-tour-pais').value = pais;
             document.getElementById('edit-tour-proveedor').value = proveedorId;

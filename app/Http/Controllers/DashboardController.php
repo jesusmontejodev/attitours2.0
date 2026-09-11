@@ -21,6 +21,7 @@ use App\Models\TourDisponibilidadSync;
 use App\Models\TourImportado;
 use App\Models\User;
 use App\Services\TourAvailabilitySyncService;
+use App\Services\TranslationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -347,18 +348,10 @@ class DashboardController extends Controller
 
         $request->validate([
             'titulo_es' => 'required|string|max:150',
-            'titulo_en' => 'nullable|string|max:150',
-            'titulo_zh' => 'nullable|string|max:150',
             'descripcion_corta_es' => 'required|string',
-            'descripcion_corta_en' => 'nullable|string',
-            'descripcion_corta_zh' => 'nullable|string',
             'descripcion_larga_es' => 'required|string',
-            'descripcion_larga_en' => 'nullable|string',
-            'descripcion_larga_zh' => 'nullable|string',
             'precio_base_usd' => 'required|numeric|min:1',
             'duracion_es' => 'required|string|max:50',
-            'duracion_en' => 'nullable|string|max:50',
-            'duracion_zh' => 'nullable|string|max:50',
             'ubicacion' => 'required|string|max:100',
             'punto_encuentro' => 'nullable|string',
             'punto_encuentro_lat' => 'nullable|numeric|between:-90,90',
@@ -430,35 +423,29 @@ class DashboardController extends Controller
             $tarifasPrivadas = json_decode($request->input('tarifas_privadas'), true);
         }
 
+        // Se traducen los 4 campos multi-idioma en una sola tanda (todas las peticiones HTTP a
+        // Google Translate en paralelo) en vez de uno por uno, para no exceder el tiempo máximo
+        // de ejecución de PHP con las ~24 peticiones (4 campos × 6 idiomas) que esto implica.
+        $traducciones = TranslationService::traducirCamposDesdeEspanol([
+            'titulo' => $request->input('titulo_es'),
+            'descripcion_corta' => $request->input('descripcion_corta_es'),
+            'descripcion_larga' => $request->input('descripcion_larga_es'),
+            'duracion' => $request->input('duracion_es'),
+        ]);
+
         $datosTour = [
             'id' => $id,
             'proveedor_id' => $request->input('proveedor_id'),
-            'titulo' => [
-                'es' => $request->input('titulo_es'),
-                'en' => $request->input('titulo_en', ''),
-                'zh' => $request->input('titulo_zh', ''),
-            ],
-            'descripcion_corta' => [
-                'es' => $request->input('descripcion_corta_es'),
-                'en' => $request->input('descripcion_corta_en', ''),
-                'zh' => $request->input('descripcion_corta_zh', ''),
-            ],
-            'descripcion_larga' => [
-                'es' => $request->input('descripcion_larga_es'),
-                'en' => $request->input('descripcion_larga_en', ''),
-                'zh' => $request->input('descripcion_larga_zh', ''),
-            ],
+            'titulo' => $traducciones['titulo'],
+            'descripcion_corta' => $traducciones['descripcion_corta'],
+            'descripcion_larga' => $traducciones['descripcion_larga'],
             'ubicacion' => $request->input('ubicacion'),
             'punto_encuentro' => $request->input('punto_encuentro'),
             'punto_encuentro_lat' => $request->filled('punto_encuentro_lat') ? (float)$request->input('punto_encuentro_lat') : null,
             'punto_encuentro_lng' => $request->filled('punto_encuentro_lng') ? (float)$request->input('punto_encuentro_lng') : null,
             'pais' => $request->input('pais'),
             'precio_base_usd' => (float)$request->input('precio_base_usd'),
-            'duracion' => [
-                'es' => $request->input('duracion_es'),
-                'en' => $request->input('duracion_en', ''),
-                'zh' => $request->input('duracion_zh', ''),
-            ],
+            'duracion' => $traducciones['duracion'],
             'imagen_destacada' => $imagenDefault,
             'galeria' => $galeria,
             'galeria_experiencias' => $galeriaExperiencias,
@@ -1104,18 +1091,10 @@ class DashboardController extends Controller
 
         $request->validate([
             'titulo_es' => 'required|string|max:150',
-            'titulo_en' => 'nullable|string|max:150',
-            'titulo_zh' => 'nullable|string|max:150',
             'descripcion_corta_es' => 'required|string',
-            'descripcion_corta_en' => 'nullable|string',
-            'descripcion_corta_zh' => 'nullable|string',
             'descripcion_larga_es' => 'required|string',
-            'descripcion_larga_en' => 'nullable|string',
-            'descripcion_larga_zh' => 'nullable|string',
             'precio_base_usd' => 'required|numeric|min:1',
             'duracion_es' => 'required|string|max:50',
-            'duracion_en' => 'nullable|string|max:50',
-            'duracion_zh' => 'nullable|string|max:50',
             'ubicacion' => 'required|string|max:100',
             'punto_encuentro' => 'nullable|string',
             'punto_encuentro_lat' => 'nullable|numeric|between:-90,90',
@@ -1160,23 +1139,21 @@ class DashboardController extends Controller
             $tarifasPrivadas = json_decode($request->input('tarifas_privadas'), true);
         }
 
+        // Se traducen los 4 campos multi-idioma en una sola tanda (todas las peticiones HTTP a
+        // Google Translate en paralelo) en vez de uno por uno, para no exceder el tiempo máximo
+        // de ejecución de PHP con las ~24 peticiones (4 campos × 6 idiomas) que esto implica.
+        $traducciones = TranslationService::traducirCamposDesdeEspanol([
+            'titulo' => $request->input('titulo_es'),
+            'descripcion_corta' => $request->input('descripcion_corta_es'),
+            'descripcion_larga' => $request->input('descripcion_larga_es'),
+            'duracion' => $request->input('duracion_es'),
+        ]);
+
         $tour->update([
             'proveedor_id' => $request->input('proveedor_id'),
-            'titulo' => [
-                'es' => $request->input('titulo_es'),
-                'en' => $request->input('titulo_en', ''),
-                'zh' => $request->input('titulo_zh', ''),
-            ],
-            'descripcion_corta' => [
-                'es' => $request->input('descripcion_corta_es'),
-                'en' => $request->input('descripcion_corta_en', ''),
-                'zh' => $request->input('descripcion_corta_zh', ''),
-            ],
-            'descripcion_larga' => [
-                'es' => $request->input('descripcion_larga_es'),
-                'en' => $request->input('descripcion_larga_en', ''),
-                'zh' => $request->input('descripcion_larga_zh', ''),
-            ],
+            'titulo' => $traducciones['titulo'],
+            'descripcion_corta' => $traducciones['descripcion_corta'],
+            'descripcion_larga' => $traducciones['descripcion_larga'],
             'ubicacion' => $request->input('ubicacion'),
             'punto_encuentro' => $request->input('punto_encuentro'),
             'punto_encuentro_lat' => $request->filled('punto_encuentro_lat') ? (float)$request->input('punto_encuentro_lat') : null,
@@ -1184,11 +1161,7 @@ class DashboardController extends Controller
             'pais' => $request->input('pais'),
             'precio_base_usd' => (float)$request->input('precio_base_usd'),
             'cupo_maximo' => (int)$request->input('cupo_maximo', $tour->cupo_maximo),
-            'duracion' => [
-                'es' => $request->input('duracion_es'),
-                'en' => $request->input('duracion_en', ''),
-                'zh' => $request->input('duracion_zh', ''),
-            ],
+            'duracion' => $traducciones['duracion'],
             'imagen_destacada' => $imagenDefault,
             'tags' => $tags,
             'itinerario' => trim((string) $request->input('itinerario', '')),
