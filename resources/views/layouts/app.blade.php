@@ -197,15 +197,15 @@
                                     </svg>
                                     {{ __('qrScannerLabel') }}
                                 </a>
-                                @if(Auth::user()->isAdmin())
+                                @if(Auth::user()->isAdmin() || Auth::user()->isProveedor())
                                     <a href="{{ route('dashboard.mensajes.index') }}"
                                        class="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold hover:bg-slate-50 text-slate-700 transition-colors">
                                         <svg class="h-4 w-4 text-brand-teal" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
                                         </svg>
                                         {{ __('messagesNavLabel') }}
-                                        @if(($mensajesNoLeidosAdmin ?? 0) > 0)
-                                            <span class="ml-auto px-1.5 py-0.5 rounded-full bg-rose-500 text-white text-[9px] font-black">{{ $mensajesNoLeidosAdmin }}</span>
+                                        @if(($mensajesNoLeidosPanel ?? 0) > 0)
+                                            <span class="ml-auto px-1.5 py-0.5 rounded-full bg-rose-500 text-white text-[9px] font-black">{{ $mensajesNoLeidosPanel }}</span>
                                         @endif
                                     </a>
                                 @endif
@@ -326,12 +326,12 @@
                        class="px-3 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-50 text-slate-700">
                         {{ __('qrScannerLabel') }}
                     </a>
-                    @if(Auth::user()->isAdmin())
+                    @if(Auth::user()->isAdmin() || Auth::user()->isProveedor())
                         <a href="{{ route('dashboard.mensajes.index') }}"
                            class="px-3 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-50 text-slate-700 flex items-center justify-between">
                             {{ __('messagesNavLabel') }}
-                            @if(($mensajesNoLeidosAdmin ?? 0) > 0)
-                                <span class="px-1.5 py-0.5 rounded-full bg-rose-500 text-white text-[9px] font-black">{{ $mensajesNoLeidosAdmin }}</span>
+                            @if(($mensajesNoLeidosPanel ?? 0) > 0)
+                                <span class="px-1.5 py-0.5 rounded-full bg-rose-500 text-white text-[9px] font-black">{{ $mensajesNoLeidosPanel }}</span>
                             @endif
                         </a>
                     @endif
@@ -417,8 +417,8 @@
                 <div>
                     <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700 mb-4">{{ __('legalLabel') }}</h3>
                     <ul class="flex flex-col gap-2 text-xs font-semibold text-slate-500">
-                        <li><a href="#" class="hover:text-brand-teal transition-colors">{{ __('terms') }}</a></li>
-                        <li><a href="#" class="hover:text-brand-teal transition-colors">{{ __('privacy') }}</a></li>
+                        <li><a href="{{ route('legal.terminos') }}" class="hover:text-brand-teal transition-colors">{{ __('terms') }}</a></li>
+                        <li><a href="{{ route('legal.privacidad') }}" class="hover:text-brand-teal transition-colors">{{ __('privacy') }}</a></li>
                     </ul>
                 </div>
             </div>
@@ -448,6 +448,40 @@
             </div>
         </div>
     </footer>
+
+    {{-- Aviso de privacidad y términos al entrar por primera vez. Se recuerda en localStorage
+         (versión incluida, para volver a mostrarlo si cambian los documentos); si el navegador
+         no permite localStorage, simplemente se vuelve a mostrar. --}}
+    <div id="legal-banner" class="hidden fixed inset-x-0 bottom-0 z-50 p-4">
+        <div class="mx-auto max-w-4xl flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-2xl">
+            <p class="text-xs text-slate-600 font-semibold leading-relaxed flex-1">
+                {{ __('legalBannerText') }}
+                <a href="{{ route('legal.terminos') }}" class="text-brand-teal font-bold underline underline-offset-2">{{ __('terms') }}</a>
+                {{ __('legalAcceptAnd') }}
+                <a href="{{ route('legal.privacidad') }}" class="text-brand-teal font-bold underline underline-offset-2">{{ __('privacy') }}</a>.
+            </p>
+            <button type="button" id="legal-banner-btn"
+                class="shrink-0 h-10 px-6 rounded-xl bg-gradient-to-r from-brand-teal to-brand-teal-hover text-xs font-bold uppercase tracking-wider text-white shadow-md cursor-pointer hover:opacity-95 transition-all">
+                {{ __('legalBannerAccept') }}
+            </button>
+        </div>
+    </div>
+    <script>
+        (function () {
+            const key = 'attitour_legal_aceptado';
+            const version = @json(config('legal.version'));
+            const banner = document.getElementById('legal-banner');
+            let visto = null;
+            try { visto = localStorage.getItem(key); } catch (e) {}
+            if (visto === version) return;
+
+            banner.classList.remove('hidden');
+            document.getElementById('legal-banner-btn').addEventListener('click', () => {
+                try { localStorage.setItem(key, version); } catch (e) {}
+                banner.classList.add('hidden');
+            });
+        })();
+    </script>
 
     <!-- INTERACTIVIDAD JS GENERAL -->
     <script>

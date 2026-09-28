@@ -298,5 +298,10 @@
     "testimonial2Text": "\"A excursão a Tulum e ao cenote sagrado foi incrível! O guia explicou tudo detalhadamente e o buffet de almoço foi delicioso. Também nadamos em um misterioso cenote natural, uma experiência extraordinária. Recomendo fortemente o Attitour!\"",
     "testimonial2Location": "China",
     "testimonial3Text": "\"Isla Contoy é um paraíso absoluto! É completamente virgem e selvagem. A quantidade de pássaros nidificando foi incrível de se ver. Muito obrigado ao guia biólogo por explicar tão bem o ecossistema. Vale cada dólar.\"",
-    "testimonial3Location": "EUA"
+    "testimonial3Location": "EUA",
+    "legalAcceptPrefix": "Aceito os",
+    "legalAcceptAnd": "e as",
+    "legalAcceptRequired": "Você deve aceitar os Termos e Condições e a Política de Privacidade para continuar.",
+    "legalBannerText": "Usamos cookies essenciais para o funcionamento do site. Ao continuar navegando, você aceita nossos",
+    "legalBannerAccept": "Entendi"
 }

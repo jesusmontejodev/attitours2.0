@@ -264,5 +264,10 @@
   "testimonial2Text": "\"图伦古城和圣井的行程太棒了！导游讲解非常详细，午餐自助非常美味。我们还在神秘的天然井中游泳，这是一次超凡的体验。强烈推荐 Attitour！\"",
   "testimonial2Location": "中国",
   "testimonial3Text": "\"孔多伊岛简直是天堂！这里完全未被开发，充满野性之美。筑巢的鸟类数量令人惊叹。非常感谢生物学家向导对生态系统的精彩讲解。物超所值。\"",
-  "testimonial3Location": "美国"
+  "testimonial3Location": "美国",
+  "legalAcceptPrefix": "我接受",
+  "legalAcceptAnd": "和",
+  "legalAcceptRequired": "您必须接受条款和条件及隐私政策才能继续。",
+  "legalBannerText": "我们使用必要的 Cookie 以确保网站正常运行。继续浏览即表示您接受我们的",
+  "legalBannerAccept": "知道了"
 }

@@ -113,7 +113,9 @@ class AuthController extends Controller
             'telefono'              => 'nullable|string|max:30',
             'pais'                  => 'nullable|string|max:80',
             'password'              => 'required|string|min:6|confirmed',
+            'acepta_terminos'       => 'accepted',
         ], [
+            'acepta_terminos.accepted' => __('legalAcceptRequired'),
             'name.required'         => 'El nombre es obligatorio.',
             'email.required'        => 'El correo es obligatorio.',
             'email.unique'          => 'Este correo ya está registrado. Inicia sesión.',
@@ -128,6 +130,8 @@ class AuthController extends Controller
             'tipo'      => 'C',
             'telefono'  => $request->input('telefono'),
             'pais'      => $request->input('pais'),
+            'terminos_aceptados_at' => now(),
+            'terminos_version'      => config('legal.version'),
         ]);
 
         Auth::login($user);

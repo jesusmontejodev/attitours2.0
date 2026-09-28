@@ -4,8 +4,9 @@
  * @description Plantilla HTML del correo de confirmación de reserva. Rediseño en estilo claro/corporativo
  *              (fondo blanco, acentos de marca teal/naranja) inspirado en la identidad visual del sitio.
  *              Incluye el ticket virtual con todos los detalles del tour, el QR único de asistencia y la
- *              sección de credenciales si se le ha creado una cuenta.
- * @date 2026-08-21
+ *              sección de credenciales si se le ha creado una cuenta. Cada tour muestra el correo y
+ *              teléfono del proveedor que lo opera para que el cliente pueda contactarlo.
+ * @date 2026-09-28
  * @author Antigravity
 -->
 <html lang="es">
@@ -200,6 +201,14 @@
                     @if($det->horario) 🕘 Horario: <span>{{ $det->horario }}</span><br> @endif
                     👥 Personas: <span>{{ $det->cantidad_personas }}</span>
                 </div>
+                @php $prov = $det->tour?->proveedor; @endphp
+                @if($prov)
+                <div class="tour-meta" style="margin-top:8px; padding-top:8px; border-top:1px solid #e2e8f0;">
+                    🧭 Operado por: <span>{{ $prov->nombre_empresa }}</span><br>
+                    @if($prov->correo) ✉️ Correo: <a href="mailto:{{ $prov->correo }}" style="color:#007a63; font-weight:600; text-decoration:none;">{{ $prov->correo }}</a><br> @endif
+                    @if($prov->representante_telefono) 📞 Teléfono: <a href="tel:{{ preg_replace('/[^\d+]/', '', $prov->representante_telefono) }}" style="color:#007a63; font-weight:600; text-decoration:none;">{{ $prov->representante_telefono }}</a> @endif
+                </div>
+                @endif
             </div>
             @endforeach
 

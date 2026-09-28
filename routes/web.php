@@ -33,6 +33,10 @@ Route::get('/tours', [HomeController::class, 'catalog'])->name('catalog');
 Route::get('/tours/{id}', [TourController::class, 'show'])->name('tours.show');
 Route::get('/tours/{id}/availability', [TourController::class, 'checkAvailability'])->name('tours.availability');
 
+// Documentos legales (contenido en resources/views/legal, datos del responsable en config/legal.php)
+Route::view('/terminos-y-condiciones', 'legal.terminos')->name('legal.terminos');
+Route::view('/aviso-de-privacidad', 'legal.privacidad')->name('legal.privacidad');
+
 // ==========================================
 // RUTAS DEL CARRITO DE COMPRAS
 // ==========================================

@@ -624,6 +624,12 @@ function closeQrModal() {
 
 let chatReservaId = null;
 
+function escapeHtml(texto) {
+    const div = document.createElement('div');
+    div.textContent = texto ?? '';
+    return div.innerHTML;
+}
+
 function openChatModal(reservaId, code) {
     chatReservaId = reservaId;
     document.getElementById('chat-modal-code').textContent = code;
@@ -648,7 +654,7 @@ function cargarMensajesChat() {
 
         const proveedoresEl = document.getElementById('chat-proveedores');
         proveedoresEl.innerHTML = data.proveedores.map(p => `
-            <span class="text-[10px] font-semibold text-slate-500">${p.tour_nombre}: ${p.contacto_visible}</span>
+            <span class="text-[10px] font-semibold text-slate-500">${escapeHtml(p.tour_nombre)}: ${escapeHtml(p.contacto_visible)}</span>
         `).join('');
 
         const mensajesEl = document.getElementById('chat-mensajes');
@@ -660,7 +666,7 @@ function cargarMensajesChat() {
                 return `
                     <div class="flex ${esCliente ? 'justify-end' : 'justify-start'}">
                         <div class="max-w-[80%] px-3 py-2 rounded-xl text-xs font-semibold ${esCliente ? 'bg-brand-teal/10 text-brand-teal' : 'bg-slate-100 text-slate-800'}">
-                            <p>${m.cuerpo}</p>
+                            <p class="whitespace-pre-line">${escapeHtml(m.cuerpo)}</p>
                             <span class="block text-[9px] mt-1 opacity-60">${m.created_at}</span>
                         </div>
                     </div>

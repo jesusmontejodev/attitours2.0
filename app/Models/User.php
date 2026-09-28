@@ -19,7 +19,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'password', 'tipo', 'telefono', 'pais', 'proveedor_id', 'foto_perfil'])]
+#[Fillable(['name', 'email', 'password', 'tipo', 'telefono', 'pais', 'proveedor_id', 'foto_perfil', 'terminos_aceptados_at', 'terminos_version'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements MustVerifyEmail
 {

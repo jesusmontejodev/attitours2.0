@@ -64,6 +64,9 @@ class CheckoutController extends Controller
             'email' => 'required|email|max:100',
             'codigo_pais' => 'required|string|max:5|regex:/^\+[0-9]{1,4}$/',
             'telefono' => 'required|string|max:30',
+            'acepta_terminos' => 'accepted',
+        ], [
+            'acepta_terminos.accepted' => __('legalAcceptRequired'),
         ]);
 
         $telefonoCompleto = trim($request->input('codigo_pais') . ' ' . $request->input('telefono'));
@@ -151,6 +154,8 @@ class CheckoutController extends Controller
                     'fecha_reserva'               => now(),
                     'ticket_codigo'               => $ticketCodigo,
                     'qr_token'                    => Reserva::generarQrToken(0, $ticketCodigo), // id=0 temporal
+                    'terminos_aceptados_at'       => now(),
+                    'terminos_version'            => config('legal.version'),
                 ]);
 
                 // Actualizar el qr_token con el ID real ya conocido

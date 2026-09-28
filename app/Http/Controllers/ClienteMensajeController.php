@@ -1,10 +1,10 @@
 <?php
 /**
  * @file ClienteMensajeController.php
- * @description Controlador del chat interno del cliente con el proveedor de su reserva. El
- *              proveedor nunca participa directamente: sus mensajes los redacta el admin desde
- *              AdminMensajeController, y el contacto real del proveedor nunca se expone aquí.
- * @date 2026-08-21
+ * @description Controlador del chat interno del cliente con el proveedor de su reserva. Las
+ *              respuestas las redacta el admin (como proxy) o el propio proveedor desde su panel,
+ *              ambos vía AdminMensajeController. El contacto real del proveedor nunca se expone aquí.
+ * @date 2026-09-28
  * @author Antigravity
  */
 
@@ -133,7 +133,7 @@ class ClienteMensajeController extends Controller
         }
 
         Mensaje::where('reserva_id', $reservaModel->id)
-            ->where('remitente_tipo', 'admin_como_proveedor')
+            ->whereIn('remitente_tipo', Mensaje::REMITENTES_PROVEEDOR)
             ->update(['leido_por_cliente' => true]);
 
         return response()->json(['success' => true]);

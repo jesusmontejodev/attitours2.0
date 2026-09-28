@@ -2,10 +2,11 @@
 
 <!--
  * @file mensajes.blade.php
- * @description Panel admin de mensajería: lista de hilos cliente-proveedor a la izquierda,
+ * @description Panel de mensajería: lista de hilos cliente-proveedor a la izquierda,
  *              conversación seleccionada a la derecha. El admin responde en nombre del
- *              proveedor y ve su contacto real (nunca expuesto al cliente).
- * @date 2026-08-21
+ *              proveedor y ve su contacto real (nunca expuesto al cliente). El proveedor ve
+ *              solo las reservas de sus tours y responde directamente al cliente.
+ * @date 2026-09-28
  * @author Antigravity
 -->
 
@@ -24,7 +25,11 @@
                     Mensajes
                 </h1>
                 <p class="text-xs text-slate-500 mt-1 font-semibold">
-                    Chat con los clientes. Respondes en nombre del proveedor — su contacto real nunca se muestra al cliente.
+                    @if($esAdmin)
+                        Chat con los clientes. Respondes en nombre del proveedor — su contacto real nunca se muestra al cliente.
+                    @else
+                        Chat con los clientes que reservaron tus tours. Tus respuestas le llegan al cliente en la app y por correo.
+                    @endif
                 </p>
             </div>
         </div>
@@ -62,7 +67,7 @@
                                 @endif
                             </button>
                         @empty
-                            <p class="text-xs text-slate-400 font-semibold px-2 py-6 text-center">Aún no hay mensajes de clientes.</p>
+                            <p class="text-xs text-slate-400 font-semibold px-2 py-6 text-center">{{ $esAdmin ? 'Aún no hay mensajes de clientes.' : 'Aún no hay reservas ni mensajes de tus tours.' }}</p>
                         @endforelse
                     </div>
                 </div>
@@ -78,22 +83,24 @@
                     <div id="hilo-detail" class="hidden">
                         <h2 id="hilo-titulo" class="text-xs font-bold uppercase tracking-widest text-slate-800 border-b border-slate-200 pb-3 mb-4"></h2>
 
-                        {{-- Contacto real del proveedor: SOLO visible aquí, admin-only --}}
+                        {{-- Admin: contacto real del proveedor. Proveedor: sus tours en esta reserva y datos del cliente. --}}
                         <div id="hilo-proveedores" class="flex flex-col gap-2 mb-4"></div>
 
                         <div id="hilo-mensajes" class="flex flex-col gap-3 max-h-[40vh] overflow-y-auto mb-5 pr-1"></div>
 
                         <div class="border-t border-slate-200 pt-4 flex flex-col gap-2">
+                            @if($esAdmin)
                             <label class="text-[9px] font-black uppercase tracking-widest text-slate-500">
                                 Contacto real usado para reenviar (auditoría interna, no se muestra al cliente)
                             </label>
                             <input type="text" id="input-contacto-destino" placeholder="Teléfono o correo real del proveedor..."
                                 class="h-10 rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs text-slate-800 placeholder-slate-400 focus:border-brand-teal focus:bg-white focus:outline-none transition-colors">
+                            @endif
 
                             <label class="text-[9px] font-black uppercase tracking-widest text-slate-500 mt-2">
                                 Respuesta (visible para el cliente)
                             </label>
-                            <textarea id="input-cuerpo" rows="3" placeholder="Escribe la respuesta del proveedor..."
+                            <textarea id="input-cuerpo" rows="3" placeholder="{{ $esAdmin ? 'Escribe la respuesta del proveedor...' : 'Escribe tu respuesta al cliente...' }}"
                                 class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-800 placeholder-slate-400 focus:border-brand-teal focus:bg-white focus:outline-none transition-colors resize-none"></textarea>
 
                             <button onclick="enviarRespuesta()"
@@ -109,6 +116,19 @@
 
     <script>
         let hiloActivoId = null;
+        const esAdmin = @json($esAdmin);
+
+        function escapeHtml(texto) {
+            const div = document.createElement('div');
+            div.textContent = texto ?? '';
+            return div.innerHTML;
+        }
+
+        const etiquetaRemitente = {
+            cliente: 'Cliente',
+            admin_como_proveedor: 'Attitour',
+            proveedor: 'Proveedor',
+        };
 
         function abrirHilo(reservaId, btn) {
             hiloActivoId = reservaId;
@@ -130,25 +150,42 @@
                 document.getElementById('hilo-titulo').textContent = data.reserva.nombre_cliente + ' — ' + data.reserva.ticket_codigo;
 
                 const proveedoresEl = document.getElementById('hilo-proveedores');
-                proveedoresEl.innerHTML = data.proveedores.map(p => `
-                    <div class="px-3 py-2 rounded-lg bg-amber-50 border border-amber-200 text-[10px] font-semibold text-amber-800">
-                        <span class="font-black">${p.tour_nombre}</span> — ${p.proveedor_nombre}<br>
-                        Contacto real: ${p.representante_telefono || '—'} ${p.correo ? '· ' + p.correo : ''}
-                    </div>
-                `).join('');
+                if (esAdmin) {
+                    proveedoresEl.innerHTML = data.proveedores.map(p => `
+                        <div class="px-3 py-2 rounded-lg bg-amber-50 border border-amber-200 text-[10px] font-semibold text-amber-800">
+                            <span class="font-black">${escapeHtml(p.tour_nombre)}</span> — ${escapeHtml(p.proveedor_nombre)}<br>
+                            Contacto real: ${escapeHtml(p.representante_telefono || '—')} ${p.correo ? '· ' + escapeHtml(p.correo) : ''}
+                        </div>
+                    `).join('');
 
-                if (data.proveedores.length > 0 && !document.getElementById('input-contacto-destino').value) {
-                    document.getElementById('input-contacto-destino').value = data.proveedores[0].representante_telefono || '';
+                    const contactoInput = document.getElementById('input-contacto-destino');
+                    if (data.proveedores.length > 0 && !contactoInput.value) {
+                        contactoInput.value = data.proveedores[0].representante_telefono || '';
+                    }
+                } else {
+                    proveedoresEl.innerHTML = `
+                        <div class="px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 text-[10px] font-semibold text-slate-700">
+                            Cliente: <span class="font-black">${escapeHtml(data.reserva.nombre_cliente)}</span>
+                            ${data.reserva.correo_cliente ? '· ' + escapeHtml(data.reserva.correo_cliente) : ''}
+                            ${data.reserva.telefono_cliente ? '· ' + escapeHtml(data.reserva.telefono_cliente) : ''}
+                        </div>
+                    ` + data.proveedores.map(p => `
+                        <div class="px-3 py-2 rounded-lg bg-brand-teal/5 border border-brand-teal/20 text-[10px] font-semibold text-slate-700">
+                            <span class="font-black">${escapeHtml(p.tour_nombre)}</span> — ${escapeHtml(p.fecha)}${p.horario ? ' ' + escapeHtml(p.horario) : ''} · ${p.personas} pax
+                        </div>
+                    `).join('');
                 }
 
                 const mensajesEl = document.getElementById('hilo-mensajes');
-                mensajesEl.innerHTML = data.mensajes.map(m => {
+                mensajesEl.innerHTML = data.mensajes.length === 0
+                    ? `<p class="text-[11px] text-slate-400 font-semibold text-center py-6">Aún no hay mensajes. Puedes escribirle primero al cliente.</p>`
+                    : data.mensajes.map(m => {
                     const esCliente = m.remitente_tipo === 'cliente';
                     return `
                         <div class="flex ${esCliente ? 'justify-start' : 'justify-end'}">
                             <div class="max-w-[75%] px-3 py-2 rounded-xl text-xs font-semibold ${esCliente ? 'bg-slate-100 text-slate-800' : 'bg-brand-teal/10 text-brand-teal'}">
-                                <p>${m.cuerpo}</p>
-                                <span class="block text-[9px] mt-1 opacity-60">${m.created_at}</span>
+                                <p class="whitespace-pre-line">${escapeHtml(m.cuerpo)}</p>
+                                <span class="block text-[9px] mt-1 opacity-60">${escapeHtml(etiquetaRemitente[m.remitente_tipo] || '')} · ${m.created_at}</span>
                             </div>
                         </div>
                     `;
@@ -170,7 +207,7 @@
                 },
                 body: JSON.stringify({
                     cuerpo: cuerpo,
-                    contacto_destino_usado: document.getElementById('input-contacto-destino').value.trim() || null,
+                    contacto_destino_usado: esAdmin ? (document.getElementById('input-contacto-destino').value.trim() || null) : null,
                 }),
             })
             .then(res => res.json())

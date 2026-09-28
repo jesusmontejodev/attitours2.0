@@ -179,6 +179,20 @@
                             </div>
                         </div>
 
+                        <div>
+                            <label class="flex items-start gap-2 text-xs text-slate-600 font-semibold cursor-pointer">
+                                <input type="checkbox" name="acepta_terminos" value="1" required {{ old('acepta_terminos') ? 'checked' : '' }}
+                                    class="mt-0.5 h-3.5 w-3.5 shrink-0 rounded border-slate-300 bg-slate-50 text-brand-teal focus:ring-brand-teal focus:ring-offset-white">
+                                <span>
+                                    {{ __('legalAcceptPrefix') }}
+                                    <a href="{{ route('legal.terminos') }}" target="_blank" class="text-brand-teal font-bold underline underline-offset-2">{{ __('terms') }}</a>
+                                    {{ __('legalAcceptAnd') }}
+                                    <a href="{{ route('legal.privacidad') }}" target="_blank" class="text-brand-teal font-bold underline underline-offset-2">{{ __('privacy') }}</a>
+                                </span>
+                            </label>
+                            @error('acepta_terminos')<p class="text-[10px] text-rose-650 font-bold mt-1">{{ $message }}</p>@enderror
+                        </div>
+
                         <button type="submit"
                             class="w-full h-11 inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-brand-orange to-brand-orange-hover hover:opacity-95 text-sm font-bold uppercase tracking-widest text-white shadow-md shadow-brand-orange/10 cursor-pointer transition-all hover:scale-[1.01]">
                             {{ __('createAccountBtn') }}

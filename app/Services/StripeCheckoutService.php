@@ -9,6 +9,7 @@
 namespace App\Services;
 
 use App\Jobs\NotificarReservaApiExternaJob;
+use App\Mail\NuevaReservaProveedor;
 use App\Mail\ReservaConfirmada;
 use App\Models\Reserva;
 use App\Models\TourFecha;
@@ -59,6 +60,9 @@ class StripeCheckoutService
                         'password'  => Hash::make($finalPassword),
                         'tipo'      => 'Cliente',
                         'telefono'  => $reserva->telefono_cliente,
+                        // El cliente aceptó términos y aviso de privacidad en el checkout
+                        'terminos_aceptados_at' => $reserva->terminos_aceptados_at,
+                        'terminos_version'      => $reserva->terminos_version,
                     ]);
                 }
 
@@ -73,7 +77,7 @@ class StripeCheckoutService
         });
 
         // Recargar relaciones y el usuario recién asociado
-        $reserva->loadMissing('user');
+        $reserva->loadMissing(['user', 'detalles.tour.proveedor']);
 
         try {
             Mail::to($reserva->correo_cliente)->send(new ReservaConfirmada($reserva, $tempPassword));
@@ -81,11 +85,34 @@ class StripeCheckoutService
             Log::warning('Error enviando correo de confirmación: ' . $mailEx->getMessage());
         }
 
+        $this->notificarProveedores($reserva);
+
         $this->notificarWebhookConfirmacion($reserva);
         $this->despacharNotificacionesApiExterna($reserva);
         $this->notificarWhatsapp($reserva);
 
         return $reserva->fresh(['detalles.tour']);
+    }
+
+    /**
+     * Envía un correo a cada proveedor involucrado en la reserva con solo los tours que le
+     * corresponden. No lanza excepciones: si falla un correo, no debe romper la confirmación
+     * del pago ni impedir que se notifique a los demás proveedores.
+     */
+    private function notificarProveedores(Reserva $reserva): void
+    {
+        $reserva->detalles
+            ->filter(fn ($detalle) => $detalle->tour?->proveedor?->correo)
+            ->groupBy(fn ($detalle) => $detalle->tour->proveedor_id)
+            ->each(function ($detalles) use ($reserva) {
+                $proveedor = $detalles->first()->tour->proveedor;
+
+                try {
+                    Mail::to($proveedor->correo)->send(new NuevaReservaProveedor($reserva, $proveedor, $detalles));
+                } catch (\Throwable $mailEx) {
+                    Log::warning("Error enviando correo de nueva reserva al proveedor {$proveedor->id}: " . $mailEx->getMessage());
+                }
+            });
     }
 
     /**

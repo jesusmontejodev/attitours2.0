@@ -38,6 +38,8 @@ class Reserva extends Model
         'asistencia_confirmada_por',
         'stripe_session_id',
         'stripe_payment_intent_id',
+        'terminos_aceptados_at',
+        'terminos_version',
     ];
 
     protected $casts = [
@@ -48,6 +50,7 @@ class Reserva extends Model
         'fecha_reserva'               => 'datetime',
         'asistencia_confirmada'       => 'boolean',
         'asistencia_confirmada_at'    => 'datetime',
+        'terminos_aceptados_at'       => 'datetime',
     ];
 
     // ─── Relaciones ──────────────────────────────────────────────────────────

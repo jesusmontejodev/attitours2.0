@@ -264,5 +264,10 @@
   "testimonial2Text": "\"The Tulum and sacred cenote tour was amazing! The guide explained everything in great detail and the buffet lunch was delicious. We also swam in a mysterious natural cenote — a truly extraordinary experience. Highly recommend Attitour!\"",
   "testimonial2Location": "China",
   "testimonial3Text": "\"Contoy Island is an absolute paradise! It is completely untouched and wild. The number of nesting birds was incredible to see. Big thanks to the biologist guide for explaining the ecosystem so well. Worth every dollar.\"",
-  "testimonial3Location": "United States"
+  "testimonial3Location": "United States",
+  "legalAcceptPrefix": "I accept the",
+  "legalAcceptAnd": "and the",
+  "legalAcceptRequired": "You must accept the Terms and Conditions and the Privacy Policy to continue.",
+  "legalBannerText": "We use essential cookies to make this site work. By continuing to browse you accept our",
+  "legalBannerAccept": "Got it"
 }

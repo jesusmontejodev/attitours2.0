@@ -27,11 +27,19 @@ class Mensaje extends Model
         'contacto_destino_usado',
         'leido_por_cliente',
         'leido_por_admin',
+        'leido_por_proveedor',
     ];
 
+    /**
+     * Remitentes que el cliente ve como "el proveedor": el admin respondiendo como proxy o el
+     * propio proveedor respondiendo desde su panel.
+     */
+    public const REMITENTES_PROVEEDOR = ['admin_como_proveedor', 'proveedor'];
+
     protected $casts = [
-        'leido_por_cliente' => 'boolean',
-        'leido_por_admin'   => 'boolean',
+        'leido_por_cliente'   => 'boolean',
+        'leido_por_admin'     => 'boolean',
+        'leido_por_proveedor' => 'boolean',
     ];
 
     public function reserva(): BelongsTo

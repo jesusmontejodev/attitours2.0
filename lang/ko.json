@@ -298,5 +298,10 @@
     "testimonial2Text": "\"툴룸과 신성한 세노테로의 여행은 정말 놀라웠습니다! 가이드는 모든 것을 아주 자세하게 설명했고 점심 뷔페는 맛있었습니다. 우리는 신비한 자연 세노테에서 수영도 했습니다. 특별한 경험이었습니다. Attitour를 적극 추천합니다!\"",
     "testimonial2Location": "중국",
     "testimonial3Text": "\"Isla Contoy는 절대 천국입니다! 완전히 원시적이고 야생입니다. 둥지를 틀고 있는 새의 수는 믿을 수 없을 정도로 많습니다. 생태계를 잘 설명해준 생물학자 가이드에게 깊은 감사를 드립니다. 1달러의 가치가 있습니다.\"",
-    "testimonial3Location": "미국"
+    "testimonial3Location": "미국",
+    "legalAcceptPrefix": "다음에 동의합니다:",
+    "legalAcceptAnd": "및",
+    "legalAcceptRequired": "계속하려면 이용약관 및 개인정보 처리방침에 동의해야 합니다.",
+    "legalBannerText": "사이트 운영에 필요한 쿠키를 사용합니다. 계속 이용하시면 다음에 동의하는 것으로 간주됩니다:",
+    "legalBannerAccept": "확인"
 }

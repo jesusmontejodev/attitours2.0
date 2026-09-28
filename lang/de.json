@@ -298,5 +298,10 @@
     "testimonial2Text": "„Der Ausflug nach Tulum und zur heiligen Cenote war unglaublich! Der Reiseleiter hat alles sehr detailliert erklärt und das Mittagsbuffet war köstlich. Wir sind auch in einer geheimnisvollen natürlichen Cenote geschwommen, ein außergewöhnliches Erlebnis. Ich kann Attitour wärmstens empfehlen!“",
     "testimonial2Location": "China",
     "testimonial3Text": "„Isla Contoy ist ein absolutes Paradies! Sie ist völlig unberührt und wild. Die Anzahl der nistenden Vögel war unglaublich zu sehen. Vielen Dank an den Biologenführer für die so gute Erklärung des Ökosystems. Es ist jeden Dollar wert.“",
-    "testimonial3Location": "USA"
+    "testimonial3Location": "USA",
+    "legalAcceptPrefix": "Ich akzeptiere die",
+    "legalAcceptAnd": "und die",
+    "legalAcceptRequired": "Sie müssen die Allgemeinen Geschäftsbedingungen und die Datenschutzerklärung akzeptieren, um fortzufahren.",
+    "legalBannerText": "Wir verwenden notwendige Cookies, damit diese Website funktioniert. Wenn Sie weitersurfen, akzeptieren Sie unsere",
+    "legalBannerAccept": "Verstanden"
 }
