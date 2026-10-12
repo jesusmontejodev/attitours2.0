@@ -71,13 +71,14 @@ class WhatsappNotificationService
     }
 
     /**
-     * Nombres de los tours de la reserva, unidos por coma (la plantilla solo admite un
+     * Nombres de los tours de la reserva en español (la plantilla es es_MX y el webhook de
+     * Stripe corre con el locale por defecto), unidos por coma (la plantilla solo admite un
      * único texto para "tour_name").
      */
     private function nombreTours(Reserva $reserva): string
     {
         return $reserva->detalles
-            ->map(fn ($detalle) => $detalle->tour->nombre ?? 'Tour')
+            ->map(fn ($detalle) => $detalle->tour?->getLocalizedField('titulo', 'es') ?: 'Tour')
             ->unique()
             ->implode(', ');
     }
